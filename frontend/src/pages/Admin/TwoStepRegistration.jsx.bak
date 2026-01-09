@@ -1,0 +1,50 @@
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    // Validate passwords match
+    if (formData.password !== formData.confirmPassword) {
+      toast.error('Passwords do not match');
+      return;
+    }
+    
+    // Validate subdomain
+    if (!domainAvailable) {
+      toast.error('Please choose an available company name');
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      // Prepare admin data with proper field mapping for backend
+      const adminData = {
+        username: formData.username,
+        subdomain: formData.subdomain,
+        email: formData.email,
+        password: formData.password,
+        confirmPassword: formData.confirmPassword,
+        businessType: 'Other', // Default value, can be enhanced later
+        phoneNumber: formData.mobileNo, // Map mobileNo to phoneNumber
+        flatShopNo: formData.flatShopNo,
+        street: formData.street,
+        pincode: formData.pincode,
+        city: formData.city,
+        district: formData.district,
+        state: formData.state,
+        country: formData.country,
+        website: formData.website,
+        gstNumber: formData.gstNumber
+      };
+      
+      const response = await registerAdmin(adminData);
+      toast.success(response.message || 'Registration successful! Your account has been created.');
+      // Redirect to login first to authenticate, then to client dashboard
+      setTimeout(() => {
+        navigate('/admin/login');
+      }, 1500); // Wait 1.5 seconds before redirecting to login
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Registration failed. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
