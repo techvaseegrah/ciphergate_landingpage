@@ -1,6 +1,4 @@
-import { useEffect } from 'react';
 import axios from 'axios';
-import { useAuth } from './useAuth';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
@@ -9,18 +7,21 @@ const api = axios.create({
   }
 });
 
-// Remove the interceptors from the exported function to avoid multiple registrations
-// Instead, just export the base API instance that can be used with auth context
-const requestInterceptor = api.interceptors.request.use(
+// List of routes that don't need a token (to suppress warnings)
+const publicRoutes = ['/auth/admin/subdomain-available', '/login', '/signup'];
+
+api.interceptors.request.use(
   (config) => {
-    // Prioritize context token, fallback to localStorage
-    const token = localStorage.getItem('token'); // Use localStorage directly for consistency
+    const token = localStorage.getItem('token');
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
-      console.log('Request Token:', token);
     } else {
-      console.warn('No token available for request');
+      // Only warn if the route is NOT in the publicRoutes list
+      const isPublic = publicRoutes.some(route => config.url.includes(route));
+      if (!isPublic) {
+        console.warn(`No token available for protected request: ${config.url}`);
+      }
     }
 
     return config;
@@ -28,35 +29,27 @@ const requestInterceptor = api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-const responseInterceptor = api.interceptors.response.use(
+api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Log detailed error information
-    console.error('API Error:', error);
-
     if (error.response) {
-      console.error('Error Response:', error.response.data);
-      console.error('Error Status:', error.response.status);
-
       // Automatically logout on 401 (Unauthorized) errors
       if (error.response.status === 401) {
-        console.warn('Unauthorized: Logging out');
         localStorage.removeItem('token');
         localStorage.removeItem('user');
-        // Don't call logout() here to avoid circular dependency
-        window.location.href = '/admin/login';
+        
+        // Prevent redirect loop if already on login page
+        if (!window.location.pathname.includes('/login')) {
+          window.location.href = '/admin/login';
+        }
       }
     }
-
     return Promise.reject(error);
   }
 );
 
 export const useAxios = () => {
-  const { user, logout } = useAuth();
-
-  // This hook is primarily used to provide access to the configured API instance
-  // The interceptors are already set up globally above
+  // You can still keep the hook to access context if needed later
   return api;
 };
 
