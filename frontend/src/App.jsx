@@ -52,26 +52,38 @@ import HolidayManagement from './components/admin/HolidayManagement';
 
 function App() {
   // Initialize subdomain with the actual value from localStorage immediately
-  const [subdomain, setSubdomain] = useState(() => {
-    const stored = localStorage.getItem('tasktracker-subdomain');
-    console.log('DEBUG: Initial subdomain from localStorage:', stored);
-    return stored || 'main'; // Default to 'main' instead of null
-  });
+const [subdomain, setSubdomain] = useState(() => {
+  const stored = localStorage.getItem('tasktracker-subdomain');
+  if (stored) return stored;
+
+  // Auto-detect from URL (e.g., companya.ciphergate.in)
+  const host = window.location.hostname;
+  const parts = host.split('.');
+  
+  // If the URL has a subdomain and isn't 'www' or 'localhost'
+  if (parts.length > 2 && parts[0] !== 'www' && parts[0] !== 'ciphergate') {
+    return parts[0];
+  }
+  
+  return 'main';
+});
 
   const getSubdomain = () => {
     return localStorage.getItem('tasktracker-subdomain') || 'main';
   };
 
   // Custom function to update subdomain and localStorage
-  const updateSubdomain = (newSubdomain) => {
-    console.log('DEBUG: Updating subdomain to:', newSubdomain);
-    if (newSubdomain && newSubdomain !== 'main') {
-      localStorage.setItem('tasktracker-subdomain', newSubdomain);
-    } else {
-      localStorage.removeItem('tasktracker-subdomain');
-    }
-    setSubdomain(newSubdomain || 'main');
-  };
+const updateSubdomain = (newSubdomain) => {
+  const valueToStore = (newSubdomain && newSubdomain !== 'main') ? newSubdomain : null;
+  
+  if (valueToStore) {
+    localStorage.setItem('tasktracker-subdomain', valueToStore);
+  } else {
+    localStorage.removeItem('tasktracker-subdomain');
+  }
+  
+  setSubdomain(valueToStore || 'main');
+};
 
   // Monitor localStorage changes and subdomain updates
   useEffect(() => {
@@ -195,5 +207,6 @@ function App() {
     </appContext.Provider>
   );
 }
+
 
 export default App;
