@@ -81,7 +81,12 @@ export default {
         workflowStretch: {
           '0%, 100%': { transform: 'scaleX(1)' },
           '50%': { transform: 'scaleX(1.05)' },
-        }
+        },
+        // --- ADDED THIS ---
+        'loop-scroll': {
+          from: { transform: 'translateX(0)' },
+          to: { transform: 'translateX(-50%)' },
+        },
       },
       animation: {
         float: 'float 6s ease-in-out infinite',
@@ -90,6 +95,8 @@ export default {
         'move-up': 'moveUp 6s ease-in-out infinite',
         'move-down': 'moveDown 6s ease-in-out infinite',
         'workflow-stretch': 'workflowStretch 6s ease-in-out infinite',
+        // --- ADDED THIS ---
+        'loop-scroll': 'loop-scroll 25s linear infinite',
       },
       borderRadius: {
         'xl': '1rem',

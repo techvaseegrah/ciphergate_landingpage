@@ -221,8 +221,8 @@ const ParallaxImage = ({ scrollYProgress }) => {
                     {/* Top Section */}
                     <div className="grid grid-cols-2 gap-10">
                       <div className="space-y-1">
-                        <p className="text-[15px]"><span className="font-bold text-[#1e293b]">Tech Vaseegrah:</span> <span className="text-[#475569]">Senior Developer</span></p>
-                        <p className="text-[15px]"><span className="font-bold text-[#1e293b]">Employee Name:</span> <span className="text-[#475569]">Arun R</span></p>
+                        <p className="text-[15px]"><span className="font-bold text-[#1e293b]">Tech Vaseegrah:</span> <span className="text-[#475569]"> Developer</span></p>
+                        <p className="text-[15px]"><span className="font-bold text-[#1e293b]">Employee Name:</span> <span className="text-[#475569]">Infant</span></p>
                         <p className="text-[15px]"><span className="font-bold text-[#1e293b]">Employee ID:</span> <span className="text-[#475569]">LF3643</span></p>
                       </div>
                       <div className="space-y-1">

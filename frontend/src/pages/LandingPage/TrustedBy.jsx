@@ -1,51 +1,59 @@
 import React from 'react';
 
 const TrustedBy = () => {
-  // Model: Using the real company names from your image
+  // Use the actual logos from your image
   const partners = [
-    { name: 'The Sweet Hub', src: '/the-sweet-hub-color.png' }, // Original: Red/Gold
-    { name: 'Bee Design', src: '/bee-design-color.png' },       // Original: Blue/Black
-    { name: 'CP Architects', src: '/cp-architects-color.png' }, // Original: Professional Blue/Gray
-    { name: 'Delta Brand', src: '/delta-pooja-color.png' },     // Original: Saffron/Red
-    { name: 'CP Abstract', src: '/cp-abstract-color.png' },
+    { name: 'Bee Design', src: '/logos/bee.png' },
+    { name: 'CP Architects', src: '/logos/cp-architects.png' },
+    { name: 'Delta Brand', src: '/logos/delta.png' },
+    { name: 'The Sweet Hub', src: '/logos/sweet-hub.png' },
   ];
 
   return (
-    <section className="py-10 bg-white overflow-hidden">
+    <div className="py-12 bg-white overflow-hidden">
       <div className="max-w-7xl mx-auto px-6">
-        <h3 className="text-sm font-bold text-slate-400 text-center uppercase tracking-[0.3em] mb-12">
+        {/* Section Title */}
+        <h3 className="text-center text-slate-400 text-xs font-bold uppercase tracking-[0.5em] mb-12">
           Trusted by Leading Companies
         </h3>
 
-        <div className="relative flex overflow-hidden">
+        {/* 
+           1. MASK: This 'relative' div acts as the window. 
+           The 'before' and 'after' gradients make it look professional by fading the edges.
+        */}
+        <div className="relative flex overflow-hidden before:absolute before:left-0 before:top-0 before:z-10 before:h-full before:w-20 md:before:w-40 before:bg-gradient-to-r before:from-white before:to-transparent after:absolute after:right-0 after:top-0 after:z-10 after:h-full after:w-20 md:after:w-40 after:bg-gradient-to-l after:from-white after:to-transparent">
+          
           {/* 
-            'animate-loop-scroll' handles the non-stop movement.
-            We remove the 'grayscale' class to show original colors.
+             2. THE TRACK: 
+             - 'flex' layout
+             - 'w-max': Forces the container to be as wide as all logos combined
+             - 'animate-loop-scroll': Runs the -50% translation from your config
           */}
-          <div className="flex whitespace-nowrap animate-loop-scroll">
+          <div className="flex w-max animate-loop-scroll">
             
-            {/* Doubling the array ensures the loop never gaps or jumps */}
-            {[...partners, ...partners].map((partner, index) => (
-              <div 
-                key={index} 
-                className="flex-shrink-0 px-12 md:px-20"
+            {/* 
+               3. NO GAP LOGIC: 
+               Render the list TWICE. 
+               Set 1 + Set 2 = 100% width. 
+               Animation moves to -50% (exactly the end of Set 1).
+               The reset is invisible = Non-stop movement.
+            */}
+            {[...partners, ...partners].map((logo, index) => (
+              <div
+                key={index}
+                className="flex items-center justify-center px-8 md:px-16"
               >
-                <img 
-                  src={partner.src} 
-                  alt={partner.name} 
-                  /* 
-                     Removed 'grayscale' to show original colors.
-                     Added 'opacity-80 hover:opacity-100' so they look 
-                     clean but pop when the user hovers over them.
-                  */
-                  className="h-10 md:h-12 w-auto object-contain transition-all duration-300 opacity-80 hover:opacity-100" 
+                <img
+                  src={logo.src}
+                  alt={logo.name}
+                  className="h-10 md:h-14 w-auto object-contain grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-500"
                 />
               </div>
             ))}
           </div>
         </div>
       </div>
-    </section>
+    </div>
   );
 };
 
