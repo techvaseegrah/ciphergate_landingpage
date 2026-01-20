@@ -130,21 +130,7 @@ const updateSubdomain = (newSubdomain) => {
     <appContext.Provider value={contextValue}>
       {/* Updated with consistent theme colors - REMOVED solid bg to show GlobalBackground */}
       <div className="App w-full overflow-x-hidden relative">
-        {/* Debug info - remove in production */}
-        {process.env.NODE_ENV === 'development' && (
-          <div style={{
-            position: 'fixed',
-            top: 0,
-            right: 0,
-            background: '#000',
-            color: '#fff',
-            padding: '5px',
-            fontSize: '12px',
-            zIndex: 9999
-          }}>
-            Company Name: {subdomain || 'null'}
-          </div>
-        )}
+
 
         <Routes>
           {/* Public routes */}
