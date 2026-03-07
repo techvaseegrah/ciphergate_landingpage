@@ -1,15 +1,31 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { toast } from 'react-toastify';
+import { usePayment } from '../../hooks/usePayment';
+import { useAuth } from '../../hooks/useAuth';
+
+const CheckIcon = ({ color = "#111" }) => (
+  <svg className="w-3 h-3 flex-shrink-0" viewBox="0 0 16 16" fill="none">
+    <path d="M3 8.5l3 3 7-7" stroke={color} strokeWidth="1.5" strokeLinecap="square" strokeLinejoin="miter" />
+  </svg>
+);
+
+const CrossIcon = ({ color = "#ccc" }) => (
+  <svg className="w-3 h-3 flex-shrink-0" viewBox="0 0 16 16" fill="none">
+    <path d="M4 4l8 8M12 4l-8 8" stroke={color} strokeWidth="1.5" strokeLinecap="square" />
+  </svg>
+);
 
 const Pricing = () => {
   const [isYearly, setIsYearly] = useState(false);
   const navigate = useNavigate();
+  const { user } = useAuth(); // Keeping useAuth here as it's used elsewhere in Pricing components
+
+  const { handlePremiumSubscribe, isProcessing } = usePayment();
 
   const handleGetStarted = () => {
-    // Scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    // Navigate to registration after a short delay
     setTimeout(() => {
       navigate('/admin/register');
     }, 500);
@@ -19,178 +35,279 @@ const Pricing = () => {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: {
-        staggerChildren: 0.2
-      }
+      transition: { staggerChildren: 0.2 }
     }
   };
 
   const cardVariants = {
-    hidden: { y: 20, opacity: 0 },
+    hidden: { y: 30, opacity: 0 },
     visible: {
       y: 0,
       opacity: 1,
-      transition: {
-        duration: 0.6,
-        ease: 'easeOut'
-      }
-    },
-    hover: {
-      y: -10,
-      transition: {
-        duration: 0.3,
-        ease: 'easeInOut'
-      }
+      transition: { duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }
     }
   };
 
+  const freeFeatures = [
+    { text: 'Up to 5 workers', enabled: true },
+    { text: 'Basic attendance tracking', enabled: true },
+    { text: 'Facial recognition login', enabled: true },
+    { text: 'Basic reporting & exports', enabled: true },
+    { text: 'Advanced analytics', enabled: false },
+    { text: 'Priority support', enabled: false },
+  ];
+
+  const premiumFeatures = [
+    { text: 'Unlimited workers', enabled: true },
+    { text: 'Everything in Free Plan', enabled: true },
+    { text: 'Advanced analytics dashboard', enabled: true },
+    { text: 'Custom integrations & API', enabled: true },
+    { text: 'Premium facial recognition', enabled: true },
+    { text: 'Priority 24/7 support', enabled: true },
+  ];
+
   return (
-    <section id="pricing" className="py-20 bg-transparent">
-      <div className="max-w-[1280px] mx-auto px-6 text-center">
+    <section id="pricing" className="py-24 md:py-32 bg-white border-t border-gray-100">
+      <div className="max-w-[1200px] mx-auto px-6">
+
+        {/* Section Header */}
         <motion.div
+          className="text-center mb-20 max-w-2xl mx-auto"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.6 }}
+          viewport={{ once: true, margin: '-80px' }}
+          transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
         >
-          <h2 className="text-4xl md:text-5xl font-bold text-dark-navy font-poppins mb-6 tracking-tight">Choose The Plan That Suits You</h2>
+          {/* Eyebrow label */}
+          <span
+            style={{
+              display: 'inline-block',
+              border: '1px solid #e5e5e5',
+              color: '#666',
+              fontSize: '0.65rem',
+              fontWeight: 500,
+              letterSpacing: '0.25em',
+              textTransform: 'uppercase',
+              padding: '6px 16px',
+              marginBottom: '24px',
+            }}
+          >
+            Our Website Packages
+          </span>
 
-          {/* Toggle Switch */}
-          <div className="flex items-center justify-center space-x-4 mb-16">
-            <span className={`text-sm font-semibold ${!isYearly ? 'text-dark-navy' : 'text-gray-text'}`}>Monthly</span>
-            <button
-              onClick={() => setIsYearly(!isYearly)}
-              className="w-14 h-7 bg-gray-200 rounded-full p-1 relative shadow-inner border border-gray-300 transition-colors duration-300"
-            >
-              <div className={`w-5 h-5 bg-primary-green rounded-full transition-all duration-300 ${isYearly ? 'ml-7' : 'ml-0'}`} />
-            </button>
-            <span className={`text-sm font-semibold ${isYearly ? 'text-dark-navy' : 'text-gray-text'}`}>Yearly <span className="text-primary-green font-bold text-[10px] bg-primary-green/10 px-2 py-0.5 rounded-full ml-1">SAVE 20%</span></span>
+          <h2
+            className="font-light tracking-widest text-gray-900"
+            style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', lineHeight: 1.2, marginBottom: '20px', textTransform: 'uppercase' }}
+          >
+            Handcrafted <span style={{ color: '#B76E79' }}>Digital</span> Experiences
+          </h2>
+          <p style={{ color: '#888', fontSize: '0.95rem', maxWidth: '520px', margin: '0 auto 40px', fontWeight: 300, lineHeight: 1.8, letterSpacing: '0.02em' }}>
+            Tailored for every budget and business goal — simple, transparent pricing with no hidden fees.
+          </p>
+
+          {/* Premium Animated Toggle */}
+          <div className="flex justify-center mt-4 mb-4">
+            <div className="relative flex items-center p-1.5 bg-[#fafafa] border border-gray-200 rounded-full shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)]">
+
+              <button
+                onClick={() => setIsYearly(false)}
+                className={`relative z-10 px-6 sm:px-8 py-3.5 text-[10px] font-medium uppercase tracking-[0.2em] transition-colors duration-500 rounded-full outline-none ${!isYearly ? 'text-white' : 'text-gray-500 hover:text-gray-900'}`}
+              >
+                Monthly Plan
+                {!isYearly && (
+                  <motion.div
+                    layoutId="pricingToggle"
+                    className="absolute inset-0 bg-[#111] rounded-full -z-10 shadow-md"
+                    initial={false}
+                    transition={{ type: "spring", stiffness: 450, damping: 35 }}
+                  />
+                )}
+              </button>
+
+              <button
+                onClick={() => setIsYearly(true)}
+                className={`relative z-10 px-6 sm:px-8 py-3.5 text-[10px] font-medium uppercase tracking-[0.2em] transition-colors duration-500 rounded-full flex items-center justify-center gap-3 outline-none ${isYearly ? 'text-white' : 'text-gray-500 hover:text-gray-900'}`}
+              >
+                <span>Yearly Plan</span>
+                {isYearly && (
+                  <motion.div
+                    layoutId="pricingToggle"
+                    className="absolute inset-0 bg-[#111] rounded-full -z-10 shadow-md"
+                    initial={false}
+                    transition={{ type: "spring", stiffness: 450, damping: 35 }}
+                  />
+                )}
+              </button>
+            </div>
           </div>
         </motion.div>
 
+        {/* Cards */}
         <motion.div
-          className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-5xl mx-auto"
+          className="grid grid-cols-1 lg:grid-cols-2 gap-0 border border-gray-200 bg-gray-50 max-w-5xl mx-auto"
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
         >
-          {/* Standard Plan - Free Account */}
-          <motion.div
-            className="bg-white/80 backdrop-blur-sm p-8 md:p-10 rounded-2xl shadow-card border border-gray-200/50 relative"
-            variants={cardVariants}
-            whileHover="hover"
-          >
-            <h3 className="text-2xl font-bold text-dark-navy mb-3">Free Plan</h3>
-            <p className="text-gray-text text-base mb-6">Perfect for small businesses and startups</p>
-            <div className="text-5xl font-extrabold text-dark-navy mb-8">₹0<span className="text-lg font-normal text-gray-text">/mo</span></div>
-            <ul className="text-left space-y-4 mb-10 text-base text-gray-700">
-              <li className="flex items-center">
-                <svg className="w-5 h-5 mr-3 text-green-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
-                Up to 5 workers
-              </li>
-              <li className="flex items-center">
-                <svg className="w-5 h-5 mr-3 text-green-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
-                Basic attendance tracking
-              </li>
-              <li className="flex items-center">
-                <svg className="w-5 h-5 mr-3 text-green-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
-                Facial recognition
-              </li>
-              <li className="flex items-center">
-                <svg className="w-5 h-5 mr-3 text-green-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
-                Basic reporting
-              </li>
-              <li className="flex items-center opacity-50">
-                <svg className="w-5 h-5 mr-3 text-gray-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                </svg>
-                Advanced analytics
-              </li>
-              <li className="flex items-center opacity-50">
-                <svg className="w-5 h-5 mr-3 text-gray-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                </svg>
-                Priority support
-              </li>
-            </ul>
-            <button
-              onClick={handleGetStarted}
-              className="w-full py-4 bg-primary-green text-white rounded-xl font-semibold hover:bg-[#1eb36a] transition-all duration-300 shadow-lg shadow-[#26D07C]/20 hover:shadow-xl hover:shadow-[#26D07C]/30"
-            >
-              Get Started
-            </button>
+          {/* ── FREE PLAN ── */}
+          <motion.div variants={cardVariants} className="bg-white p-8 md:p-14 border-b lg:border-b-0 lg:border-r border-gray-200">
+            <div className="flex flex-col h-full">
+              {/* Plan badge + name */}
+              <div className="mb-8">
+                <span style={{
+                  fontSize: '0.65rem', fontWeight: 500, letterSpacing: '0.2em', textTransform: 'uppercase',
+                  color: '#666', display: 'inline-block', marginBottom: '12px'
+                }}>
+                  Starter
+                </span>
+                <h3 style={{ fontSize: '1.75rem', fontWeight: 300, color: '#111', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+                  Free Plan
+                </h3>
+                <p style={{ color: '#888', fontSize: '0.85rem', marginTop: '12px', fontWeight: 300, lineHeight: 1.6 }}>
+                  Perfect for small businesses and startups exploring smart attendance.
+                </p>
+              </div>
+
+              {/* Price */}
+              <div className="mb-12 flex flex-col">
+                <span style={{ fontSize: '4rem', fontWeight: 200, color: '#111', lineHeight: 1, letterSpacing: '-0.02em' }}>₹0</span>
+                <span style={{ fontSize: '0.75rem', color: '#999', marginTop: '8px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>/month</span>
+              </div>
+
+              {/* Features */}
+              <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 40px', display: 'flex', flexDirection: 'column', gap: '16px', flex: 1 }}>
+                {freeFeatures.map((f, i) => (
+                  <li key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', opacity: f.enabled ? 1 : 0.5 }}>
+                    {f.enabled ? <CheckIcon color="#111" /> : <CrossIcon />}
+                    <span style={{ fontSize: '0.85rem', color: f.enabled ? '#333' : '#999', fontWeight: 300, letterSpacing: '0.02em' }}>
+                      {f.text}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+
+              {/* CTA */}
+              <button
+                onClick={handleGetStarted}
+                style={{
+                  width: '100%', padding: '16px 0',
+                  background: 'transparent',
+                  color: '#111', border: '1px solid #111',
+                  fontSize: '0.75rem', fontWeight: 500, cursor: 'pointer',
+                  letterSpacing: '0.15em', textTransform: 'uppercase',
+                  transition: 'all 0.4s ease',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = '#111'; e.currentTarget.style.color = '#fff'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#111'; }}
+              >
+                Get Started Free
+              </button>
+            </div>
           </motion.div>
 
-          {/* Premium Plan - Not Available */}
-          <motion.div
-            className="bg-gradient-to-br from-slate-800 to-slate-900 p-8 md:p-10 rounded-2xl shadow-card border border-gray-200/30 relative"
-            variants={cardVariants}
-            whileHover="hover"
-          >
-            <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-primary-green to-green-600 text-white text-[10px] font-bold px-6 py-2 rounded-full uppercase tracking-widest shadow-lg shadow-[#26D07C]/30">
-              Coming Soon
+          {/* ── PREMIUM PLAN ── */}
+          <motion.div variants={cardVariants} className="bg-[#111] p-8 md:p-14 relative overflow-hidden">
+            {/* Subtle highlight line instead of glow */}
+            <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '1px', background: 'linear-gradient(90deg, #333 0%, #666 50%, #333 100%)' }} />
+
+            <div className="flex flex-col h-full relative z-10">
+              {/* Pro badge */}
+              <div style={{
+                position: 'absolute', top: '0', right: '0',
+                color: '#fff', fontSize: '0.6rem', fontWeight: 500,
+                letterSpacing: '0.2em', textTransform: 'uppercase',
+                border: '1px solid #333', padding: '4px 10px',
+                background: '#B76E79', borderColor: '#B76E79'
+              }}>
+                Pro Features
+              </div>
+
+              {/* Plan badge + name */}
+              <div className="mb-8">
+                <span style={{
+                  fontSize: '0.65rem', fontWeight: 500, letterSpacing: '0.2em', textTransform: 'uppercase',
+                  color: '#999', display: 'inline-block', marginBottom: '12px'
+                }}>
+                  Pro
+                </span>
+                <h3 style={{ fontSize: '1.75rem', fontWeight: 300, color: '#fff', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+                  Premium Plan
+                </h3>
+                <p style={{ color: '#888', fontSize: '0.85rem', marginTop: '12px', fontWeight: 300, lineHeight: 1.6 }}>
+                  For growing businesses and enterprises that need full power.
+                </p>
+              </div>
+
+              {/* Price */}
+              <div className="mb-12 flex flex-col">
+                <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+                  <span style={{ fontSize: '4rem', fontWeight: 200, color: '#fff', lineHeight: 1, letterSpacing: '-0.02em' }}>
+                    {isYearly ? '₹1,200' : '₹99'}
+                  </span>
+                </div>
+                <span style={{ fontSize: '0.75rem', color: '#666', marginTop: '8px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>{isYearly ? '/year' : '/month'}</span>
+              </div>
+
+              {/* Features */}
+              <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 40px', display: 'flex', flexDirection: 'column', gap: '16px', flex: 1 }}>
+                {premiumFeatures.map((f, i) => (
+                  <li key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <CheckIcon color="#fff" />
+                    <span style={{ fontSize: '0.85rem', color: '#ccc', fontWeight: 300, letterSpacing: '0.02em' }}>
+                      {f.text}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+
+              {/* CTA enabled */}
+              <button
+                onClick={() => handlePremiumSubscribe(isYearly)}
+                disabled={isProcessing}
+                style={{
+                  width: '100%', padding: '16px 0',
+                  background: isProcessing ? '#333' : '#fff',
+                  color: isProcessing ? '#999' : '#111',
+                  border: '1px solid #fff',
+                  fontSize: '0.75rem', fontWeight: 500,
+                  cursor: isProcessing ? 'not-allowed' : 'pointer',
+                  letterSpacing: '0.15em', textTransform: 'uppercase',
+                  transition: 'all 0.4s ease'
+                }}
+                onMouseEnter={e => {
+                  if (!isProcessing) {
+                    e.currentTarget.style.background = 'transparent';
+                    e.currentTarget.style.color = '#fff';
+                  }
+                }}
+                onMouseLeave={e => {
+                  if (!isProcessing) {
+                    e.currentTarget.style.background = '#fff';
+                    e.currentTarget.style.color = '#111';
+                  }
+                }}
+              >
+                {isProcessing ? 'Processing...' : user?.accountType === 'premium' ? 'Current Plan' : 'Upgrade Now'}
+              </button>
             </div>
-            <h3 className="text-2xl font-bold text-white mb-3">Premium Plan</h3>
-            <p className="text-slate-300 text-base mb-6">For growing businesses and enterprises</p>
-            <div className="text-5xl font-extrabold text-white mb-8">{isYearly ? '₹1199' : '₹1499'}<span className="text-lg font-normal text-slate-300">/mo</span></div>
-            <ul className="text-left space-y-4 mb-10 text-base text-slate-300">
-              <li className="flex items-center">
-                <svg className="w-5 h-5 mr-3 text-green-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
-                Unlimited workers
-              </li>
-              <li className="flex items-center">
-                <svg className="w-5 h-5 mr-3 text-green-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
-                All features in Free Plan
-              </li>
-              <li className="flex items-center">
-                <svg className="w-5 h-5 mr-3 text-green-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
-                Advanced analytics
-              </li>
-              <li className="flex items-center">
-                <svg className="w-5 h-5 mr-3 text-green-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
-                Custom integrations
-              </li>
-              <li className="flex items-center">
-                <svg className="w-5 h-5 mr-3 text-green-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
-                Priority support
-              </li>
-              <li className="flex items-center">
-                <svg className="w-5 h-5 mr-3 text-green-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
-                Premium facial recognition
-              </li>
-            </ul>
-            <button
-              disabled
-              className="w-full py-4 bg-slate-700 text-slate-400 rounded-xl font-semibold cursor-not-allowed"
-            >
-              Not Available
-            </button>
           </motion.div>
         </motion.div>
+
+        {/* Bottom note */}
+        <motion.p
+          className="text-center mt-12"
+          style={{ color: '#999', fontSize: '0.75rem', letterSpacing: '0.05em', fontWeight: 300 }}
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.4, duration: 0.8 }}
+        >
+          No credit card required · Cancel anytime · Secure &amp; encrypted
+        </motion.p>
       </div>
     </section>
   );
 };
 
-export default Pricing;
+export default Pricing

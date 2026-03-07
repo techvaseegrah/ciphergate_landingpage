@@ -143,7 +143,7 @@ const FaceCapture = ({ onFacesCaptured }) => {
       {!isModelLoaded && (
         <div className="flex items-center justify-center mt-4">
           <Spinner size="sm" />
-          <p className="ml-2 text-blue-600">Loading models...</p>
+          <p className="ml-2 text-black">Loading models...</p>
         </div>
       )}
 

@@ -36,14 +36,43 @@ const adminSchema = mongoose.Schema(
     // New fields for password reset with OTP
     resetPasswordOtp: String,
     resetPasswordExpire: Date,
-    
+
     // Account type for subscription management
     accountType: {
       type: String,
       default: 'free',
       enum: ['free', 'premium']
     },
-    
+    subscriptionPlan: {
+      type: String,
+      enum: ['monthly', 'yearly', 'none'],
+      default: 'none'
+    },
+    subscriptionStartDate: {
+      type: Date,
+      default: null
+    },
+    subscriptionEndDate: {
+      type: Date,
+      default: null
+    },
+    // 'active' = working normally, 'paused' = payment failed/expired, 'cancelled' = manually cancelled
+    accountStatus: {
+      type: String,
+      enum: ['active', 'paused', 'cancelled'],
+      default: 'active'
+    },
+    // Razorpay Subscription ID for managing auto-renew
+    razorpaySubscriptionId: {
+      type: String,
+      default: null
+    },
+    // Whether auto-renew is enabled
+    autoRenew: {
+      type: Boolean,
+      default: false
+    },
+
     // Additional fields for business details collected during registration
     businessType: {
       type: String,
@@ -61,7 +90,7 @@ const adminSchema = mongoose.Schema(
       type: String,
       default: ''
     },
-    
+
     // Step 1: Business details
     flatShopNo: {
       type: String,

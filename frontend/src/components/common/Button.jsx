@@ -13,11 +13,11 @@ const Button = ({
     
     // Updated variant classes to match admin Download Report button styling
     const variantClasses = {
-      primary: 'bg-[#0d9488] hover:bg-[#0f766e] text-white focus:ring-[#0d9488]',
-      secondary: 'bg-[#0d9488] hover:bg-[#0f766e] text-white focus:ring-[#0d9488]',
-      danger: 'bg-[#0d9488] hover:bg-[#0f766e] text-white focus:ring-[#0d9488]',
-      success: 'bg-[#0d9488] hover:bg-[#0f766e] text-white focus:ring-[#0d9488]',
-      outline: 'bg-[#0d9488] hover:bg-[#0f766e] text-white focus:ring-[#0d9488]'
+      primary: 'bg-[#111111] hover:bg-[#000000] text-white focus:ring-[#111111]',
+      secondary: 'bg-[#111111] hover:bg-[#000000] text-white focus:ring-[#111111]',
+      danger: 'bg-[#111111] hover:bg-[#000000] text-white focus:ring-[#111111]',
+      success: 'bg-[#111111] hover:bg-[#000000] text-white focus:ring-[#111111]',
+      outline: 'bg-[#111111] hover:bg-[#000000] text-white focus:ring-[#111111]'
     };
     
     // Updated size classes to match admin Download Report button styling

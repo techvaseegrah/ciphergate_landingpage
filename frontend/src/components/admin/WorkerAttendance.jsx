@@ -31,7 +31,7 @@ const WorkerAttendance = () => {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setWorker(workerResponse.data);
-            
+
             // Then get attendance data using RFID
             const data = await getWorkerAttendance({ rfid: workerResponse.data.rfid, subdomain });
             const attendanceArray = data?.attendance || [];

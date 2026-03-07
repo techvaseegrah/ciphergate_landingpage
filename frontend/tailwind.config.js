@@ -4,8 +4,8 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: '#0d9488', // Changed to teal as requested
-        'primary-hover': '#0f766e', // Darker teal for hover
+        primary: '#111111', // Changed to teal as requested
+        'primary-hover': '#000000', // Darker teal for hover
         secondary: '#2196F3',
         danger: '#f44336',
         success: '#4CAF50',
@@ -14,13 +14,13 @@ export default {
         light: '#f4f4f4',
         dark: '#333',
         // Custom theme colors
-        'theme-red': '#0d9488',
+        'theme-red': '#111111',
         'theme-white': '#FFFFFF',
         'theme-black': '#000000',
         // Landing page colors
-        'primary-green': '#26D07C', 
-        'primary-hover-green': '#1eb36a',
-        'soft-green': '#E9F9F1',
+        'primary-green': '#111111',
+        'primary-hover-green': '#000000',
+        'soft-green': '#fafafa',
         'dark-navy': '#1A2B3C',
         'gray-text': '#67748E',
         'light-gray': '#F8FAFC',

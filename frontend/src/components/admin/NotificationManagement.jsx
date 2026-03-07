@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext,useRef } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import { FaPlus, FaEdit, FaTrash } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import appContext from '../../context/AppContext';
@@ -45,10 +45,10 @@ const NotificationManagement = () => {
   };
 
   useEffect(() => {
-        if (isAddModalOpen) {
-          messageInputRef.current?.focus();
-        }
-      }, [isAddModalOpen]);
+    if (isAddModalOpen) {
+      messageInputRef.current?.focus();
+    }
+  }, [isAddModalOpen]);
 
   const openAddModal = () => {
     setFormData({ messageData: '' });
@@ -159,7 +159,7 @@ const NotificationManagement = () => {
                 </div>
                 <div className="flex space-x-2 mt-4 justify-end">
                   <button
-                    className="text-blue-600 hover:text-blue-800"
+                    className="text-black hover:text-blue-800"
                     onClick={() => openEditModal(notification)}
                   >
                     <FaEdit />

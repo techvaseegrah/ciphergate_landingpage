@@ -65,21 +65,21 @@ const WorkerDeleteHistory = () => {
   // Calculate total amount for an invoice
   const calculateTotal = (invoice) => {
     if (!invoice || !invoice.items) return 0;
-    
-    const subtotal = invoice.items.reduce((sum, item) => 
+
+    const subtotal = invoice.items.reduce((sum, item) =>
       sum + (item.isTotalOverridden ? item.total : (item.qty * item.rate)), 0);
-    
-    const gstTotal = (invoice.gstEnabled) ? 
-      invoice.items.reduce((sum, item) => 
+
+    const gstTotal = (invoice.gstEnabled) ?
+      invoice.items.reduce((sum, item) =>
         sum + (item.isTotalOverridden ? (item.total * item.gst / 100) : (item.qty * item.rate * item.gst / 100)), 0) : 0;
-    
+
     return subtotal + gstTotal;
   };
 
   return (
     <div className="max-w-6xl mx-auto p-4 bg-white font-sans">
       <h1 className="text-xl font-bold text-gray-800 mb-6">My Delete History</h1>
-      
+
       {loading && (
         <div className="text-center py-4">
           <p>Loading delete history...</p>
@@ -128,7 +128,7 @@ const WorkerDeleteHistory = () => {
                     <td className="py-3 px-4 text-sm text-gray-700 border-b text-center">
                       <button
                         onClick={() => viewInvoiceDetails(record)}
-                        className="text-blue-600 hover:text-blue-900 font-medium text-sm"
+                        className="text-black hover:text-blue-900 font-medium text-sm"
                       >
                         View Details
                       </button>
@@ -156,7 +156,7 @@ const WorkerDeleteHistory = () => {
                 </svg>
               </button>
             </div>
-            
+
             <div className="border-t border-gray-200 pt-4">
               {/* Invoice Header Information */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
@@ -273,7 +273,7 @@ const WorkerDeleteHistory = () => {
                       <div className="flex justify-between py-2 border-t border-gray-300 font-bold">
                         <span>Total:</span>
                         <span>₹{(
-                          calculateTotal(selectedInvoice) + 
+                          calculateTotal(selectedInvoice) +
                           (calculateTotal(selectedInvoice) * (selectedInvoice.saleType === 'Interstate' ? 0.18 : 0.09))
                         ).toFixed(2)}</span>
                       </div>
@@ -288,7 +288,7 @@ const WorkerDeleteHistory = () => {
                 </div>
               </div>
             </div>
-            
+
             <div className="flex justify-end mt-6">
               <button
                 onClick={closeDetailModal}

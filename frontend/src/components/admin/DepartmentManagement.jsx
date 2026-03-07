@@ -227,7 +227,7 @@ const DepartmentManagement = () => {
 
                 <div className="flex items-center space-x-2">
                   <button
-                    className="text-blue-500 hover:text-blue-700 mr-2"
+                    className="text-[#111111] hover:text-gray-700 mr-2"
                     onClick={() => {
                       setEditingDepartment(department);
                       setIsEditModalOpen(true);

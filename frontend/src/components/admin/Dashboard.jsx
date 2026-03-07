@@ -108,7 +108,7 @@ const Dashboard = () => {
         </div>
       </div>
       {link && (
-        <Link to={link} className="flex items-center text-xs font-semibold text-gray-400 mt-4 hover:text-[#0d9488]">
+        <Link to={link} className="flex items-center text-xs font-semibold text-gray-400 mt-4 hover:text-[#111111]">
           View details <FaArrowRight className="ml-1 text-[10px]" />
         </Link>
       )}
@@ -130,7 +130,7 @@ const Dashboard = () => {
           title="Total Employees"
           value={stats.workers}
           icon={FaUsers}
-          colorClass="bg-blue-500"
+          colorClass="bg-gray-900"
           link="/admin/workers"
         />
 
@@ -156,7 +156,7 @@ const Dashboard = () => {
                       <div className="flex justify-between items-center">
                         <div className="flex items-center">
                           <div className="bg-blue-100 p-3 rounded-lg mr-4">
-                            <FaBuilding className="text-blue-500" />
+                            <FaBuilding className="text-[#111111]" />
                           </div>
                           <div>
                             <h3 className="font-bold text-gray-800">{department.name}</h3>
@@ -202,7 +202,7 @@ const Dashboard = () => {
 
         {/* Right Column / Promo Card Style */}
         <div className="lg:col-span-1">
-          <div className="bg-gradient-to-br from-[#80d8d0] to-[#0d9488] rounded-3xl p-8 text-white relative overflow-hidden shadow-lg h-full min-h-[300px] flex flex-col justify-between">
+          <div className="bg-gradient-to-br from-[#80d8d0] to-[#111111] rounded-3xl p-8 text-white relative overflow-hidden shadow-lg h-full min-h-[300px] flex flex-col justify-between">
             {/* Decoratiive circles */}
             <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full -mr-10 -mt-10"></div>
             <div className="absolute bottom-0 left-0 w-24 h-24 bg-white opacity-10 rounded-full -ml-10 -mb-10"></div>
@@ -246,7 +246,7 @@ const Dashboard = () => {
 
             <Link
               to="/admin/leaves"
-              className="relative z-10 mt-8 w-full bg-white text-[#0d9488] py-3 rounded-xl font-bold text-center hover:bg-teal-50 transition-colors shadow-md"
+              className="relative z-10 mt-8 w-full bg-white text-[#111111] py-3 rounded-xl font-bold text-center hover:bg-teal-50 transition-colors shadow-md"
             >
               Check Approvals
             </Link>

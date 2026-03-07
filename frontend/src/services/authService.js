@@ -15,7 +15,7 @@ export const registerAdmin = async (userData) => {
   try {
     const response = await api.post('/auth/admin/register', userData);
     const responseData = response.data;
-    
+
     // Store the token and user data in localStorage after registration
     localStorage.setItem('token', responseData.token);
     localStorage.setItem('tasktracker-subdomain', responseData.subdomain);
@@ -39,7 +39,7 @@ export const registerAdmin = async (userData) => {
       website: responseData.website,
       gstNumber: responseData.gstNumber
     }));
-    
+
     return responseData;
   } catch (error) {
     throw error.response?.data || new Error('Failed to register admin');
@@ -50,7 +50,7 @@ export const login = async (credentials, userType) => {
   try {
     const response = await api.post(`/auth/${userType}`, credentials);
     const userData = response.data;
-    
+
     // Include department and salary information when saving to localStorage
     localStorage.setItem('token', userData.token);
     localStorage.setItem('tasktracker-subdomain', userData.subdomain);
@@ -94,6 +94,45 @@ export const login = async (credentials, userType) => {
   }
 };
 
+export const googleLoginAdmin = async (tokenData) => {
+  try {
+    const response = await api.post('/auth/admin/google', tokenData);
+    const userData = response.data;
+
+    // Store the token and user data in localStorage
+    localStorage.setItem('token', userData.token);
+    localStorage.setItem('tasktracker-subdomain', userData.subdomain);
+    localStorage.setItem('user', JSON.stringify({
+      _id: userData._id,
+      username: userData.username,
+      subdomain: userData.subdomain,
+      rfid: userData.rfid,
+      email: userData.email,
+      role: userData.role,
+      name: userData.username,
+      department: userData.department,
+      accountType: userData.accountType,
+      businessType: userData.businessType,
+      phoneNumber: userData.phoneNumber,
+      flatShopNo: userData.flatShopNo,
+      street: userData.street,
+      pincode: userData.pincode,
+      city: userData.city,
+      district: userData.district,
+      state: userData.state,
+      country: userData.country,
+      website: userData.website,
+      gstNumber: userData.gstNumber,
+      salary: userData.salary,
+      finalSalary: userData.finalSalary
+    }));
+
+    return userData;
+  } catch (error) {
+    throw error.response?.data || new Error(error.message || 'Google Login failed. Please try again.');
+  }
+};
+
 export const logout = () => {
   localStorage.removeItem('token');
   localStorage.removeItem('user');
@@ -103,7 +142,7 @@ export const getCurrentUser = () => {
   try {
     const token = localStorage.getItem('token');
     const userJson = localStorage.getItem('user');
-    
+
     if (token && userJson) {
       const user = JSON.parse(userJson);
       return {
@@ -185,7 +224,7 @@ export const loginClient = async (credentials) => {
     const response = await api.post('/auth/client/login', credentials);
     console.log('DEBUG: Client login response:', response.data);
     const userData = response.data;
-    
+
     // Store the token and user data in localStorage after client login
     localStorage.setItem('token', userData.token);
     localStorage.setItem('user', JSON.stringify({
@@ -193,7 +232,7 @@ export const loginClient = async (credentials) => {
       username: userData.username,
       role: userData.role
     }));
-    
+
     return userData;
   } catch (error) {
     console.error('DEBUG: Client login error details:', error);
@@ -227,5 +266,6 @@ export default {
   updateAdmin,
   deleteAdmin,
   loginClient,
-  getAdminById
+  getAdminById,
+  googleLoginAdmin
 };

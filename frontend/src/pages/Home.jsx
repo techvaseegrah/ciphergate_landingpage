@@ -124,7 +124,7 @@ const Home = () => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => navigate('/admin/login')}
-              className="px-6 py-3 bg-[#0d9488] text-white rounded-full hover:bg-[#0f766e] border-2 border-[#0d9488] transition-colors"
+              className="px-6 py-3 bg-[#111111] text-white rounded-full hover:bg-[#000000] border-2 border-[#111111] transition-colors"
             >
               Admin Portal
             </motion.button>
@@ -133,7 +133,7 @@ const Home = () => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => navigate('/worker/login')}
-              className="px-6 py-3 border-2 border-[#0d9488] text-[#0d9488] rounded-full hover:bg-[#0d9488] hover:text-white transition-colors"
+              className="px-6 py-3 border-2 border-[#111111] text-[#111111] rounded-full hover:bg-[#111111] hover:text-white transition-colors"
             >
               Employee Login
             </motion.button>
@@ -149,11 +149,11 @@ const Home = () => {
                 onClick={() => setActiveFeature(index)}
                 className={`flex flex-col items-center p-4 rounded-xl cursor-pointer transition-all ${
                   activeFeature === index 
-                    ? 'bg-[#0d9488]/20 border border-[#0d9488]' 
+                    ? 'bg-[#111111]/20 border border-[#111111]' 
                     : 'bg-gray-100 hover:bg-gray-200'
                 }`}
               >
-                <div className={`mb-2 ${activeFeature === index ? 'text-[#0d9488]' : 'text-black'}`}>
+                <div className={`mb-2 ${activeFeature === index ? 'text-[#111111]' : 'text-black'}`}>
                   {feature.icon}
                 </div>
                 <h3 className="text-sm font-semibold text-center text-black">{feature.title}</h3>
@@ -167,7 +167,7 @@ const Home = () => {
             animate={{ opacity: 1, y: 0 }}
             className="bg-gray-100 p-6 rounded-xl"
           >
-            <h2 className="text-xl md:text-2xl font-bold mb-4 text-[#0d9488]">
+            <h2 className="text-xl md:text-2xl font-bold mb-4 text-[#111111]">
               {features[activeFeature].title}
             </h2>
             <p className="text-black">{typingText}</p>

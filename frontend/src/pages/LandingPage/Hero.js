@@ -104,7 +104,7 @@ const Hero = () => {
 
       {/* Decorative Floating Blobs (Background) */}
       <div className="absolute top-1/2 left-0 -translate-y-1/2 w-[500px] h-[500px] bg-[#26D07C]/10 blur-[150px] rounded-full" />
-      <div className="absolute top-1/2 right-0 -translate-y-1/2 w-[500px] h-[500px] bg-blue-500/10 blur-[150px] rounded-full" />
+      <div className="absolute top-1/2 right-0 -translate-y-1/2 w-[500px] h-[500px] bg-gray-900/10 blur-[150px] rounded-full" />
     </section>
   );
 };

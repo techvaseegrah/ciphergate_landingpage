@@ -4,6 +4,7 @@ const router = express.Router();
 const {
   registerAdmin,
   loginAdmin,
+  googleLoginAdmin,
   loginWorker,
   loginClient,
   getMe,
@@ -24,6 +25,7 @@ router.post('/admin/subdomain-available', subdomainAvailable);
 // Admin registration and login
 router.post('/admin/register', registerAdmin);
 router.post('/admin', loginAdmin);
+router.post('/admin/google', googleLoginAdmin);
 router.post('/worker', loginWorker);
 router.post('/client/login', loginClient);
 

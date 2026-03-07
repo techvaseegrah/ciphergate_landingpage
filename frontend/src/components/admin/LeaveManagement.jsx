@@ -135,7 +135,7 @@ const LeaveManagement = () => {
         <div>
           <div className="flex items-center mb-1">
             {leave.leaveType === 'Permission' && (
-              <FaBusinessTime className="mr-2 text-blue-500" size={16} />
+              <FaBusinessTime className="mr-2 text-[#111111]" size={16} />
             )}
             <p className="font-medium">{leave.worker?.name || 'Unknown Employee'}</p>
           </div>
@@ -147,7 +147,7 @@ const LeaveManagement = () => {
           </p>
           {/* Enhanced time display for permissions */}
           {leave.leaveType === 'Permission' && leave.startTime && leave.endTime && (
-            <p className="text-sm text-blue-600 font-medium">
+            <p className="text-sm text-black font-medium">
               Time: {formatTime(leave.startTime)} - {formatTime(leave.endTime)}
               {calculatePermissionDuration(leave.startTime, leave.endTime) && (
                 <span className="text-gray-500 ml-1">
@@ -185,7 +185,7 @@ const LeaveManagement = () => {
           <button
             onClick={() => handleReview(leave._id, 'Approved', leave)}
             disabled={processing[leave._id]}
-            className="px-3 py-1 bg-[#0d9488] text-white rounded hover:bg-white hover:text-[#0d9488] border-2 border-[#0d9488]"
+            className="px-3 py-1 bg-[#111111] text-white rounded hover:bg-white hover:text-[#111111] border-2 border-[#111111]"
           >
             Approve
           </button>
@@ -205,8 +205,8 @@ const LeaveManagement = () => {
 
   const getTabClassName = (tabName) => {
     return `px-3 py-1 rounded-md cursor-pointer ${activeView === tabName
-        ? 'bg-[#0d9488] text-white'
-        : 'bg-gray-200 text-gray-700 hover:bg-[#0d9488] hover:text-white'
+        ? 'bg-[#111111] text-white'
+        : 'bg-gray-200 text-gray-700 hover:bg-[#111111] hover:text-white'
       }`;
   };
 
@@ -238,7 +238,7 @@ const LeaveManagement = () => {
               </div>
               <button
                 onClick={clearFilters}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-full hover:bg-[#0d9488] hover:text-white"
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-full hover:bg-[#111111] hover:text-white"
               >
                 Clear Filters
               </button>
@@ -253,7 +253,7 @@ const LeaveManagement = () => {
               </span>
               <button
                 onClick={() => setShowAllLeaves(!showAllLeaves)}
-                className="text-[#0d9488] hover:text-[#0d9488] text-sm flex items-center"
+                className="text-[#111111] hover:text-[#111111] text-sm flex items-center"
               >
                 {showAllLeaves ? (
                   <>Show Less {<FaChevronUp className="ml-1" />}</>
@@ -304,7 +304,7 @@ const LeaveManagement = () => {
               {!showAllLeaves && filteredLeaves.length > 5 && (
                 <button
                   onClick={() => setShowAllLeaves(true)}
-                  className="mt-4 w-full py-2 text-sm text-[#0d9488] hover:text-[#0d9488] border border-[#0d9488] rounded-full hover:bg-[#0d9488] hover:text-white"
+                  className="mt-4 w-full py-2 text-sm text-[#111111] hover:text-[#111111] border border-[#111111] rounded-full hover:bg-[#111111] hover:text-white"
                 >
                   View All ({filteredLeaves.length}) Leaves
                 </button>

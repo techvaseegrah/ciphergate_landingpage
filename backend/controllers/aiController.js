@@ -25,7 +25,7 @@ const askCipherGateAI = async (req, res) => {
 
     if (!message) {
       return res.status(400).json({ error: 'Message is required' });
-    }
+    }v        
 
     // Prepare messages for the API call
     const messages = [
@@ -54,11 +54,11 @@ const askCipherGateAI = async (req, res) => {
 
   } catch (error) {
     console.error('Error with DeepSeek API:', error);
-    res.status(500).json({ 
-      error: 'Failed to get response from AI', 
-      details: error.message 
+    res.status(500).json({
+      error: 'Failed to get response from AI',
+      details: error.message
     });
   }
-};
+}; 
 
 module.exports = { askCipherGateAI };

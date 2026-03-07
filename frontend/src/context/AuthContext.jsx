@@ -1,6 +1,6 @@
 // src/context/AuthContext.jsx
 import { createContext, useState, useEffect } from 'react';
-import { login as loginService, logout as logoutService, getCurrentUser } from '../services/authService';
+import { login as loginService, logout as logoutService, getCurrentUser, googleLoginAdmin as googleLoginService } from '../services/authService';
 
 export const AuthContext = createContext();
 
@@ -40,6 +40,19 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const googleLogin = async (tokenData) => {
+    setLoading(true);
+    try {
+      const userData = await googleLoginService(tokenData);
+      setUser(userData);
+      return userData;
+    } catch (error) {
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const logout = () => {
     logoutService();
     setUser(null);
@@ -49,6 +62,7 @@ export const AuthProvider = ({ children }) => {
     user,
     loading,
     login,
+    googleLogin,
     logout,
     isAuthenticated: !!user,
     isAdmin: user?.role === 'admin',

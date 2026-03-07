@@ -204,7 +204,7 @@ const AdminFoodRequest = () => {
               <div className="p-2 border-b sticky top-0 bg-white z-10">
                 <input
                   type="text"
-                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-900"
                   placeholder="Search employees..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -221,7 +221,7 @@ const AdminFoodRequest = () => {
                       type="checkbox"
                       checked={!!selectedWorkers[worker._id]}
                       onChange={() => {}} // onChange is handled by the parent div
-                      className="form-checkbox h-5 w-5 text-blue-600 rounded mr-3"
+                      className="form-checkbox h-5 w-5 text-black rounded mr-3"
                     />
                     <img
                       src={worker.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(worker.name)}`}

@@ -614,7 +614,7 @@ const FaceAttendance = ({ subdomain, isOpen, onClose, workerMode = false, curren
 
               <div className="text-center mb-4">
                 <div className="inline-block p-2 bg-blue-100 rounded-full">
-                  <div className="w-4 h-4 bg-blue-500 rounded-full animate-pulse"></div>
+                  <div className="w-4 h-4 bg-gray-900 rounded-full animate-pulse"></div>
                 </div>
                 <p className="text-sm text-gray-600 mt-2">
                   {isProcessing ? 'Recognizing face...' : 'Position your face within the circular frame'}
