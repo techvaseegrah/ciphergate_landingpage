@@ -232,7 +232,7 @@ const QuickTest = () => {
                                 </label>
                                 <input
                                     type="text"
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900"
                                     placeholder="Enter your full name"
                                     value={formData.name}
                                     onChange={(e) => setFormData({...formData, name: e.target.value})}
@@ -246,7 +246,7 @@ const QuickTest = () => {
                                 </label>
                                 <input
                                     type="password"
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900"
                                     placeholder="Enter a password for this session"
                                     value={formData.password}
                                     onChange={(e) => setFormData({...formData, password: e.target.value})}
@@ -260,7 +260,7 @@ const QuickTest = () => {
                                 </label>
                                 <input
                                     type="text"
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900"
                                     placeholder="e.g., JavaScript, Mathematics, General Knowledge"
                                     value={formData.topic}
                                     onChange={(e) => setFormData({...formData, topic: e.target.value})}
@@ -274,7 +274,7 @@ const QuickTest = () => {
                                         Number of Questions
                                     </label>
                                     <select
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900"
                                         value={formData.numQuestions}
                                         onChange={(e) => setFormData({...formData, numQuestions: e.target.value})}
                                     >
@@ -290,7 +290,7 @@ const QuickTest = () => {
                                         Difficulty Level
                                     </label>
                                     <select
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900"
                                         value={formData.difficulty}
                                         onChange={(e) => setFormData({...formData, difficulty: e.target.value})}
                                     >
@@ -353,7 +353,7 @@ const QuickTest = () => {
                     {/* Progress Bar */}
                     <div className="w-full bg-gray-700 rounded-full h-2 mb-8">
                         <div 
-                            className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                            className="bg-gray-900 h-2 rounded-full transition-all duration-300"
                             style={{ width: `${progress}%` }}
                         ></div>
                     </div>
@@ -373,7 +373,7 @@ const QuickTest = () => {
                                         
                                         // When an answer is selected
                                         if (answers[currentQuestionIndex] === index) {
-                                            divStyle = 'p-3 bg-blue-900 rounded-lg border-2 border-blue-500';
+                                            divStyle = 'p-3 bg-blue-900 rounded-lg border-2 border-gray-900';
                                         }
                                         
                                         return (
@@ -403,7 +403,7 @@ const QuickTest = () => {
                                         <div className="space-y-4">
                                             {currentQuestion.options.map((option, index) => {
                                                 // Determine styling based on the selected answer and feedback state
-                                                let buttonStyle = 'border-gray-600 bg-gray-700 hover:border-blue-500 hover:bg-gray-600';
+                                                let buttonStyle = 'border-gray-600 bg-gray-700 hover:border-gray-900 hover:bg-gray-600';
                                                 let iconMarkup = null;
                                                 
                                                 // When showing feedback after answer selection
@@ -422,7 +422,7 @@ const QuickTest = () => {
                                                 } 
                                                 // When not showing feedback but an answer is selected
                                                 else if (answers[currentQuestionIndex] === index) {
-                                                    buttonStyle = 'border-blue-500 bg-blue-900 text-blue-100 transform scale-105';
+                                                    buttonStyle = 'border-gray-900 bg-blue-900 text-blue-100 transform scale-105';
                                                 }
                                                 
                                                 return (
@@ -506,11 +506,11 @@ const QuickTest = () => {
                         <div className="bg-gray-50 p-6 rounded-lg mb-8">
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 <div>
-                                    <div className="text-3xl font-bold text-blue-600">{testResults.score}</div>
+                                    <div className="text-3xl font-bold text-black">{testResults.score}</div>
                                     <div className="text-sm text-gray-600">Correct Answers</div>
                                 </div>
                                 <div>
-                                    <div className="text-3xl font-bold text-purple-600">{testResults.totalQuestions}</div>
+                                    <div className="text-3xl font-bold text-gray-900">{testResults.totalQuestions}</div>
                                     <div className="text-sm text-gray-600">Total Questions</div>
                                 </div>
                                 <div>
@@ -533,7 +533,7 @@ const QuickTest = () => {
 
     return (
         <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500"></div>
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
         </div>
     );
 };

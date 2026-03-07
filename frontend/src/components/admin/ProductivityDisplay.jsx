@@ -33,7 +33,7 @@ const ProductivityDisplay = ({ productivityData }) => {
         value={formatDecimalHoursToHoursMin(productivityData.totalWorkingHours)}
         icon={FaClock}
         bgColor="bg-blue-50"
-        textColor="text-blue-600"
+        textColor="text-black"
         subtitle={`Avg: ${formatDecimalHoursToHoursMin(productivityData.averageWorkingHours)} per day`}
       />
 
@@ -63,7 +63,7 @@ const ProductivityDisplay = ({ productivityData }) => {
         value={`${productivityData.summary.punctualityScore.toFixed(3)}%`}
         icon={FaUserCheck}
         bgColor="bg-purple-50"
-        textColor="text-purple-600"
+        textColor="text-gray-900"
         subtitle="On-time performance"
       /> */}
 
@@ -108,7 +108,7 @@ const ProductivityDisplay = ({ productivityData }) => {
         }
         textColor={
           productivityData.productivityPercentage >= 95 ? "text-emerald-600" :
-          productivityData.productivityPercentage >= 85 ? "text-blue-600" :
+          productivityData.productivityPercentage >= 85 ? "text-black" :
           productivityData.productivityPercentage >= 75 ? "text-yellow-600" : "text-red-600"
         }
         subtitle={`${productivityData.productivityPercentage.toFixed(3)}% efficiency`}

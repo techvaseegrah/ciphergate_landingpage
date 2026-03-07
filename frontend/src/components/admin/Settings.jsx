@@ -351,7 +351,7 @@ const Settings = () => {
         try {
             // Import the geolocation service function
             const { getCurrentPosition } = await import('../../services/geolocationService');
-            
+
             const position = await getCurrentPosition();
             // Update both latitude and longitude in a single state update
             const updatedSettings = {
@@ -413,7 +413,7 @@ const Settings = () => {
             type="button"
             onClick={onChange}
             disabled={disabled}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${checked ? 'bg-blue-600' : 'bg-gray-200'
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 ${checked ? 'bg-black' : 'bg-gray-200'
                 } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
         >
             <span
@@ -481,7 +481,7 @@ const Settings = () => {
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                         <div className="mb-4 sm:mb-0">
                             <h1 className="text-3xl font-bold text-gray-900 flex items-center">
-                                <FiSettings className="mr-3 text-blue-600" />
+                                <FiSettings className="mr-3 text-black" />
                                 Application Settings
                             </h1>
                             <p className="mt-2 text-gray-600">
@@ -555,8 +555,8 @@ const Settings = () => {
                                                     'bg-purple-100'
                                                 }`}>
                                                 <Icon className={`h-6 w-6 ${color === 'yellow' ? 'text-yellow-600' :
-                                                    color === 'blue' ? 'text-blue-600' :
-                                                        'text-purple-600'
+                                                    color === 'blue' ? 'text-black' :
+                                                        'text-gray-900'
                                                     }`} />
                                             </div>
                                             <h3 className="ml-3 text-lg font-semibold text-gray-900">{title}</h3>
@@ -599,7 +599,7 @@ const Settings = () => {
                                                     name={openTimeKey}
                                                     value={settings[openTimeKey]}
                                                     onChange={handleInputChange}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-gray-900 focus:border-gray-900 text-sm"
                                                 />
                                                 <p className="text-xs text-gray-500 mt-1">
                                                     {formatTimeTo12Hour(settings[openTimeKey])}
@@ -615,7 +615,7 @@ const Settings = () => {
                                                     name={closeTimeKey}
                                                     value={settings[closeTimeKey]}
                                                     onChange={handleInputChange}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-gray-900 focus:border-gray-900 text-sm"
                                                 />
                                                 <p className="text-xs text-gray-500 mt-1">
                                                     {formatTimeTo12Hour(settings[closeTimeKey])}
@@ -735,7 +735,7 @@ const Settings = () => {
                         </div>
                     </Card>
                 </div>
-                
+
                 {/* Location Settings */}
                 <Card className="mb-8 hover:shadow-lg transition-shadow duration-200">
                     <div className="h-2 bg-gradient-to-r from-teal-400 to-cyan-400" />
@@ -773,7 +773,7 @@ const Settings = () => {
                                                 step="any"
                                                 value={settings.attendanceLocation.latitude}
                                                 onChange={(e) => handleLocationChange('latitude', parseFloat(e.target.value) || 0)}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-gray-900 focus:border-gray-900"
                                             />
                                         </div>
 
@@ -786,7 +786,7 @@ const Settings = () => {
                                                 step="any"
                                                 value={settings.attendanceLocation.longitude}
                                                 onChange={(e) => handleLocationChange('longitude', parseFloat(e.target.value) || 0)}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-gray-900 focus:border-gray-900"
                                             />
                                         </div>
                                     </div>
@@ -801,7 +801,7 @@ const Settings = () => {
                                             max="1000"
                                             value={settings.attendanceLocation.radius}
                                             onChange={(e) => handleLocationChange('radius', parseInt(e.target.value) || 100)}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-gray-900 focus:border-gray-900"
                                         />
                                         <p className="text-xs text-gray-500">
                                             Workers must be within this radius to mark attendance (10-1000 meters)
@@ -831,7 +831,7 @@ const Settings = () => {
                                             )}
                                         </p>
                                     </div>
-                                    
+
                                     <div className="pt-2 bg-blue-50 p-3 rounded-lg">
                                         <p className="text-xs text-blue-700">
                                             <strong>Tip:</strong> Enable location restriction to ensure workers can only mark attendance when they are physically present at the designated location.
@@ -842,7 +842,7 @@ const Settings = () => {
                         </div>
                     </div>
                 </Card>
-                
+
                 {/* Financial Settings */}
                 <Card className="mb-8 hover:shadow-lg transition-shadow duration-200">
                     <div className="h-2 bg-gradient-to-r from-emerald-400 to-teal-400" />
@@ -866,7 +866,7 @@ const Settings = () => {
                                     onChange={handleInputChange}
                                     min="0"
                                     max="60"
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-gray-900 focus:border-gray-900"
                                 />
                                 <p className="text-xs text-gray-500">
                                     Default break permission time allowed per employee
@@ -884,7 +884,7 @@ const Settings = () => {
                                     onChange={handleInputChange}
                                     min="0"
                                     step="0.01"
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-gray-900 focus:border-gray-900"
                                 />
                                 <p className="text-xs text-gray-500">
                                     Amount deducted for each unauthorized break
@@ -909,7 +909,7 @@ const Settings = () => {
                                 <div className="flex items-center justify-between mb-6">
                                     <h3 className="text-lg font-semibold text-gray-900 flex items-center">
                                         <div className="p-2 bg-blue-100 rounded-lg mr-3">
-                                            <FiUser className="h-5 w-5 text-blue-600" />
+                                            <FiUser className="h-5 w-5 text-black" />
                                         </div>
                                         Work Batches
                                     </h3>
@@ -998,7 +998,7 @@ const Settings = () => {
                                 ))}
                                 <button
                                     onClick={handleAddBatch}
-                                    className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                                    className="bg-gray-900 text-white px-4 py-2 rounded hover:bg-black"
                                 >
                                     Add New Batch
                                 </button>
@@ -1012,7 +1012,7 @@ const Settings = () => {
                                 <div className="flex items-center justify-between mb-6">
                                     <h3 className="text-lg font-semibold text-gray-900 flex items-center">
                                         <div className="p-2 bg-purple-100 rounded-lg mr-3">
-                                            <FiClock className="h-5 w-5 text-purple-600" />
+                                            <FiClock className="h-5 w-5 text-gray-900" />
                                         </div>
                                         Break Intervals
                                     </h3>
@@ -1182,7 +1182,7 @@ const Settings = () => {
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div className="bg-white p-4 rounded-lg shadow-sm">
                                 <h4 className="font-medium text-gray-700 mb-3 flex items-center">
                                     <FiMapPin className="mr-2 h-4 w-4" />

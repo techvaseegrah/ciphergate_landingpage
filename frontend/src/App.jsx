@@ -1,5 +1,5 @@
 import React, { lazy, Suspense } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import AdminLayout from './components/layout/AdminLayout';
 
 // Public pages
@@ -34,6 +34,7 @@ import EditAccount from './pages/Client/EditAccount';
 
 
 import QuickTest from './components/common/QuickTest';
+import CustomCursor from './components/common/CustomCursor';
 
 // Protected route component
 import PrivateRoute from './components/common/PrivateRoute';
@@ -49,41 +50,42 @@ import Settings from './components/admin/Settings';
 import ForgotPassword from './components/admin/ForgotPassword';
 import ResetPassword from './components/admin/ResetPassword';
 import HolidayManagement from './components/admin/HolidayManagement';
+import InstallPWA from './components/common/InstallPWA';
 
 function App() {
   // Initialize subdomain with the actual value from localStorage immediately
-const [subdomain, setSubdomain] = useState(() => {
-  const stored = localStorage.getItem('tasktracker-subdomain');
-  if (stored) return stored;
+  const [subdomain, setSubdomain] = useState(() => {
+    const stored = localStorage.getItem('tasktracker-subdomain');
+    if (stored) return stored;
 
-  // Auto-detect from URL (e.g., companya.ciphergate.in)
-  const host = window.location.hostname;
-  const parts = host.split('.');
-  
-  // If the URL has a subdomain and isn't 'www' or 'localhost'
-  if (parts.length > 2 && parts[0] !== 'www' && parts[0] !== 'ciphergate') {
-    return parts[0];
-  }
-  
-  return 'main';
-});
+    // Auto-detect from URL (e.g., companya.ciphergate.in)
+    const host = window.location.hostname;
+    const parts = host.split('.');
+
+    // If the URL has a subdomain and isn't 'www' or 'localhost'
+    if (parts.length > 2 && parts[0] !== 'www' && parts[0] !== 'ciphergate') {
+      return parts[0];
+    }
+
+    return 'main';
+  });
 
   const getSubdomain = () => {
     return localStorage.getItem('tasktracker-subdomain') || 'main';
   };
 
   // Custom function to update subdomain and localStorage
-const updateSubdomain = (newSubdomain) => {
-  const valueToStore = (newSubdomain && newSubdomain !== 'main') ? newSubdomain : null;
-  
-  if (valueToStore) {
-    localStorage.setItem('tasktracker-subdomain', valueToStore);
-  } else {
-    localStorage.removeItem('tasktracker-subdomain');
-  }
-  
-  setSubdomain(valueToStore || 'main');
-};
+  const updateSubdomain = (newSubdomain) => {
+    const valueToStore = (newSubdomain && newSubdomain !== 'main') ? newSubdomain : null;
+
+    if (valueToStore) {
+      localStorage.setItem('tasktracker-subdomain', valueToStore);
+    } else {
+      localStorage.removeItem('tasktracker-subdomain');
+    }
+
+    setSubdomain(valueToStore || 'main');
+  };
 
   // Monitor localStorage changes and subdomain updates
   useEffect(() => {
@@ -121,6 +123,8 @@ const updateSubdomain = (newSubdomain) => {
     console.log('DEBUG: App.jsx subdomain state changed to:', subdomain);
   }, [subdomain]);
 
+  const location = useLocation();
+
   const contextValue = {
     subdomain,
     setSubdomain: updateSubdomain // Use our custom function
@@ -130,7 +134,9 @@ const updateSubdomain = (newSubdomain) => {
     <appContext.Provider value={contextValue}>
       {/* Updated with consistent theme colors - REMOVED solid bg to show GlobalBackground */}
       <div className="App w-full overflow-x-hidden relative">
+        {location.pathname === '/' && <CustomCursor />}
 
+        <InstallPWA />
 
         <Routes>
           {/* Public routes */}

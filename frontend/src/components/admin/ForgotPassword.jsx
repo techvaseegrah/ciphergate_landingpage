@@ -37,7 +37,7 @@ const ForgotPassword = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#80d8d0] to-[#0d9488] text-white overflow-hidden relative">
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#80d8d0] to-[#111111] text-white overflow-hidden relative">
             {/* Animated Particles */}
             {particles.map((particle) => (
                 <motion.div
@@ -128,7 +128,7 @@ const ForgotPassword = () => {
                             delay: 0.5,
                             stiffness: 120 
                         }}
-                        className="w-full py-3 bg-white text-[#0d9488] rounded-lg hover:bg-[#0d9488] hover:text-white border-2 border-white transition-colors disabled:opacity-70 font-medium"
+                        className="w-full py-3 bg-white text-[#111111] rounded-lg hover:bg-[#111111] hover:text-white border-2 border-white transition-colors disabled:opacity-70 font-medium"
                     >
                         {isLoading ? <Spinner size="sm" /> : 'Send Reset Link'}
                     </motion.button>

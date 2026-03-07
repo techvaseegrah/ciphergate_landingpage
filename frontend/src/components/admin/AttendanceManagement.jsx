@@ -465,7 +465,7 @@ const AttendanceManagement = () => {
                             className="w-8 h-8 rounded-full mr-2"
                         />
                     )}
-                    <Link to={`/admin/attendance/${record.worker?._id}`} className="text-blue-600 hover:underline">
+                    <Link to={`/admin/attendance/${record.worker?._id}`} className="text-black hover:underline">
                         {record?.name || 'Unknown'}
                     </Link>
                 </div>
@@ -638,7 +638,7 @@ const AttendanceManagement = () => {
                                 <button
                                     onClick={loadMoreAttendance}
                                     disabled={isFetchingMore}
-                                    className="flex items-center px-5 py-2 bg-[#0d9488] text-white rounded-xl shadow-md hover:bg-[#0f766e] transition-colors disabled:opacity-50"
+                                    className="flex items-center px-5 py-2 bg-[#111111] text-white rounded-xl shadow-md hover:bg-[#000000] transition-colors disabled:opacity-50"
                                 >
                                     {isFetchingMore ? (
                                         <>

@@ -150,7 +150,7 @@ const LivingLayer = () => {
             uScrollY: { value: 0 },
             uColorBase: { value: new THREE.Color('#F8FAFC') },     // Slate-50/White substitute
             uColorPrimary: { value: new THREE.Color('#26D07C') },  // CipherGate Brand Green
-            uColorSecondary: { value: new THREE.Color('#0d9488') }, // Teal
+            uColorSecondary: { value: new THREE.Color('#111111') }, // Teal
             uColorAccent: { value: new THREE.Color('#22C55E') },   // Accent
         }),
         []

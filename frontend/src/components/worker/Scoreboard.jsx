@@ -19,12 +19,12 @@ const Scoreboard = ({ department }) => {
       try {
         // Get all workers
         const workersData = await getWorkers({ subdomain });
-        
+
         // Filter workers by department and sort by total points
         const filteredWorkers = workersData
           .filter(worker => worker.department === department)
           .sort((a, b) => (b.totalPoints || 0) - (a.totalPoints || 0));
-        
+
         setWorkers(filteredWorkers);
       } catch (error) {
         console.error('Failed to load scoreboard:', error);
@@ -32,32 +32,50 @@ const Scoreboard = ({ department }) => {
         setIsLoading(false);
       }
     };
-    
+
     loadWorkers();
   }, [department]);
-  
+
   if (isLoading) {
     return (
       <Card
-      title={
-        <div className="flex items-center">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 11l3-3m0 0l3 3m-3-3v8m0-13a9 9 0 110 18 9 9 0 010-18z" />
-          </svg>
-          Department Scoreboard
-        </div>
-      }
-    >
+        title={
+          <div className="flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 11l3-3m0 0l3 3m-3-3v8m0-13a9 9 0 110 18 9 9 0 010-18z" />
+            </svg>
+            Department Scoreboard
+          </div>
+        }
+      >
         <div className="flex justify-center py-8">
           <Spinner />
         </div>
       </Card>
     );
   }
-  
+
   if (workers.length === 0) {
     return (
       <Card
+        title={
+          <div className="flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 11l3-3m0 0l3 3m-3-3v8m0-13a9 9 0 110 18 9 9 0 010-18z" />
+            </svg>
+            Department Scoreboard
+          </div>
+        }
+      >
+        <p className="text-center py-6 text-gray-500">
+          No workers found in this department.
+        </p>
+      </Card>
+    );
+  }
+
+  return (
+    <Card
       title={
         <div className="flex items-center">
           <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -67,24 +85,6 @@ const Scoreboard = ({ department }) => {
         </div>
       }
     >
-        <p className="text-center py-6 text-gray-500">
-          No workers found in this department.
-        </p>
-      </Card>
-    );
-  }
-  
-  return (
-    <Card
-    title={
-      <div className="flex items-center">
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 11l3-3m0 0l3 3m-3-3v8m0-13a9 9 0 110 18 9 9 0 010-18z" />
-        </svg>
-        Department Scoreboard
-      </div>
-    }
-  >
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
@@ -109,11 +109,11 @@ const Scoreboard = ({ department }) => {
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
                     <div className="flex-shrink-0 h-10 w-10">
-                      <img 
-                        className="h-10 w-10 rounded-full object-cover" 
+                      <img
+                        className="h-10 w-10 rounded-full object-cover"
                         src={worker.photo ? worker.photo : `https://ui-avatars.com/api/?name=${encodeURIComponent(worker.name)}`}
 
-                        alt={worker.name} 
+                        alt={worker.name}
                       />
                     </div>
                     <div className="ml-4">

@@ -662,7 +662,7 @@ const SalaryManagement = () => {
                 <div className="flex space-x-2">
                     <button
                         onClick={() => openEditModal(worker)}
-                        className="p-1 text-blue-600 hover:text-blue-800"
+                        className="p-1 text-black hover:text-blue-800"
                         title="Give Bonus"
                     >
                         <FaDonate className='text-xl' />
@@ -919,7 +919,7 @@ const SalaryManagement = () => {
                     <div className="flex items-center mb-4">
                         <button
                             onClick={toggleDateSelection}
-                            className="px-3 py-1 bg-blue-500 text-white rounded mr-2"
+                            className="px-3 py-1 bg-gray-900 text-white rounded mr-2"
                         >
                             {useMonthSelection ? 'Switch to Date Range' : 'Switch to Month Selection'}
                         </button>

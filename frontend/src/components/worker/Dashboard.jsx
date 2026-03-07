@@ -130,15 +130,15 @@ const Dashboard = () => {
         className="mb-6 rounded-3xl p-6 shadow-lg bg-white text-gray-800 relative overflow-hidden border border-gray-100"
       >
         {/* Decorative circles */}
-        <div className="absolute top-0 right-0 w-32 h-32 bg-[#0d9488] opacity-5 rounded-full -mr-10 -mt-10"></div>
-        <div className="absolute bottom-0 left-0 w-24 h-24 bg-[#0d9488] opacity-5 rounded-full -ml-10 -mb-10"></div>
+        <div className="absolute top-0 right-0 w-32 h-32 bg-[#111111] opacity-5 rounded-full -mr-10 -mt-10"></div>
+        <div className="absolute bottom-0 left-0 w-24 h-24 bg-[#111111] opacity-5 rounded-full -ml-10 -mb-10"></div>
         
         <div className="relative z-10">
           <motion.h2
             initial={{ x: -20, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ type: 'spring', stiffness: 120, damping: 20, duration:0.5 }}
-            className="text-2xl font-bold mb-2 text-[#0d9488]"
+            className="text-2xl font-bold mb-2 text-[#111111]"
           >
             Welcome, {user?.name || user?.username}!
           </motion.h2>
@@ -148,7 +148,7 @@ const Dashboard = () => {
               initial={{ x: -20, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               transition={{ type: 'spring', stiffness: 120, damping: 20, duration: 0.5 }}
-              className="font-bold text-[#0d9488]"
+              className="font-bold text-[#111111]"
             >
               {user?.subdomain}
             </motion.span>
@@ -160,7 +160,7 @@ const Dashboard = () => {
             <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
               <div className="flex items-center space-x-3">
                 <div className="bg-white p-2 rounded-lg flex-shrink-0 border border-gray-200">
-                  <FaMoneyBillAlt className="h-6 w-6 text-[#0d9488]" />
+                  <FaMoneyBillAlt className="h-6 w-6 text-[#111111]" />
                 </div>
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-gray-600 truncate">Base Monthly Salary</p>
@@ -184,7 +184,7 @@ const Dashboard = () => {
             <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
               <div className="flex items-center space-x-3">
                 <div className="bg-white p-2 rounded-lg flex-shrink-0 border border-gray-200">
-                  <FaMoneyBillAlt className="h-6 w-6 text-[#0d9488]" />
+                  <FaMoneyBillAlt className="h-6 w-6 text-[#111111]" />
                 </div>
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-gray-600 truncate">Final Monthly Salary</p>
@@ -219,11 +219,11 @@ const Dashboard = () => {
             >
               <div className="flex items-center space-x-3">
                 <div className="bg-white p-2 rounded-lg flex-shrink-0 border border-gray-200">
-                  <FaCamera className="h-6 w-6 text-[#0d9488]" />
+                  <FaCamera className="h-6 w-6 text-[#111111]" />
                 </div>
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-gray-600 truncate">Face Attendance</p>
-                  <p className="text-sm font-bold text-[#0d9488] truncate">
+                  <p className="text-sm font-bold text-[#111111] truncate">
                     Mark Attendance
                   </p>
                 </div>
@@ -236,13 +236,13 @@ const Dashboard = () => {
             >
               <div className="flex items-center space-x-3">
                 <div className="bg-white p-2 rounded-lg flex-shrink-0 border border-gray-200">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-[#0d9488]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-[#111111]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                   </svg>
                 </div>
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-gray-600 truncate">RFID Attendance</p>
-                  <p className="text-sm font-bold text-[#0d9488] truncate">
+                  <p className="text-sm font-bold text-[#111111] truncate">
                     Mark Attendance
                   </p>
                 </div>
@@ -257,7 +257,7 @@ const Dashboard = () => {
         <Card className="mb-6 bg-blue-50 border-blue-200">
           <div className="flex items-start">
             <div className="flex-shrink-0">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-[#111111]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
@@ -286,7 +286,7 @@ const Dashboard = () => {
           <Card
               title={
                 <div className="flex items-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2 text-blue-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2 text-[#111111] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                   </svg>
                   <span className="truncate">Latest Notification</span>
@@ -387,7 +387,7 @@ const Dashboard = () => {
         {tasks.length > 5 && ( // Only show if more than 5 tasks exist
           <button
             onClick={() => setShowAllRecentTasks(!showAllRecentTasks)} // Toggle visibility
-            className="mt-4 w-full py-2 text-sm text-blue-600 hover:text-blue-800 border border-blue-300 rounded-md flex items-center justify-center" //
+            className="mt-4 w-full py-2 text-sm text-black hover:text-blue-800 border border-blue-300 rounded-md flex items-center justify-center" //
           >
             {showAllRecentTasks ? ( // Change text and icon based on state
               <>Show Less <FaChevronUp className="ml-1" /></> //

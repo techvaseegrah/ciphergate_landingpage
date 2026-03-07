@@ -37,24 +37,24 @@ const AIDemoWidget = () => {
     if (!hasOpenedChat) {
       const showAutoHint = () => {
         setShowTooltip(true);
-        
+
         // Hide tooltip after 3 seconds
         setTimeout(() => {
           setShowTooltip(false);
         }, 3000);
-        
+
         // Schedule next hint in 30-35 seconds
         tooltipTimeoutRef.current = setTimeout(() => {
           showAutoHint();
         }, 30000 + Math.random() * 5000); // 30-35 seconds
       };
-      
+
       // Initial delay before first hint
       tooltipTimeoutRef.current = setTimeout(() => {
         showAutoHint();
       }, 10000); // Show first hint after 10 seconds
     }
-    
+
     return () => {
       if (tooltipTimeoutRef.current) {
         clearTimeout(tooltipTimeoutRef.current);
@@ -68,11 +68,11 @@ const AIDemoWidget = () => {
     const userMessage = inputValue.trim();
     setInputValue('');
     setShowSuggestions(false);
-    
+
     // Add user message
     const userMsg = { id: Date.now(), text: userMessage, sender: 'user' };
     setMessages(prev => [...prev, userMsg]);
-    
+
     setIsLoading(true);
 
     try {
@@ -93,25 +93,25 @@ const AIDemoWidget = () => {
       const data = await response.json();
 
       if (data.success) {
-        const aiMsg = { 
-          id: Date.now() + 1, 
-          text: data.response, 
-          sender: 'ai' 
+        const aiMsg = {
+          id: Date.now() + 1,
+          text: data.response,
+          sender: 'ai'
         };
         setMessages(prev => [...prev, aiMsg]);
       } else {
-        const errorMsg = { 
-          id: Date.now() + 1, 
-          text: 'Sorry, I encountered an issue. Please try again.', 
-          sender: 'ai' 
+        const errorMsg = {
+          id: Date.now() + 1,
+          text: 'Sorry, I encountered an issue. Please try again.',
+          sender: 'ai'
         };
         setMessages(prev => [...prev, errorMsg]);
       }
     } catch (error) {
-      const errorMsg = { 
-        id: Date.now() + 1, 
-        text: 'Sorry, I encountered an issue. Please try again.', 
-        sender: 'ai' 
+      const errorMsg = {
+        id: Date.now() + 1,
+        text: 'Sorry, I encountered an issue. Please try again.',
+        sender: 'ai'
       };
       setMessages(prev => [...prev, errorMsg]);
     } finally {
@@ -141,7 +141,7 @@ const AIDemoWidget = () => {
       // Mark that the user has opened the chat
       setHasOpenedChat(true);
       localStorage.setItem('aiChatOpened', 'true');
-      
+
       setTimeout(() => {
         if (inputRef.current) {
           inputRef.current.focus();
@@ -169,23 +169,23 @@ const AIDemoWidget = () => {
         aria-label="Open AI Assistant"
       >
         <div className="relative flex items-center justify-center">
-          <svg 
-            className="w-6 h-6 text-white" 
-            fill="none" 
-            stroke="currentColor" 
+          <svg
+            className="w-6 h-6 text-white"
+            fill="none"
+            stroke="currentColor"
             viewBox="0 0 24 24"
           >
-            <path 
-              strokeLinecap="round" 
-              strokeLinejoin="round" 
-              strokeWidth={2} 
-              d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" 
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
             />
-            <path 
-              strokeLinecap="round" 
-              strokeLinejoin="round" 
-              strokeWidth={2} 
-              d="M12 15l-3-3m0 0l3-3m-3 3h6" 
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 15l-3-3m0 0l3-3m-3 3h6"
             />
           </svg>
         </div>
@@ -228,17 +228,17 @@ const AIDemoWidget = () => {
               <div className="bg-gradient-to-r from-[#26D07C] to-[#1eb36a] p-4 flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                   <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
-                    <svg 
-                      className="w-5 h-5 text-white" 
-                      fill="none" 
-                      stroke="currentColor" 
+                    <svg
+                      className="w-5 h-5 text-white"
+                      fill="none"
+                      stroke="currentColor"
                       viewBox="0 0 24 24"
                     >
-                      <path 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round" 
-                        strokeWidth={2} 
-                        d="M13 10V3L4 14h7v7l9-11h-7z" 
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13 10V3L4 14h7v7l9-11h-7z"
                       />
                     </svg>
                   </div>
@@ -284,11 +284,10 @@ const AIDemoWidget = () => {
                     className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
                   >
                     <div
-                      className={`max-w-[80%] rounded-2xl px-4 py-3 ${
-                        message.sender === 'user'
+                      className={`max-w-[80%] rounded-2xl px-4 py-3 ${message.sender === 'user'
                           ? 'bg-gray-100 text-gray-800 rounded-br-none'
                           : 'bg-gradient-to-r from-[#26D07C] to-[#1eb36a] text-white rounded-bl-none'
-                      }`}
+                        }`}
                     >
                       <div className="whitespace-pre-wrap">{message.text}</div>
                     </div>
@@ -342,7 +341,7 @@ const AIDemoWidget = () => {
                     </svg>
                   </button>
                 </div>
-                
+
                 {/* Clear chat button and disclaimer */}
                 <div className="flex justify-between items-center mt-3">
                   <button

@@ -357,7 +357,7 @@ const HolidayManagement = () => {
                   <div className="flex justify-between items-start w-full">
                     <div className="flex-1">
                       <div className="flex items-center mb-2">
-                        <FaCalendarAlt className="text-blue-600 mr-2" />
+                        <FaCalendarAlt className="text-black mr-2" />
                         <h3 className="text-xl font-semibold text-gray-800">
                           {holiday.holidayDesc}
                         </h3>
@@ -367,7 +367,7 @@ const HolidayManagement = () => {
                           </span>
                         )}
                         {holiday.appliesTo === 'specific' && (
-                          <span className="ml-2 px-2 py-1 bg-purple-100 text-purple-600 text-xs rounded-full">
+                          <span className="ml-2 px-2 py-1 bg-purple-100 text-gray-900 text-xs rounded-full">
                             Specific Employees
                           </span>
                         )}
@@ -376,7 +376,7 @@ const HolidayManagement = () => {
                       <div className="space-y-2">
                         <div className="flex items-center">
                           <span className="text-sm font-medium text-gray-600 w-16">Date:</span>
-                          <span className="text-lg font-medium text-blue-600">
+                          <span className="text-lg font-medium text-black">
                             {formatDate(holiday.date)}
                           </span>
                         </div>
@@ -432,7 +432,7 @@ const HolidayManagement = () => {
                     
                     <div className="flex space-x-2 ml-4">
                       <button
-                        className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors"
+                        className="p-2 text-black hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors"
                         onClick={() => openEditModal(holiday)}
                         title="Edit Holiday"
                       >

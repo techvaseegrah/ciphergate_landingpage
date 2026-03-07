@@ -283,7 +283,7 @@ const RFIDAttendancePopup = ({ isOpen, onClose, subdomain, user }) => {
                         value={rfid}
                         onChange={(e) => setRfid(e.target.value)}
                         placeholder="Enter your RFID"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-gray-900 focus:border-gray-900"
                         disabled={isSubmitting || cooldownRemaining > 0}
                       />
                     </div>

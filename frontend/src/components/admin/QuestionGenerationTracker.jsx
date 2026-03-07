@@ -98,7 +98,7 @@ const QuestionGenerationTracker = ({
   const getProgressBarColor = (percentage) => {
     if (percentage >= 80) return 'bg-green-500';
     if (percentage >= 50) return 'bg-yellow-500';
-    return 'bg-blue-500';
+    return 'bg-gray-900';
   };
 
   return (
@@ -150,13 +150,13 @@ const QuestionGenerationTracker = ({
               {/* Stats Row */}
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div className="bg-blue-50 p-2 rounded">
-                  <div className="text-blue-600 font-semibold">
+                  <div className="text-black font-semibold">
                     {progress.processedEmployees}/{progress.totalEmployees}
                   </div>
-                  <div className="text-blue-500 text-xs">Employees</div>
+                  <div className="text-[#111111] text-xs">Employees</div>
                 </div>
                 <div className="bg-purple-50 p-2 rounded">
-                  <div className="text-purple-600 font-semibold">
+                  <div className="text-gray-900 font-semibold">
                     {progress.generatedQuestions}/{progress.totalQuestions}
                   </div>
                   <div className="text-purple-500 text-xs">Questions</div>

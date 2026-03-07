@@ -12,13 +12,13 @@ const LeaveRequests = () => {
   const [leaves, setLeaves] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const { subdomain } = useContext(appContext);
-  
+
   // Filter states
   const [statusFilter, setStatusFilter] = useState('all');
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
   const [isThisMonthActive, setIsThisMonthActive] = useState(false);
   const [showFutureLeaves, setShowFutureLeaves] = useState(true);
-  
+
   useEffect(() => {
     const loadLeaves = async () => {
       if (!subdomain || subdomain === 'main') {
@@ -60,7 +60,7 @@ const LeaveRequests = () => {
     const today = new Date();
     const firstDay = startOfMonth(today);
     const lastDay = endOfMonth(today);
-    
+
     setDateRange({
       start: format(firstDay, 'yyyy-MM-dd'),
       end: format(lastDay, 'yyyy-MM-dd')
@@ -83,7 +83,7 @@ const LeaveRequests = () => {
       if (statusFilter !== 'all' && leave.status !== statusFilter) {
         return false;
       }
-      
+
       // Future leaves filter
       if (!showFutureLeaves) {
         const leaveEndDate = new Date(leave.endDate);
@@ -91,7 +91,7 @@ const LeaveRequests = () => {
           return false;
         }
       }
-      
+
       // Date range filter
       if (dateRange.start && dateRange.end) {
         try {
@@ -99,20 +99,20 @@ const LeaveRequests = () => {
           const leaveEndDate = parseISO(leave.endDate);
           const filterStartDate = parseISO(dateRange.start);
           const filterEndDate = parseISO(dateRange.end);
-          
+
           // Check if leave period overlaps with filter period
-          const startInRange = isWithinInterval(leaveStartDate, { 
-            start: filterStartDate, 
-            end: filterEndDate 
+          const startInRange = isWithinInterval(leaveStartDate, {
+            start: filterStartDate,
+            end: filterEndDate
           });
-          
-          const endInRange = isWithinInterval(leaveEndDate, { 
-            start: filterStartDate, 
-            end: filterEndDate 
+
+          const endInRange = isWithinInterval(leaveEndDate, {
+            start: filterStartDate,
+            end: filterEndDate
           });
-          
+
           const encompassesRange = leaveStartDate <= filterStartDate && leaveEndDate >= filterEndDate;
-          
+
           if (!(startInRange || endInRange || encompassesRange)) {
             return false;
           }
@@ -121,7 +121,7 @@ const LeaveRequests = () => {
           return true; // If there's an error in date parsing, include the leave
         }
       }
-      
+
       return true;
     });
   };
@@ -197,10 +197,10 @@ const LeaveRequests = () => {
       </div>
 
       {/* Filters Card */}
-      <Card className="mb-6 border-t-4 border-blue-500 overflow-hidden shadow-sm">
+      <Card className="mb-6 border-t-4 border-gray-900 overflow-hidden shadow-sm">
         <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
           <div className="flex items-center">
-            <FaFilter className="text-blue-600 mr-2" />
+            <FaFilter className="text-black mr-2" />
             <h2 className="text-lg font-medium">Filters</h2>
           </div>
         </div>
@@ -214,11 +214,10 @@ const LeaveRequests = () => {
                 <button
                   key={option.value}
                   onClick={() => setStatusFilter(option.value)}
-                  className={`px-4 py-2 rounded-md text-sm font-medium focus:outline-none transition-colors ${
-                    statusFilter === option.value
-                      ? 'bg-blue-600 text-white shadow-sm'
+                  className={`px-4 py-2 rounded-md text-sm font-medium focus:outline-none transition-colors ${statusFilter === option.value
+                      ? 'bg-black text-white shadow-sm'
                       : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-                  }`}
+                    }`}
                 >
                   {option.label}
                 </button>
@@ -230,11 +229,11 @@ const LeaveRequests = () => {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               <div className="flex items-center">
-                <FaCalendarAlt className="text-blue-600 mr-2" />
+                <FaCalendarAlt className="text-black mr-2" />
                 <span>Date Range</span>
               </div>
             </label>
-            
+
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
               <div className="col-span-1">
                 <div className="relative rounded-md shadow-sm">
@@ -248,11 +247,11 @@ const LeaveRequests = () => {
                       setDateRange(prev => ({ ...prev, start: e.target.value }));
                       setIsThisMonthActive(false);
                     }}
-                    className="w-full pl-14 p-2 border rounded-md text-sm focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full pl-14 p-2 border rounded-md text-sm focus:ring-gray-900 focus:border-gray-900"
                   />
                 </div>
               </div>
-              
+
               <div className="col-span-1">
                 <div className="relative rounded-md shadow-sm">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -265,25 +264,24 @@ const LeaveRequests = () => {
                       setDateRange(prev => ({ ...prev, end: e.target.value }));
                       setIsThisMonthActive(false);
                     }}
-                    className="w-full pl-9 p-2 border rounded-md text-sm focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full pl-9 p-2 border rounded-md text-sm focus:ring-gray-900 focus:border-gray-900"
                   />
                 </div>
               </div>
-              
+
               <div className="col-span-1 sm:col-span-2 flex flex-wrap gap-2">
                 <button
                   onClick={handleThisMonthFilter}
-                  className={`px-4 py-2 rounded-md text-sm font-medium ${
-                    isThisMonthActive
-                      ? 'bg-blue-600 text-white shadow-sm'
+                  className={`px-4 py-2 rounded-md text-sm font-medium ${isThisMonthActive
+                      ? 'bg-black text-white shadow-sm'
                       : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-                  }`}
+                    }`}
                 >
                   This Month
                 </button>
-                
- 
-                
+
+
+
                 {(statusFilter !== 'all' || dateRange.start || dateRange.end || !showFutureLeaves) && (
                   <button
                     onClick={resetFilters}
@@ -296,46 +294,46 @@ const LeaveRequests = () => {
             </div>
           </div>
         </div>
-        
+
         {/* Active Filters Summary */}
         {(statusFilter !== 'all' || dateRange.start || dateRange.end || !showFutureLeaves) && (
           <div className="px-4 py-3 bg-blue-50 border-t border-blue-100">
             <div className="flex flex-wrap gap-2 items-center">
               <span className="text-sm font-medium text-blue-700">Active Filters:</span>
-              
+
               {statusFilter !== 'all' && (
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                   Status: {statusFilter}
-                  <button 
-                    onClick={() => setStatusFilter('all')} 
-                    className="ml-1 text-blue-600 hover:text-blue-800"
+                  <button
+                    onClick={() => setStatusFilter('all')}
+                    className="ml-1 text-black hover:text-blue-800"
                   >
                     <FaTimes size={10} />
                   </button>
                 </span>
               )}
-              
+
               {dateRange.start && dateRange.end && (
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                   {isThisMonthActive ? "This Month" : `${formatDate(dateRange.start)} - ${formatDate(dateRange.end)}`}
-                  <button 
+                  <button
                     onClick={() => {
                       setDateRange({ start: '', end: '' });
                       setIsThisMonthActive(false);
-                    }} 
-                    className="ml-1 text-blue-600 hover:text-blue-800"
+                    }}
+                    className="ml-1 text-black hover:text-blue-800"
                   >
                     <FaTimes size={10} />
                   </button>
                 </span>
               )}
-              
+
               {!showFutureLeaves && (
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                   Future leaves hidden
-                  <button 
-                    onClick={() => setShowFutureLeaves(true)} 
-                    className="ml-1 text-blue-600 hover:text-blue-800"
+                  <button
+                    onClick={() => setShowFutureLeaves(true)}
+                    className="ml-1 text-black hover:text-blue-800"
                   >
                     <FaTimes size={10} />
                   </button>
@@ -347,7 +345,7 @@ const LeaveRequests = () => {
       </Card>
 
       {/* Leave Requests List */}
-      <Card className="border-t-4 border-blue-500 overflow-hidden shadow-sm">
+      <Card className="border-t-4 border-gray-900 overflow-hidden shadow-sm">
         <div className="px-4 py-3 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
           <h3 className="font-medium text-gray-700">Leave Requests</h3>
           <span className="text-sm text-gray-500">
@@ -358,7 +356,7 @@ const LeaveRequests = () => {
         {leaves.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
             <div className="rounded-full bg-blue-50 p-3 mb-4">
-              <FaCalendarAlt className="text-blue-500 text-xl" />
+              <FaCalendarAlt className="text-[#111111] text-xl" />
             </div>
             <h3 className="text-lg font-medium text-gray-900 mb-2">No leave requests yet</h3>
             <p className="text-gray-500 mb-6 max-w-md">
@@ -391,37 +389,35 @@ const LeaveRequests = () => {
           <div className="divide-y divide-gray-200">
             {filteredLeaves.map((leave) => (
               <div
-                            key={leave._id}
-                            className={`p-4 sm:p-6 transition-all hover:bg-gray-50
-                              border-4 ${
-                                leave.status === 'Approved'
-                                  ? 'border-green-500'
-                                  : leave.status === 'Rejected'
-                                    ? 'border-red-500'
-                                    : 'border-yellow-500'
-                              } ${
-                                !leave.workerViewed && (leave.status === 'Approved' || leave.status === 'Rejected')
-                                  ? 'border-l-4 border-blue-500 bg-blue-50'
-                                  : ''
-                              }`}
-                          >
+                key={leave._id}
+                className={`p-4 sm:p-6 transition-all hover:bg-gray-50
+                              border-4 ${leave.status === 'Approved'
+                    ? 'border-green-500'
+                    : leave.status === 'Rejected'
+                      ? 'border-red-500'
+                      : 'border-yellow-500'
+                  } ${!leave.workerViewed && (leave.status === 'Approved' || leave.status === 'Rejected')
+                    ? 'border-l-4 border-gray-900 bg-blue-50'
+                    : ''
+                  }`}
+              >
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-4 gap-2">
                   <div>
                     <h4 className="font-medium text-gray-900 text-lg">{leave.leaveType}</h4>
                     <div className="mt-1 flex items-center">
                       <p className="text-sm text-gray-500">
-                        <span className="font-medium">{leave.totalDays}</span> {leave.totalDays === 1 ? 'day' : 'days'} • 
+                        <span className="font-medium">{leave.totalDays}</span> {leave.totalDays === 1 ? 'day' : 'days'} •
                         Submitted on {formatDate(leave.createdAt)}
                       </p>
-                      
+
                       {!leave.workerViewed && (leave.status === 'Approved' || leave.status === 'Rejected') && (
                         <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                        
+
                         </span>
                       )}
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center">
                     {/* Status Badge */}
                     {(() => {
@@ -444,7 +440,7 @@ const LeaveRequests = () => {
                         {formatDate(leave.startDate)} - {formatDate(leave.endDate)}
                       </div>
                     </div>
-                    
+
                     <div className="p-3">
                       <p className="text-xs text-gray-500 uppercase tracking-wide font-medium mb-1">Status</p>
                       <div className="font-medium text-gray-900">
@@ -454,28 +450,28 @@ const LeaveRequests = () => {
                       </div>
                     </div>
                   </div>
-                  
+
                   {/* Reason */}
                   <div className="p-3">
                     <p className="text-xs text-gray-500 uppercase tracking-wide font-medium mb-1">Reason</p>
                     <p className="text-gray-700">{leave.reason}</p>
                   </div>
-                  
+
                   {/* Document (if any) */}
                   {leave.document && (
                     <div className="p-3">
                       <p className="text-xs text-gray-500 uppercase tracking-wide font-medium mb-1">Supporting Document</p>
-                      
-                        href={leave.document}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-800 hover:underline font-medium flex items-center"
-                      
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                        </svg>
-                        View Document
-                      
+
+                      href={leave.document}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-black hover:text-blue-800 hover:underline font-medium flex items-center"
+
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                      </svg>
+                      View Document
+
                     </div>
                   )}
                 </div>

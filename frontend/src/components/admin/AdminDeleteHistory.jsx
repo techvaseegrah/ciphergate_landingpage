@@ -138,7 +138,7 @@ const AdminDeleteHistory = () => {
                     <td className="py-3 px-4 text-sm text-gray-700 border-b text-center">
                       <button
                         onClick={() => viewInvoiceDetails(record)}
-                        className="text-blue-600 hover:text-blue-900 font-medium text-sm"
+                        className="text-black hover:text-blue-900 font-medium text-sm"
                       >
                         View Details
                       </button>

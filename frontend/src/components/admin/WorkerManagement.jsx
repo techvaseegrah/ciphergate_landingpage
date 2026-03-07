@@ -70,41 +70,41 @@ const WorkerManagement = () => {
     setIsLoadingDepartments(true);
 
     try {
-        const [workersData, departmentsData, settingsData, userData] = await Promise.all([
-            getWorkers({ subdomain }),
-            getDepartments({ subdomain }),
-            getSettings({ subdomain }),
-            getCurrentUser() // Get current user data
-        ]);
+      const [workersData, departmentsData, settingsData, userData] = await Promise.all([
+        getWorkers({ subdomain }),
+        getDepartments({ subdomain }),
+        getSettings({ subdomain }),
+        getCurrentUser() // Get current user data
+      ]);
 
-        const safeWorkersData = Array.isArray(workersData) ? workersData : [];
-        const safeDepartmentsData = Array.isArray(departmentsData) ? departmentsData : [];
-        const safeSettingsData = settingsData || {};
+      const safeWorkersData = Array.isArray(workersData) ? workersData : [];
+      const safeDepartmentsData = Array.isArray(departmentsData) ? departmentsData : [];
+      const safeSettingsData = settingsData || {};
 
-        setWorkers(safeWorkersData);
-        setDepartments(safeDepartmentsData);
-        setBatches(safeSettingsData.batches || []);
-        
-        // Set account type and current user
-        setAccountType(userData?.accountType || 'free');
-        setCurrentUser(userData);
+      setWorkers(safeWorkersData);
+      setDepartments(safeDepartmentsData);
+      setBatches(safeSettingsData.batches || []);
+
+      // Set account type and current user
+      setAccountType(userData?.accountType || 'free');
+      setCurrentUser(userData);
     } catch (error) {
-        toast.error('Failed to load data');
-        console.error(error);
-        setWorkers([]);
-        setDepartments([]);
-        setBatches([]);
-        setAccountType('free');
-        setCurrentUser(null);
+      toast.error('Failed to load data');
+      console.error(error);
+      setWorkers([]);
+      setDepartments([]);
+      setBatches([]);
+      setAccountType('free');
+      setCurrentUser(null);
     } finally {
-        setIsLoading(false);
-        setIsLoadingDepartments(false);
+      setIsLoading(false);
+      setIsLoadingDepartments(false);
     }
-};
+  };
 
-useEffect(() => {
+  useEffect(() => {
     loadData();
-}, []);
+  }, []);
 
   const getWorkerId = async () => {
     await getUniqueId()
@@ -131,30 +131,30 @@ useEffect(() => {
         // Check if there's a department filter in the URL
         const urlParams = new URLSearchParams(location.search);
         const departmentFilter = urlParams.get('department');
-        
+
         // Apply department filter if present
-        const matchesDepartment = departmentFilter 
+        const matchesDepartment = departmentFilter
           ? worker.department === departmentFilter || worker.department?._id === departmentFilter
           : true;
-        
+
         // Apply search term filter
         const matchesSearch = worker.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
           (worker.department && worker.department.toLowerCase().includes(searchTerm.toLowerCase())) ||
           (worker.rfid && worker.rfid.toLowerCase().includes(searchTerm.toLowerCase()));
-        
+
         return matchesDepartment && matchesSearch;
       }
     )
     : [];
 
-    useEffect(() => {
-          if (isAddModalOpen) {
-            nameInputRef.current?.focus();
-          }
-        }, [isAddModalOpen]);
+  useEffect(() => {
+    if (isAddModalOpen) {
+      nameInputRef.current?.focus();
+    }
+  }, [isAddModalOpen]);
 
   // Open add worker modal
-const openAddModal = () => {
+  const openAddModal = () => {
     setFormData(prev => ({
       ...prev,
       name: '',
@@ -208,30 +208,30 @@ const openAddModal = () => {
   const handleFacesCaptured = async (faces) => {
     const embeddings = faces.map(face => face.embedding);
     setWorkerFaceEmbeddings(embeddings);
-    
+
     // If we're editing an existing worker, update their face embeddings immediately
     if (selectedWorkerForFace) {
       try {
         const updateData = {
           faceEmbeddings: embeddings
         };
-        
+
         const updatedWorker = await updateWorker(selectedWorkerForFace._id, updateData);
-        
+
         // Update the workers list
         setWorkers(prev =>
           prev.map(worker =>
             worker._id === selectedWorkerForFace._id ? updatedWorker : worker
           )
         );
-        
+
         toast.success('Face data captured and saved successfully');
       } catch (error) {
         console.error('Error saving face data:', error);
         toast.error('Failed to save face data');
       }
     }
-    
+
     setShowFaceCapture(false);
   };
 
@@ -248,92 +248,92 @@ const openAddModal = () => {
   };
 
   // Handle add worker
-const handleAddWorker = async (e) => {
-  e.preventDefault();
+  const handleAddWorker = async (e) => {
+    e.preventDefault();
 
-  // FIXED THIS LINE: Convert salary to string before trimming
-  const trimmedName = formData.name.trim();
-  const trimmedUsername = formData.username.trim();
-  const trimmedPassword = formData.password.trim();
-  const trimmedSalary = String(formData.salary).trim(); 
+    // FIXED THIS LINE: Convert salary to string before trimming
+    const trimmedName = formData.name.trim();
+    const trimmedUsername = formData.username.trim();
+    const trimmedPassword = formData.password.trim();
+    const trimmedSalary = String(formData.salary).trim();
 
-  // Validation checks
-  if (!subdomain || subdomain == 'main') {
-    toast.error('Subdomain is missing, check the url');
-    return;
-  }
+    // Validation checks
+    if (!subdomain || subdomain == 'main') {
+      toast.error('Subdomain is missing, check the url');
+      return;
+    }
 
-  if (!trimmedName) {
-    toast.error('Name is required and cannot be empty');
-    return;
-  }
+    if (!trimmedName) {
+      toast.error('Name is required and cannot be empty');
+      return;
+    }
 
-  if (!trimmedUsername) {
-    toast.error('Username is required and cannot be empty');
-    return;
-  }
+    if (!trimmedUsername) {
+      toast.error('Username is required and cannot be empty');
+      return;
+    }
 
-  if (!trimmedSalary || trimmedSalary === '') {
-    toast.error('Salary is required and cannot be empty');
-    return;
-  }
+    if (!trimmedSalary || trimmedSalary === '') {
+      toast.error('Salary is required and cannot be empty');
+      return;
+    }
 
-  if (isNaN(Number(trimmedSalary)) || Number(trimmedSalary) <= 0) {
-    toast.error('Salary must be a positive number');
-    return;
-  }
+    if (isNaN(Number(trimmedSalary)) || Number(trimmedSalary) <= 0) {
+      toast.error('Salary must be a positive number');
+      return;
+    }
 
-  if (!trimmedPassword) {
-    toast.error('Password is required and cannot be empty');
-    return;
-  }
+    if (!trimmedPassword) {
+      toast.error('Password is required and cannot be empty');
+      return;
+    }
 
-  if (!formData.department) {
-    toast.error('Department is required');
-    return;
-  }
+    if (!formData.department) {
+      toast.error('Department is required');
+      return;
+    }
 
-  if (!formData.rfid) {
-    toast.error('Unique ID is required');
-    return;
-  }
-  
-  // ADDED: Check if batch is selected
-  if (!formData.batch) {
+    if (!formData.rfid) {
+      toast.error('Unique ID is required');
+      return;
+    }
+
+    // ADDED: Check if batch is selected
+    if (!formData.batch) {
       toast.error('Batch is required');
       return;
-  }
-
-  try {
-    const newWorker = await createWorker({
-      ...formData,
-      name: trimmedName,
-      username: trimmedUsername,
-      rfid: formData.rfid,
-      salary: Number(trimmedSalary), // Ensure salary is a number
-      subdomain,
-      password: trimmedPassword,
-      photo: formData.photo || '',
-      batch: formData.batch, // ADDED: Include the batch
-      faceEmbeddings: workerFaceEmbeddings // Include face embeddings
-    });
-
-    generateQRCode(trimmedUsername, formData.rfid);
-    setWorkers(prev => [...prev, newWorker]);
-    setIsAddModalOpen(false);
-    toast.success('Employee added successfully');
-  } catch (error) {
-    console.error('Add Employee Error:', error);
-    
-    // Check if the error is due to free account limit
-    if (error.message && error.message.includes('Free account limit reached')) {
-      toast.error('Free account limit reached! You can add up to 5 employees on the free plan.');
-      setShowPremiumUpgrade(true);
-    } else {
-      toast.error(error.message || 'Failed to add employee');
     }
-  }
-};
+
+    try {
+      const newWorker = await createWorker({
+        ...formData,
+        name: trimmedName,
+        username: trimmedUsername,
+        rfid: formData.rfid,
+        salary: Number(trimmedSalary), // Ensure salary is a number
+        subdomain,
+        password: trimmedPassword,
+        photo: formData.photo || '',
+        batch: formData.batch, // ADDED: Include the batch
+        faceEmbeddings: workerFaceEmbeddings // Include face embeddings
+      });
+
+      generateQRCode(trimmedUsername, formData.rfid);
+      setWorkers(prev => [...prev, newWorker]);
+      setIsAddModalOpen(false);
+      toast.success('Employee added successfully');
+    } catch (error) {
+      console.error('Add Employee Error:', error);
+
+      // Check if the error is due to free account limit
+      if (error.message && error.message.includes('Free account limit reached')) {
+        toast.error('Free account limit reached! You can add up to 5 employees on the free plan.');
+        setShowPremiumUpgrade(true);
+      } else {
+        toast.error(error.message || 'Failed to add employee');
+      }
+    }
+  };
 
   // Handle edit worker
   const handleEditWorker = async (e) => {
@@ -444,8 +444,8 @@ const handleAddWorker = async (e) => {
       accessor: 'department',
       render: (record) => (
         <span>
-          {typeof record.department === 'object' 
-            ? record.department.name 
+          {typeof record.department === 'object'
+            ? record.department.name
             : (departments.find(dept => dept._id === record.department)?.name || record.department || 'N/A')}
         </span>
       ),
@@ -465,7 +465,7 @@ const handleAddWorker = async (e) => {
         <div className="flex space-x-2">
           <button
             onClick={() => openEditModal(record)}
-            className="text-blue-500 hover:text-blue-700"
+            className="text-[#111111] hover:text-gray-700"
           >
             <FaEdit />
           </button>
@@ -489,14 +489,25 @@ const handleAddWorker = async (e) => {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Employee Management</h1>
-        <Button 
-          variant="primary" 
+        <div className="flex items-center gap-4">
+          <h1 className="text-2xl font-bold">Employee Management</h1>
+          {accountType === 'premium' ? (
+            <span className="px-3 py-1 bg-gradient-to-r from-yellow-400 to-yellow-600 text-white text-xs font-bold rounded-full shadow-sm">
+              PREMIUM PLAN
+            </span>
+          ) : (
+            <span className="px-3 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-full border border-gray-200">
+              FREE PLAN
+            </span>
+          )}
+        </div>
+        <Button
+          variant={accountType === 'free' && workers.length >= 5 ? "danger" : "primary"}
           onClick={accountType === 'free' && workers.length >= 5 ? () => setShowPremiumUpgrade(true) : openAddModal}
-          disabled={accountType === 'free' && workers.length >= 5}
+          className={accountType === 'free' && workers.length >= 5 ? "opacity-90 hover:opacity-100" : ""}
         >
-          <FaPlus className="mr-2 inline" /> 
-          {accountType === 'free' && workers.length >= 5 ? 'Account Limit Reached' : 'Add Employee'}
+          <FaPlus className="mr-2 inline" />
+          {accountType === 'free' && workers.length >= 5 ? 'Limit Reached - Upgrade' : 'Add Employee'}
         </Button>
       </div>
 
@@ -512,13 +523,13 @@ const handleAddWorker = async (e) => {
             />
           </div>
         </div>
-        
+
         {/* Employee Count Indicator */}
         {accountType === 'free' && (
           <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-100">
             <div className="flex items-center justify-between">
               <div className="flex items-center">
-                <svg className="w-5 h-5 text-blue-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-5 h-5 text-[#111111] mr-2" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
                 </svg>
                 <span className="text-blue-700 font-medium">
@@ -532,8 +543,8 @@ const handleAddWorker = async (e) => {
               )}
             </div>
             <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
-              <div 
-                className="bg-blue-600 h-2 rounded-full" 
+              <div
+                className="bg-black h-2 rounded-full"
                 style={{ width: `${Math.min(100, (workers.length / 5) * 100)}%` }}
               ></div>
             </div>
@@ -852,7 +863,7 @@ const handleAddWorker = async (e) => {
           </div>
         </form>
       </Modal>
-      
+
       {/* Face Capture Modal */}
       <Modal
         isOpen={showFaceCapture}
@@ -862,7 +873,7 @@ const handleAddWorker = async (e) => {
       >
         <FaceCapture onFacesCaptured={handleFacesCaptured} />
       </Modal>
-      
+
       {/* Delete Worker Modal */}
       <Modal
         isOpen={isDeleteModalOpen}
@@ -891,9 +902,9 @@ const handleAddWorker = async (e) => {
       </Modal>
 
       {/* Premium Upgrade Modal */}
-      <PremiumUpgradeModal 
-        isOpen={showPremiumUpgrade} 
-        onClose={() => setShowPremiumUpgrade(false)} 
+      <PremiumUpgradeModal
+        isOpen={showPremiumUpgrade}
+        onClose={() => setShowPremiumUpgrade(false)}
       />
     </div>
   );

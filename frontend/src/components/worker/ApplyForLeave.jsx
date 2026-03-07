@@ -85,7 +85,7 @@ const ApplyForLeave = () => {
       toast.error('Please provide a start and end time for your permission request.');
       return;
     }
-    
+
     setIsSubmitting(true);
     const formPayload = new FormData();
     formPayload.append('leaveType', formData.leaveType);
@@ -117,7 +117,7 @@ const ApplyForLeave = () => {
         startTime: '',
         endTime: ''
       });
-      
+
       // Navigate to leave requests page after successful submission
       setTimeout(() => {
         navigate('/worker/leave-requests');

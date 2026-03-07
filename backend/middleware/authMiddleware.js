@@ -25,6 +25,21 @@ const protect = asyncHandler(async (req, res, next) => {
       // Try to find the user in Admin collection first
       let user = await Admin.findById(decoded.id).select('-password');
       if (user) {
+        // ── Subscription expiry check ──
+        if (
+          user.accountType === 'premium' &&
+          user.subscriptionEndDate &&
+          new Date(user.subscriptionEndDate) < new Date()
+        ) {
+          user.accountType = 'free';
+          user.accountStatus = 'paused';
+          user.subscriptionPlan = 'none';
+          user.subscriptionStartDate = null;
+          user.subscriptionEndDate = null;
+          user.autoRenew = false;
+          await user.save();
+          console.log(`Subscription expired for admin: ${user.username}. Account paused.`);
+        }
         req.user = user;
         req.user.role = 'admin';
       } else {

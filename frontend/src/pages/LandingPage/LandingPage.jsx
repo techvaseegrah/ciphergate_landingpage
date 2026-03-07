@@ -10,7 +10,6 @@ import UseCase from './UseCase.jsx';
 import Pricing from './Pricing.jsx';
 import Contact from './Contact.jsx';
 import Footer from './Footer.jsx';
-import AIDemoWidget from '../../components/common/AIDemoWidget.jsx';
 
 function LandingPage() {
   const scrollContainerRef = useRef(null);
@@ -31,14 +30,13 @@ function LandingPage() {
         <ParallaxImage scrollYProgress={scrollYProgress} />
       </div>
 
-      <div className="max-w-[1280px] mx-auto px-6 py-20">
+      <div className="max-w-[1280px] mx-auto px-6 space-y-16 md:space-y-20">
         <Features />
         <UseCase />
         <Pricing />
         <Contact />
       </div>
       <Footer />
-      <AIDemoWidget />
     </div>
   );
 }

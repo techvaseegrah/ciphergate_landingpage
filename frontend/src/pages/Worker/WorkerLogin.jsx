@@ -184,7 +184,7 @@ const WorkerLogin = () => {
         <motion.button
           key="prev"
           onClick={() => setCurrentPage(currentPage - 1)}
-          className="p-2 bg-[#0d9488] text-white rounded-full hover:bg-white hover:text-[#0d9488] border-2 border-[#0d9488] transition-colors"
+          className="p-2 bg-[#111111] text-white rounded-full hover:bg-white hover:text-[#111111] border-2 border-[#111111] transition-colors"
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
         >
@@ -199,9 +199,9 @@ const WorkerLogin = () => {
           key={i}
           onClick={() => setCurrentPage(i)}
           className={`w-9 h-9 rounded-full flex items-center justify-center ${currentPage === i
-              ? 'bg-[#0d9488] text-white'
-              : 'bg-gray-200 text-black hover:bg-[#0d9488] hover:text-white'
-            } transition-colors border-2 border-[#0d9488]`}
+              ? 'bg-[#111111] text-white'
+              : 'bg-gray-200 text-black hover:bg-[#111111] hover:text-white'
+            } transition-colors border-2 border-[#111111]`}
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
         >
@@ -215,7 +215,7 @@ const WorkerLogin = () => {
         <motion.button
           key="next"
           onClick={() => setCurrentPage(currentPage + 1)}
-          className="p-2 bg-[#0d9488] text-white rounded-full hover:bg-white hover:text-[#0d9488] border-2 border-[#0d9488] transition-colors"
+          className="p-2 bg-[#111111] text-white rounded-full hover:bg-white hover:text-[#111111] border-2 border-[#111111] transition-colors"
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
         >
@@ -241,7 +241,7 @@ const WorkerLogin = () => {
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.3 }}
-          className="absolute top-6 left-6 flex items-center gap-2 text-gray-600 hover:text-[#0d9488] transition-colors group z-20"
+          className="absolute top-6 left-6 flex items-center gap-2 text-gray-600 hover:text-[#111111] transition-colors group z-20"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 group-hover:-translate-x-1 transition-transform" viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
@@ -289,7 +289,7 @@ const WorkerLogin = () => {
           >
             <div className="mb-6 text-center">
               <motion.h1
-                className="text-2xl sm:text-3xl font-bold text-[#0d9488]"
+                className="text-2xl sm:text-3xl font-bold text-[#111111]"
                 initial={{ y: -20 }}
                 animate={{ y: 0 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
@@ -297,7 +297,7 @@ const WorkerLogin = () => {
                 Enter Your Company Name
               </motion.h1>
               <motion.div
-                className="h-1 bg-[#0d9488] rounded-full w-0 mx-auto mt-2"
+                className="h-1 bg-[#111111] rounded-full w-0 mx-auto mt-2"
                 initial={{ width: 0 }}
                 animate={{ width: "60px" }}
                 transition={{ duration: 0.5, delay: 0.4 }}
@@ -316,7 +316,7 @@ const WorkerLogin = () => {
                   placeholder="e.g. company123"
                   value={manualSubdomain}
                   onChange={(e) => setManualSubdomain(e.target.value)}
-                  className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0d9488] focus:border-transparent text-black"
+                  className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#111111] focus:border-transparent text-black"
                   required
                 />
               </motion.div>
@@ -333,7 +333,7 @@ const WorkerLogin = () => {
                   delay: 0.5,
                   stiffness: 120
                 }}
-                className="w-full py-3 bg-[#0d9488] text-white rounded-lg hover:bg-white hover:text-[#0d9488] border-2 border-[#0d9488] transition-colors font-medium"
+                className="w-full py-3 bg-[#111111] text-white rounded-lg hover:bg-white hover:text-[#111111] border-2 border-[#111111] transition-colors font-medium"
               >
                 Continue
               </motion.button>
@@ -354,7 +354,7 @@ const WorkerLogin = () => {
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.3 }}
-        className="absolute top-6 left-6 flex items-center gap-2 text-gray-600 hover:text-[#0d9488] transition-colors group z-20"
+        className="absolute top-6 left-6 flex items-center gap-2 text-gray-600 hover:text-[#111111] transition-colors group z-20"
       >
         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 group-hover:-translate-x-1 transition-transform" viewBox="0 0 20 20" fill="currentColor">
           <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
@@ -400,7 +400,7 @@ const WorkerLogin = () => {
           transition={{ duration: 0.5 }}
           className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4"
         >
-          <h1 className="text-2xl sm:text-3xl font-bold text-[#0d9488] text-center w-full md:w-auto">
+          <h1 className="text-2xl sm:text-3xl font-bold text-[#111111] text-center w-full md:w-auto">
             Employee Login
           </h1>
 
@@ -416,7 +416,7 @@ const WorkerLogin = () => {
               setCurrentPage(1);
               setDepartment('All');
             }}
-            className="absolute top-4 right-4 px-3 py-2 bg-gray-200 border border-gray-300 text-black rounded-lg hover:bg-[#0d9488] hover:text-white transition-colors flex items-center gap-1 text-xs sm:text-sm md:static md:mt-0"
+            className="absolute top-4 right-4 px-3 py-2 bg-gray-200 border border-gray-300 text-black rounded-lg hover:bg-[#111111] hover:text-white transition-colors flex items-center gap-1 text-xs sm:text-sm md:static md:mt-0"
           >
             <span className="hidden sm:inline">Change Company</span>
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
@@ -432,15 +432,15 @@ const WorkerLogin = () => {
                 placeholder="Search employees..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0d9488] focus:border-transparent text-black"
+                className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#111111] focus:border-transparent text-black"
               />
-              <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#0d9488]" />
+              <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#111111]" />
             </div>
 
             <select
               value={department}
               onChange={(e) => setDepartment(e.target.value)}
-              className="px-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0d9488] focus:border-transparent text-black w-full sm:w-auto"
+              className="px-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#111111] focus:border-transparent text-black w-full sm:w-auto"
             >
               {departments.map(dept => (
                 <option key={dept} value={dept} className="text-black">{dept}</option>
@@ -451,7 +451,7 @@ const WorkerLogin = () => {
 
         {isLoadingWorkers ? (
           <div className="flex justify-center items-center h-96">
-            <Spinner size="lg" className="text-[#0d9488]" />
+            <Spinner size="lg" className="text-[#111111]" />
           </div>
         ) : (filteredWorkers.length === 0 && (subdomain && subdomain !== 'main')) ? ( // This line was modified previously
           <motion.div
@@ -489,11 +489,11 @@ const WorkerLogin = () => {
                   onClick={() => setSelectedWorker(worker)}
                   whileHover={{ scale: 1.05, y: -5 }}
                   className={`cursor-pointer p-4 rounded-lg text-center transition-all ${selectedWorker?._id === worker._id
-                      ? 'bg-white border-2 border-[#0d9488] shadow-lg shadow-[#0d9488]/20'
-                      : 'bg-white border border-gray-300 hover:border-[#0d9488]'
+                      ? 'bg-white border-2 border-[#111111] shadow-lg shadow-[#111111]/20'
+                      : 'bg-white border border-gray-300 hover:border-[#111111]'
                     }`}
                 >
-                  <div className="w-16 h-16 rounded-full mx-auto mb-3 overflow-hidden border-2 border-[#0d9488]/30">
+                  <div className="w-16 h-16 rounded-full mx-auto mb-3 overflow-hidden border-2 border-[#111111]/30">
                     <img
                       src={
                         worker.photo
@@ -504,10 +504,10 @@ const WorkerLogin = () => {
                       className="w-full h-full object-cover"
                     />
                   </div>
-                  <h3 className={`font-semibold truncate ${selectedWorker?._id === worker._id ? 'text-[#0d9488]' : 'text-black'}`}>
+                  <h3 className={`font-semibold truncate ${selectedWorker?._id === worker._id ? 'text-[#111111]' : 'text-black'}`}>
                     {worker.name}
                   </h3>
-                  <p className={`text-sm truncate ${selectedWorker?._id === worker._id ? 'text-[#0d9488]' : 'text-gray-600'}`}>
+                  <p className={`text-sm truncate ${selectedWorker?._id === worker._id ? 'text-[#111111]' : 'text-gray-600'}`}>
                     {worker.department || 'No Department'}
                   </p>
                 </motion.div>
@@ -538,7 +538,7 @@ const WorkerLogin = () => {
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="flex items-center mb-6">
-                  <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-[#0d9488]/50 mr-4 flex-shrink-0">
+                  <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-[#111111]/50 mr-4 flex-shrink-0">
                     <img
                       src={
                         selectedWorker.photo
@@ -550,8 +550,8 @@ const WorkerLogin = () => {
                     />
                   </div>
                   <div className="min-w-0">
-                    <h2 className="text-xl font-semibold text-[#0d9488] truncate">{selectedWorker.name}</h2>
-                    <p className="text-[#0d9488] truncate">{selectedWorker.department}</p>
+                    <h2 className="text-xl font-semibold text-[#111111] truncate">{selectedWorker.name}</h2>
+                    <p className="text-[#111111] truncate">{selectedWorker.department}</p>
                   </div>
                   <motion.button
                     whileHover={{ scale: 1.1, rotate: 90 }}
@@ -560,7 +560,7 @@ const WorkerLogin = () => {
                       setSelectedWorker(null);
                       setPassword(''); // Clear password when closing modal
                     }}
-                    className="ml-auto text-gray-600 hover:text-[#0d9488] focus:outline-none rounded-full w-8 h-8 flex items-center justify-center bg-gray-200 hover:bg-[#0d9488] hover:text-white flex-shrink-0"
+                    className="ml-auto text-gray-600 hover:text-[#111111] focus:outline-none rounded-full w-8 h-8 flex items-center justify-center bg-gray-200 hover:bg-[#111111] hover:text-white flex-shrink-0"
                   >
                     ✕
                   </motion.button>
@@ -569,7 +569,7 @@ const WorkerLogin = () => {
                 <form onSubmit={handleLogin} className="space-y-5">
                   <div className="form-group relative">
                     <label htmlFor="password" className="text-black flex items-center text-sm font-medium mb-2">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 text-[#0d9488]" viewBox="0 0 20 20" fill="currentColor">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 text-[#111111]" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
                       </svg>
                       Password
@@ -579,7 +579,7 @@ const WorkerLogin = () => {
                         type={showPassword ? 'text' : 'password'}
                         id="password"
                         name="password"
-                        className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0d9488] focus:border-transparent text-black pr-10"
+                        className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#111111] focus:border-transparent text-black pr-10"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder="Enter your password"
@@ -588,7 +588,7 @@ const WorkerLogin = () => {
                       />
                       <button
                         type="button"
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-[#0d9488] focus:outline-none"
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-[#111111] focus:outline-none"
                         onClick={() => setShowPassword(!showPassword)}
                       >
                         {showPassword ? (
@@ -611,7 +611,7 @@ const WorkerLogin = () => {
                     disabled={isLoading}
                     whileHover={{ scale: 1.03 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full py-3 bg-[#0d9488] text-white rounded-lg hover:bg-white hover:text-[#0d9488] border-2 border-[#0d9488] transition-colors disabled:opacity-70 font-medium"
+                    className="w-full py-3 bg-[#111111] text-white rounded-lg hover:bg-white hover:text-[#111111] border-2 border-[#111111] transition-colors disabled:opacity-70 font-medium"
                   >
                     {isLoading ? (
                       <span className="flex items-center justify-center">
@@ -650,7 +650,7 @@ const WorkerLogin = () => {
                   setSubdomain('main');
                   localStorage.removeItem('tasktracker-subdomain');
                 }}
-                className="flex-1 bg-gray-200 border-gray-300 text-black hover:bg-[#0d9488] hover:text-white"
+                className="flex-1 bg-gray-200 border-gray-300 text-black hover:bg-[#111111] hover:text-white"
               >
                 Re-enter Company Name
               </Button>
@@ -660,7 +660,7 @@ const WorkerLogin = () => {
                   setShowWrongSubdomainModal(false);
                   loadWorkers();
                 }}
-                className="flex-1 bg-[#0d9488] text-white hover:bg-white hover:text-[#0d9488] border-[#0d9488]"
+                className="flex-1 bg-[#111111] text-white hover:bg-white hover:text-[#111111] border-[#111111]"
               >
                 Try Again
               </Button>

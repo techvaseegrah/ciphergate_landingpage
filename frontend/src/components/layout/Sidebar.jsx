@@ -10,7 +10,8 @@ const Sidebar = ({
   links,
   logoText = 'Task Tracker',
   user,
-  onLogout
+  onLogout,
+  onUpgradeClick
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [expandedDropdowns, setExpandedDropdowns] = useState({});
@@ -22,9 +23,9 @@ const Sidebar = ({
   const { subdomain } = useContext(appContext);
 
   // Theme Colors
-  const themeColor = "bg-[#0d9488]"; // Teal color from image
+  const themeColor = "bg-[#3b3b3b]"; // Dark theme color
   const activeBg = "bg-[#f3f4f6]"; // Light gray background for active item
-  const activeText = "text-[#0d9488]"; // Teal text for active item
+  const activeText = "text-[#3b3b3b]"; // Dark text for active item
 
   // Get icon class based on state
   const getIconClass = (isActive, isClicked) => {
@@ -96,7 +97,7 @@ const Sidebar = ({
       {!isOpen && (
         <button
           type="button"
-          className="md:hidden fixed top-1/2 left-0 z-20 p-2 rounded-r-full text-white bg-[#0d9488] shadow-lg hover:bg-[#0f766e] focus:outline-none transform -translate-y-1/2"
+          className="md:hidden fixed top-1/2 left-0 z-20 p-2 rounded-r-full text-white bg-[#3b3b3b] shadow-lg hover:bg-[#2a2a2a] focus:outline-none transform -translate-y-1/2"
           onClick={toggleSidebar}
         >
           <span className="sr-only">Open sidebar</span>
@@ -116,7 +117,7 @@ const Sidebar = ({
       {isOpen && (
         <button
           type="button"
-          className="fixed top-1/2 right-0 z-40 p-2 rounded-l-full text-[#0d9488] bg-white shadow-lg focus:outline-none transform -translate-y-1/2"
+          className="fixed top-1/2 right-0 z-40 p-2 rounded-l-full text-[#3b3b3b] bg-white shadow-lg focus:outline-none transform -translate-y-1/2"
           onClick={toggleSidebar}
         >
           <span className="sr-only">Close sidebar</span>
@@ -176,7 +177,19 @@ const Sidebar = ({
                   <p className="text-xs text-teal-100 truncate">{user.subdomain || 'Company Name'}</p>
                 </div>
               </div>
-              <div className="ml-1 flex-shrink-0">
+              <div className="ml-1 flex-shrink-0 flex items-center gap-2">
+                {user.accountType === 'premium' ? (
+                  <span className="text-[10px] bg-yellow-400 text-yellow-900 font-bold px-1.5 py-0.5 rounded shadow-sm whitespace-nowrap">
+                    PRO
+                  </span>
+                ) : (
+                  <button
+                    onClick={onUpgradeClick}
+                    className="text-[9px] bg-white/20 hover:bg-white/30 text-white font-medium px-1.5 py-0.5 rounded transition-colors whitespace-nowrap cursor-pointer"
+                  >
+                    UPGRADE
+                  </button>
+                )}
                 {onLogout && <button
                   className="text-white p-1 hover:text-red-200 text-sm"
                   onClick={onLogout}
@@ -219,7 +232,7 @@ const Sidebar = ({
                     className={`
                       group flex items-center w-full px-4 py-3 text-sm font-medium rounded-xl
                       ${hasActiveChild
-                        ? 'bg-white text-[#0d9488] shadow-md'
+                        ? 'bg-white text-[#3b3b3b] shadow-md'
                         : 'text-white hover:bg-white/10'
                       }
                     `}
@@ -301,7 +314,7 @@ const Sidebar = ({
                   )}
                   <span className="flex-1 text-left truncate">{link.label}</span>
                   {link.badge && (
-                    <span className={`ml-2 text-xs rounded-full px-2 py-0.5 flex-shrink-0 ${isActive ? 'bg-[#0d9488] text-white' : 'bg-white text-[#0d9488]'}`}>
+                    <span className={`ml-2 text-xs rounded-full px-2 py-0.5 flex-shrink-0 ${isActive ? 'bg-[#3b3b3b] text-white' : 'bg-white text-[#3b3b3b]'}`}>
                       {link.badge}
                     </span>
                   )}

@@ -20,7 +20,7 @@ const Contact = () => {
 
   // Initialize Socket.IO connection
   useEffect(() => {
-    const newSocket = io(import.meta.env.VITE_API_BASE_URL || 'http://localhost:5002', {
+    const newSocket = io(import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000', {
       transports: ['websocket', 'polling']
     });
 
@@ -59,9 +59,7 @@ const Contact = () => {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: {
-        staggerChildren: 0.2
-      }
+      transition: { staggerChildren: 0.2 }
     }
   };
 
@@ -71,8 +69,8 @@ const Contact = () => {
       y: 0,
       opacity: 1,
       transition: {
-        duration: 0.6,
-        ease: 'easeOut'
+        duration: 0.8,
+        ease: [0.25, 0.46, 0.45, 0.94]
       }
     }
   };
@@ -158,37 +156,42 @@ const Contact = () => {
   };
 
   return (
-    <section id="contact" className="py-20 bg-transparent">
-      <div className="max-w-[1280px] mx-auto px-6 lg:px-8">
+    <section id="contact" className="py-24 md:py-32 bg-[#fafafa]">
+      <div className="max-w-[1000px] mx-auto px-6">
         {/* Header Section */}
         <motion.div
           ref={contactRef}
-          className="text-center mb-16"
+          className="text-center mb-20 max-w-2xl mx-auto"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
         >
-          <h2 className="text-4xl md:text-5xl font-extrabold text-[#1A2B3C] mb-6 font-poppins tracking-tight">
-            Get in <span className="text-[#26D07C]">Touch</span>
+          <span
+            className="inline-block border border-gray-200 text-gray-500 text-[10px] font-medium tracking-[0.25em] uppercase px-4 py-2 mb-6"
+          >
+            Inquiries
+          </span>
+          <h2 className="text-4xl md:text-5xl font-light tracking-widest text-gray-900 uppercase leading-[1.2] mb-6">
+            Get in <span className="text-[#B76E79]">Touch</span>
           </h2>
-          <p className="text-lg text-[#67748E] max-w-2xl mx-auto leading-relaxed">
+          <p className="text-[#888] font-light text-base leading-relaxed tracking-wide">
             Ready to transform your business? Contact us today for a personalized consultation.
           </p>
         </motion.div>
 
-        {/* Contact Form Card - Updated with Travigo Styles */}
+        {/* Contact Form Card */}
         <motion.div
-          className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 md:p-10 shadow-card border border-gray-200/50"
+          className="bg-white p-8 md:p-14 border border-gray-200"
           variants={itemVariants}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
         >
-          <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <div className="space-y-2 text-left">
-                <label className="block text-sm font-semibold text-[#1A2B3C] ml-1 mb-2">
+          <form onSubmit={handleSubmit} className="space-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="space-y-3">
+                <label className="block text-[10px] font-medium uppercase tracking-[0.2em] text-[#666]">
                   First Name
                 </label>
                 <input
@@ -196,12 +199,12 @@ const Contact = () => {
                   name="firstName"
                   value={formData.firstName}
                   onChange={handleInputChange}
+                  className="w-full px-4 py-3 bg-[#fafafa] border border-gray-200 focus:border-[#111] focus:bg-white transition-colors duration-400 outline-none text-sm tracking-wide text-[#111]"
                   placeholder="Enter your first name"
-                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#26D07C] focus:border-[#26D07C] transition-all duration-300 outline-none text-[#1A2B3C] placeholder:text-gray-400"
                 />
               </div>
-              <div className="space-y-2 text-left">
-                <label className="block text-sm font-semibold text-[#1A2B3C] ml-1 mb-2">
+              <div className="space-y-3">
+                <label className="block text-[10px] font-medium uppercase tracking-[0.2em] text-[#666]">
                   Last Name
                 </label>
                 <input
@@ -209,14 +212,14 @@ const Contact = () => {
                   name="lastName"
                   value={formData.lastName}
                   onChange={handleInputChange}
+                  className="w-full px-4 py-3 bg-[#fafafa] border border-gray-200 focus:border-[#111] focus:bg-white transition-colors duration-400 outline-none text-sm tracking-wide text-[#111]"
                   placeholder="Enter your last name"
-                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#26D07C] focus:border-[#26D07C] transition-all duration-300 outline-none text-[#1A2B3C] placeholder:text-gray-400"
                 />
               </div>
             </div>
 
-            <div className="space-y-2 text-left">
-              <label className="block text-sm font-semibold text-[#1A2B3C] ml-1 mb-2">
+            <div className="space-y-3">
+              <label className="block text-[10px] font-medium uppercase tracking-[0.2em] text-[#666]">
                 Email Address
               </label>
               <input
@@ -224,66 +227,63 @@ const Contact = () => {
                 name="email"
                 value={formData.email}
                 onChange={handleInputChange}
+                className="w-full px-4 py-3 bg-[#fafafa] border border-gray-200 focus:border-[#111] focus:bg-white transition-colors duration-400 outline-none text-sm tracking-wide text-[#111]"
                 placeholder="Enter your email"
-                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#26D07C] focus:border-[#26D07C] transition-all duration-300 outline-none text-[#1A2B3C] placeholder:text-gray-400"
               />
             </div>
 
-            <div className="space-y-2 text-left">
-              <label className="block text-sm font-semibold text-[#1A2B3C] ml-1 mb-2">
+            <div className="space-y-3">
+              <label className="block text-[10px] font-medium uppercase tracking-[0.2em] text-[#666]">
                 Message
               </label>
               <textarea
-                rows="4"
+                rows="5"
                 name="message"
                 value={formData.message}
                 onChange={handleInputChange}
+                className="w-full px-4 py-3 bg-[#fafafa] border border-gray-200 focus:border-[#111] focus:bg-white transition-colors duration-400 outline-none text-sm tracking-wide text-[#111] resize-none"
                 placeholder="Tell us about your project"
-                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#26D07C] focus:border-[#26D07C] transition-all duration-300 outline-none text-[#1A2B3C] placeholder:text-gray-400 resize-none"
               ></textarea>
             </div>
 
             {/* Typing indicator */}
             {typingUsers.length > 0 && (
-              <div className="text-sm text-[#26D07C] font-medium">
+              <div className="text-xs text-[#111] font-medium tracking-wide">
                 {typingUsers.map((user, index) => (
                   <span key={index}>{user} is typing...</span>
                 ))}
               </div>
             )}
 
-            <motion.button
+            <button
               type="submit"
               disabled={isSubmitting}
-              className={`w-full py-4 rounded-xl font-semibold text-lg shadow-lg transition-all duration-300 ${isSubmitting ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#26D07C] hover:bg-[#1eb36a] hover:shadow-xl hover:shadow-[#26D07C]/30'} text-white`}
-              whileHover={!isSubmitting ? { scale: 1.02 } : {}}
-              whileTap={!isSubmitting ? { scale: 0.98 } : {}}
+              className={`w-full py-4 bg-[#111] text-white text-[10px] font-medium tracking-[0.2em] uppercase transition-all duration-400 border border-[#111] ${isSubmitting ? 'opacity-50 cursor-not-allowed' : 'hover:bg-transparent hover:text-[#111]'}`}
             >
               {isSubmitting ? 'Sending...' : 'Send Message'}
-            </motion.button>
+            </button>
           </form>
         </motion.div>
 
-        {/* Company Logos Section - KEEPING YOUR IMAGE LOGIC AND ANIMATION */}
+        {/* Company Logos Section */}
         <motion.div
-          className="mt-20"
+          className="mt-32 border-t border-gray-200 pt-16"
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.6, delay: 0.2 }}
+          transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94], delay: 0.2 }}
         >
-          <h3 className="text-sm font-bold text-gray-400 text-center uppercase tracking-widest mb-10">
+          <h3 className="text-[10px] font-medium text-gray-400 text-center uppercase tracking-[0.3em] mb-12">
             Trusted by Leading Companies
           </h3>
           <div className="relative overflow-hidden py-4">
             <div className="flex animate-loop-scroll">
-              {/* Keeping your exact original logic for the 20 logos */}
               {[...Array(20)].map((_, i) => (
-                <div key={i} className="flex-shrink-0 mx-6 md:mx-10">
+                <div key={i} className="flex-shrink-0 mx-8 md:mx-12">
                   <img
                     src={`/company${(i % 4) + 1}.png`}
                     alt={`Company ${(i % 4) + 1}`}
-                    className="h-10 md:h-12 object-contain opacity-100 transition-all duration-300 hover:scale-105 hover:shadow-lg"
+                    className="h-8 md:h-10 object-contain grayscale opacity-60 transition-all duration-500 hover:grayscale-0 hover:opacity-100"
                   />
                 </div>
               ))}

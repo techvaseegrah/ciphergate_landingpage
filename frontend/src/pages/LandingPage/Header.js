@@ -40,18 +40,18 @@ const Header = () => {
     const formData = new FormData(e.target);
     const email = formData.get('email');
     const password = formData.get('password');
-    
+
     if (!email || !password) {
       alert('Please fill in all fields');
       return;
     }
-    
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       alert('Please enter a valid email address');
       return;
     }
-    
+
     console.log('Sign in attempt with:', { email, password });
     alert(`Sign in successful!\nEmail: ${email}`);
     setIsSignInOpen(false);
@@ -64,16 +64,16 @@ const Header = () => {
         <div className="flex justify-between items-center h-20">
           {/* Logo Section */}
           <div className="flex-shrink-0 flex items-center space-x-3">
-            <div className="w-9 h-9 bg-[#26D07C] rounded-xl flex items-center justify-center shadow-lg shadow-[#26D07C]/20">
+            <div className="w-9 h-9 flex items-center justify-center">
               <img src="/logo.png" alt="Logo" className="h-6 w-auto" />
             </div>
             {/* CipherGate name with half black and half green effect */}
             <h1 className="text-2xl font-black font-poppins tracking-tight">
               <span className="bg-gradient-to-r from-black to-black bg-clip-text text-transparent">Cipher</span>
-              <span className="bg-gradient-to-r from-green-500 to-green-500 bg-clip-text text-transparent">Gate</span>
+              <span className="text-[#B76E79]">Gate</span>
             </h1>
           </div>
-          
+
           {/* Desktop Navigation */}
           <div className="hidden md:flex space-x-10">
             <a href="#features" className="text-[#67748E] hover:text-[#26D07C] transition-all duration-300 font-bold text-sm">
@@ -89,26 +89,26 @@ const Header = () => {
               Contact
             </a>
           </div>
-          
+
           {/* Auth Buttons */}
           <div className="hidden md:flex items-center space-x-6">
-            <button 
+            <button
               onClick={() => navigate('/admin/login')}
               className="text-sm font-bold text-[#1A2B3C] hover:text-[#26D07C] transition-colors duration-300"
             >
               Sign In
             </button>
-            <button 
+            <button
               onClick={() => navigate('/admin/login')}
               className="px-8 py-3 bg-[#26D07C] text-white rounded-full hover:bg-[#1eb36a] transition-all duration-300 font-bold text-sm shadow-xl shadow-[#26D07C]/20 hover:-translate-y-0.5"
             >
               Get Started
             </button>
           </div>
-          
+
           {/* Mobile menu button */}
           <div className="md:hidden flex items-center">
-            <button 
+            <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="text-[#1A2B3C] hover:text-[#26D07C] transition-colors p-2"
             >
@@ -121,7 +121,7 @@ const Header = () => {
           </div>
         </div>
       </nav>
-      
+
       {/* Mobile Menu */}
       {isMenuOpen && (
         <div className="md:hidden absolute top-20 left-0 right-0 bg-white shadow-2xl z-40 p-6 space-y-4 border-t border-gray-50">
@@ -135,36 +135,36 @@ const Header = () => {
           </div>
         </div>
       )}
-      
+
       {/* Sign In Modal */}
       {isSignInOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-[#1A2B3C]/40 backdrop-blur-md flex items-center justify-center z-50 p-4"
           onClick={() => setIsSignInOpen(false)}
         >
           <style dangerouslySetInnerHTML={{ __html: modalStyles() }} />
-          
-          <div 
+
+          <div
             className="bg-white rounded-[2.5rem] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.2)] w-full max-w-md overflow-hidden transform transition-all hide-scrollbar modal-container"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="p-8 sm:p-12">
               <div className="flex justify-between items-center mb-10">
                 <div className="flex items-center space-x-3">
-                  <div className="w-9 h-9 bg-[#26D07C] rounded-xl flex items-center justify-center">
+                  <div className="w-9 h-9 flex items-center justify-center">
                     <img src="/logo.png" alt="Logo" className="h-6 w-auto" />
                   </div>
                   {/* CipherGate name with half black and half green effect in modal */}
                   <h3 className="text-2xl font-black font-poppins">
                     <span className="bg-gradient-to-r from-black to-black bg-clip-text text-transparent">Cipher</span>
-                    <span className="bg-gradient-to-r from-green-500 to-green-500 bg-clip-text text-transparent">Gate</span>
+                    <span className="text-[#B76E79]">Gate</span>
                   </h3>
                 </div>
                 <button onClick={() => setIsSignInOpen(false)} className="text-gray-400 hover:text-[#26D07C] transition-colors">
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
               </div>
-              
+
               <form onSubmit={handleSignIn} className="space-y-6">
                 <div>
                   <label className="block text-xs font-black uppercase tracking-widest text-[#67748E] mb-2 ml-1">Email address</label>
@@ -179,7 +179,7 @@ const Header = () => {
                     />
                   </div>
                 </div>
-                
+
                 <div>
                   <label className="block text-xs font-black uppercase tracking-widest text-[#67748E] mb-2 ml-1">Password</label>
                   <div className="relative">
@@ -193,7 +193,7 @@ const Header = () => {
                     />
                   </div>
                 </div>
-                
+
                 <button
                   type="submit"
                   className="w-full bg-[#26D07C] text-white py-5 rounded-2xl hover:bg-[#1eb36a] transition-all duration-300 font-bold shadow-xl shadow-[#26D07C]/20 hover:-translate-y-1"
@@ -201,7 +201,7 @@ const Header = () => {
                   Sign in to your account
                 </button>
               </form>
-              
+
               <div className="mt-8 text-center">
                 <p className="text-sm font-medium text-[#67748E]">
                   Don't have an account?{' '}
@@ -214,7 +214,7 @@ const Header = () => {
           </div>
         </div>
       )}
-      
+
       {isRegistrationOpen && (
         <Registration onClose={() => setIsRegistrationOpen(false)} />
       )}

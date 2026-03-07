@@ -1346,7 +1346,7 @@ temporarily interrupt app availability. We will provide advance notice when poss
           </button>
           <button 
             onClick={exportToPDF}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition duration-300 text-sm"
+            className="bg-black hover:bg-black text-white px-4 py-2 rounded-md transition duration-300 text-sm"
           >
             Download PDF
           </button>

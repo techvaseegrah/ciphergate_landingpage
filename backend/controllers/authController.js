@@ -3,6 +3,10 @@ const Admin = require('../models/Admin');
 const Worker = require('../models/Worker');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { OAuth2Client } = require('google-auth-library');
+const axios = require('axios');
+
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // Generate JWT token
 const generateToken = (id, role) => {
@@ -127,6 +131,18 @@ const loginAdmin = asyncHandler(async (req, res) => {
   }
 
   if (admin && (await bcrypt.compare(password, admin.password))) {
+    // ── Subscription expiry check ──
+    if (
+      admin.accountType === 'premium' &&
+      admin.subscriptionEndDate &&
+      new Date(admin.subscriptionEndDate) < new Date()
+    ) {
+      admin.accountType = 'free';
+      admin.subscriptionPlan = 'none';
+      admin.subscriptionStartDate = null;
+      admin.subscriptionEndDate = null;
+      await admin.save({ validateBeforeSave: false });
+    }
     res.json({
       _id: admin._id,
       username: admin.username,
@@ -136,13 +152,82 @@ const loginAdmin = asyncHandler(async (req, res) => {
       accountType: admin.accountType,
       businessType: admin.businessType,
       phoneNumber: admin.phoneNumber,
-      createdAt: admin.createdAt, // Include creation timestamp
-      organizationId: admin.subdomain, // Include organization ID
+      createdAt: admin.createdAt,
+      organizationId: admin.subdomain,
       token: generateToken(admin._id, 'admin')
     });
   } else {
     res.status(401);
     throw new Error('Invalid credentials');
+  }
+});
+
+// @desc    Google Login admin
+// @route   POST /api/auth/admin/google
+// @access  Public
+const googleLoginAdmin = asyncHandler(async (req, res) => {
+  const { credential, access_token } = req.body;
+  let email;
+
+  try {
+    if (credential) {
+      const ticket = await googleClient.verifyIdToken({
+        idToken: credential,
+        audience: process.env.GOOGLE_CLIENT_ID,
+      });
+      const payload = ticket.getPayload();
+      email = payload.email;
+    } else if (access_token) {
+      const response = await axios.get('https://www.googleapis.com/oauth2/v3/userinfo', {
+        headers: { Authorization: `Bearer ${access_token}` }
+      });
+      email = response.data.email;
+    } else {
+      res.status(400);
+      throw new Error('Google token is missing');
+    }
+
+    if (!email) {
+      res.status(400);
+      throw new Error('Failed to retrieve email from Google');
+    }
+
+    const admin = await Admin.findOne({ email }).select('+password');
+
+    if (admin) {
+      // ── Subscription expiry check ──
+      if (
+        admin.accountType === 'premium' &&
+        admin.subscriptionEndDate &&
+        new Date(admin.subscriptionEndDate) < new Date()
+      ) {
+        admin.accountType = 'free';
+        admin.subscriptionPlan = 'none';
+        admin.subscriptionStartDate = null;
+        admin.subscriptionEndDate = null;
+        await admin.save({ validateBeforeSave: false });
+      }
+      res.json({
+        _id: admin._id,
+        username: admin.username,
+        subdomain: admin.subdomain,
+        email: admin.email,
+        role: admin.role,
+        accountType: admin.accountType,
+        businessType: admin.businessType,
+        phoneNumber: admin.phoneNumber,
+        createdAt: admin.createdAt,
+        organizationId: admin.subdomain,
+        token: generateToken(admin._id, 'admin')
+      });
+    } else {
+      res.status(404);
+      throw new Error('Account not found. Please register first.');
+    }
+  } catch (error) {
+    console.error("Google login verification error:", error);
+    res.status(401);
+    throw new Error(error.message || 'Invalid Google token');
   }
 });
 
@@ -459,5 +544,6 @@ module.exports = {
   updateAdmin,
   deleteAdmin,
   requestPasswordResetOtp,
-  resetPasswordWithOtp
+  resetPasswordWithOtp,
+  googleLoginAdmin
 };

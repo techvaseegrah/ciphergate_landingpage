@@ -63,7 +63,7 @@ const ClientLogin = () => {
       {/* Back Button */}
       <button
         onClick={() => navigate('/')}
-        className="absolute top-6 left-6 flex items-center gap-2 text-gray-600 hover:text-blue-600 transition-colors group"
+        className="absolute top-6 left-6 flex items-center gap-2 text-gray-600 hover:text-black transition-colors group"
       >
         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 group-hover:-translate-x-1 transition-transform" viewBox="0 0 20 20" fill="currentColor">
           <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
@@ -74,13 +74,13 @@ const ClientLogin = () => {
       <div className="w-full max-w-md">
         <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
           <div className="text-center mb-8">
-            <div className="mx-auto w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mb-4">
+            <div className="mx-auto w-16 h-16 bg-gradient-to-r from-gray-900 to-black rounded-2xl flex items-center justify-center mb-4">
               <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
               </svg>
             </div>
-            <h1 className="text-2xl font-bold text-gray-800">Client Login</h1>
-            <p className="text-gray-500 mt-2">Access your client management dashboard</p>
+            <h1 className="text-2xl font-bold text-gray-800">Super Admin login</h1>
+            <p className="text-gray-500 mt-2">Access your super admin management dashboard</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -91,7 +91,7 @@ const ClientLogin = () => {
                 name="username"
                 value={formData.username}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-gray-900 focus:border-transparent outline-none transition-all"
                 placeholder="Enter your username"
                 required
               />
@@ -105,7 +105,7 @@ const ClientLogin = () => {
                   name="password"
                   value={formData.password}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all pr-12"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-gray-900 focus:border-transparent outline-none transition-all pr-12"
                   placeholder="Enter your password"
                   required
                 />
@@ -131,7 +131,7 @@ const ClientLogin = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3 rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-300 font-medium shadow-lg shadow-blue-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-gradient-to-r from-gray-900 to-black text-white py-3 rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-300 font-medium shadow-lg shadow-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <span className="flex items-center justify-center">
@@ -152,7 +152,7 @@ const ClientLogin = () => {
               Don't have an account?{' '}
               <button
                 onClick={() => navigate('/admin/register')}
-                className="text-blue-500 hover:text-blue-700 font-medium transition-colors"
+                className="text-[#111111] hover:text-gray-700 font-medium transition-colors"
               >
                 Get Started
               </button>

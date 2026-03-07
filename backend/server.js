@@ -25,7 +25,8 @@ const startServer = async () => {
       origin: (origin, callback) => {
         const allowedOrigins = [
           'http://localhost:3000',
-          'http://localhost:3001',  // Add the port that Vite is using
+          'http://localhost:3001',
+          'http://localhost:5173', // Vite dev server
           'https://tvtasks.netlify.app',
           'https://techvaseegrah.ciphergate.in',
         ];
@@ -76,10 +77,11 @@ const startServer = async () => {
 
     // Job routes
     const jobRoutes = require('./routes/jobRoutes');
-    
+
     // AI routes
     const aiRoutes = require('./routes/aiRoutes');
-    
+    const paymentRoutes = require('./routes/paymentRoutes');
+
     // Mount routes
 
     app.use('/api/auth', authRoutes);
@@ -101,32 +103,34 @@ const startServer = async () => {
 
     // Job routes
     app.use('/api/jobs', jobRoutes);
-    
+
     // AI routes
     app.use('/api/ai', aiRoutes);
-    
+    app.use('/api/payments', paymentRoutes);
+
     // Route for checking API status
 
     app.get('/', (req, res) => {
       res.json({ message: 'Task Tracker API is running' });
     });
-    
+
     // Initialize Socket.IO for real-time communication
     const io = socketIo(server, {
       cors: {
         origin: [
           'http://localhost:3000',
           'http://localhost:3001',
+          'http://localhost:5173', // Vite dev server
           'https://tvtasks.netlify.app',
           'https://techvaseegrah.ciphergate.in',
         ],
         methods: ['GET', 'POST']
       }
     });
-    
+
     io.on('connection', (socket) => {
       console.log('New client connected to Socket.IO for contact form');
-      
+
       socket.on('disconnect', () => {
         console.log('Client disconnected from Socket.IO');
       });

@@ -1,27 +1,27 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
 import Modal from './Modal';
+import PricingModal from './PricingModal';
 
 const PremiumUpgradeModal = ({ isOpen, onClose }) => {
-  const navigate = useNavigate();
+  const [showPricing, setShowPricing] = useState(false);
+
+  const handleClose = () => {
+    setShowPricing(false);
+    onClose();
+  };
 
   const handleUpgradeClick = () => {
-    onClose();
-    // Navigate to the pricing section of the landing page
-    navigate('/');
-    // Scroll to pricing section after a short delay
-    setTimeout(() => {
-      const pricingSection = document.getElementById('pricing');
-      if (pricingSection) {
-        pricingSection.scrollIntoView({ behavior: 'smooth' });
-      }
-    }, 100);
+    setShowPricing(true);
   };
+
+  if (showPricing) {
+    return <PricingModal isOpen={isOpen} onClose={handleClose} />;
+  }
 
   return (
     <Modal
       isOpen={isOpen}
-      onClose={onClose}
+      onClose={handleClose}
       title="Upgrade Required"
       size="md"
     >
@@ -33,12 +33,12 @@ const PremiumUpgradeModal = ({ isOpen, onClose }) => {
         </div>
         <h3 className="text-lg font-medium text-gray-900 mb-2">Free Account Limit Reached</h3>
         <p className="text-gray-600 mb-6">
-          You've reached the maximum number of workers (5) for free accounts. 
+          You've reached the maximum number of workers (5) for free accounts.
           Upgrade to premium for unlimited workers and additional features.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
           >
             Cancel
