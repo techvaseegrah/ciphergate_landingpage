@@ -5,7 +5,7 @@ import { getAuthToken } from '../utils/authUtils';
 export const getSettings = async ({ subdomain }) => {
   try {
     const token = getAuthToken();
-    const response = await api.get(`/settings/${subdomain}`, {
+    const response = await api.get(`settings/${subdomain}`, {
       headers: {
         Authorization: `Bearer ${token}`
       }

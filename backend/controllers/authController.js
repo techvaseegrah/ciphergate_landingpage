@@ -21,7 +21,7 @@ const generateToken = (id, role) => {
 const registerAdmin = asyncHandler(async (req, res) => {
   const {
     username,
-    subdomain,
+    subdomain: rawSubdomain,
     email,
     password,
     businessType,
@@ -36,6 +36,8 @@ const registerAdmin = asyncHandler(async (req, res) => {
     website,
     gstNumber
   } = req.body;
+
+  const subdomain = rawSubdomain ? rawSubdomain.toLowerCase().trim() : '';
 
   // Validate input
   if (!username || !subdomain || !email || !password) {
@@ -319,7 +321,12 @@ const checkAdminInitialization = asyncHandler(async (req, res) => {
 const subdomainAvailable = asyncHandler(async (req, res) => {
   const { subdomain } = req.body;
 
-  const existingAdmin = await Admin.findOne({ subdomain });
+  if (!subdomain) {
+    return res.json({ available: false });
+  }
+
+  const sanitizedSubdomain = subdomain.toLowerCase().trim();
+  const existingAdmin = await Admin.findOne({ subdomain: sanitizedSubdomain });
 
   res.json({ available: !existingAdmin });
 });

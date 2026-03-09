@@ -9,20 +9,20 @@ export const addDailyTopic = async ({ workerId, date, topic, subdomain }) => {
       topic,
       subdomain
     });
-    
-    const response = await api.post('/daily-topics', {
+
+    const response = await api.post('daily-topics', {
       workerId,
       date,
       topic,
       subdomain
     });
-    
+
     console.log('API response:', response.data);
     return response.data;
   } catch (error) {
     console.error('Error adding daily topic:', error);
     console.error('Error response:', error.response);
-    
+
     // Enhanced error logging
     if (error.response) {
       console.error('Response status:', error.response.status);
@@ -33,7 +33,7 @@ export const addDailyTopic = async ({ workerId, date, topic, subdomain }) => {
     } else {
       console.error('Error setting up request:', error.message);
     }
-    
+
     throw error;
   }
 };
@@ -41,7 +41,7 @@ export const addDailyTopic = async ({ workerId, date, topic, subdomain }) => {
 // Get weekly topics for a worker (used by admin for question generation)
 export const getWeeklyTopics = async ({ workerId, startDate, endDate, subdomain }) => {
   try {
-    const response = await api.get(`/daily-topics/weekly/${workerId}`, {
+    const response = await api.get(`daily-topics/weekly/${workerId}`, {
       params: {
         startDate,
         endDate,
@@ -58,7 +58,7 @@ export const getWeeklyTopics = async ({ workerId, startDate, endDate, subdomain 
 // Get weekly topics for any worker (admin-only for question generation)
 export const getWeeklyTopicsAdmin = async ({ workerId, startDate, endDate, subdomain }) => {
   try {
-    const response = await api.get(`/daily-topics/admin/weekly/${workerId}`, {
+    const response = await api.get(`daily-topics/admin/weekly/${workerId}`, {
       params: {
         startDate,
         endDate,
@@ -75,7 +75,7 @@ export const getWeeklyTopicsAdmin = async ({ workerId, startDate, endDate, subdo
 // Get all topics for a worker (for worker's own viewing/editing)
 export const getWorkerTopics = async ({ workerId, subdomain, limit = 30 }) => {
   try {
-    const response = await api.get(`/daily-topics/worker/${workerId}`, {
+    const response = await api.get(`daily-topics/worker/${workerId}`, {
       params: {
         subdomain,
         limit
@@ -91,7 +91,7 @@ export const getWorkerTopics = async ({ workerId, subdomain, limit = 30 }) => {
 // Delete a daily topic
 export const deleteDailyTopic = async ({ topicId, subdomain }) => {
   try {
-    const response = await api.delete(`/daily-topics/${topicId}`, {
+    const response = await api.delete(`daily-topics/${topicId}`, {
       params: {
         subdomain
       }
@@ -107,16 +107,16 @@ export const deleteDailyTopic = async ({ topicId, subdomain }) => {
 export const getCurrentWeekRange = () => {
   const today = new Date();
   const currentDay = today.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
-  
+
   // Calculate Monday of current week
   const monday = new Date(today);
   const daysFromMonday = currentDay === 0 ? 6 : currentDay - 1; // If Sunday, go back 6 days
   monday.setDate(today.getDate() - daysFromMonday);
-  
+
   // Calculate Friday of current week
   const friday = new Date(monday);
   friday.setDate(monday.getDate() + 4);
-  
+
   return {
     startDate: monday.toISOString().split('T')[0], // YYYY-MM-DD format
     endDate: friday.toISOString().split('T')[0]
@@ -127,16 +127,16 @@ export const getCurrentWeekRange = () => {
 export const getPreviousWeekRange = () => {
   const today = new Date();
   const currentDay = today.getDay();
-  
+
   // Calculate Monday of previous week
   const monday = new Date(today);
   const daysFromMonday = currentDay === 0 ? 6 : currentDay - 1;
   monday.setDate(today.getDate() - daysFromMonday - 7); // Go back one more week
-  
+
   // Calculate Friday of previous week
   const friday = new Date(monday);
   friday.setDate(monday.getDate() + 4);
-  
+
   return {
     startDate: monday.toISOString().split('T')[0],
     endDate: friday.toISOString().split('T')[0]
@@ -147,16 +147,16 @@ export const getPreviousWeekRange = () => {
 export const getWeekRange = (weekOffset = 0) => {
   const today = new Date();
   const currentDay = today.getDay();
-  
+
   // Calculate Monday of the target week
   const monday = new Date(today);
   const daysFromMonday = currentDay === 0 ? 6 : currentDay - 1;
   monday.setDate(today.getDate() - daysFromMonday + (weekOffset * 7));
-  
+
   // Calculate Friday of the target week
   const friday = new Date(monday);
   friday.setDate(monday.getDate() + 4);
-  
+
   return {
     startDate: monday.toISOString().split('T')[0],
     endDate: friday.toISOString().split('T')[0]
@@ -166,9 +166,9 @@ export const getWeekRange = (weekOffset = 0) => {
 // Utility function to format date for display
 export const formatDateForDisplay = (dateString) => {
   const date = new Date(dateString);
-  const options = { 
-    weekday: 'short', 
-    month: 'short', 
+  const options = {
+    weekday: 'short',
+    month: 'short',
     day: 'numeric'
   };
   return date.toLocaleDateString('en-US', options);
@@ -185,7 +185,7 @@ export const getWeekdayName = (dateString) => {
 export const isValidDate = (dateString) => {
   const regex = /^\d{4}-\d{2}-\d{2}$/;
   if (!regex.test(dateString)) return false;
-  
+
   const date = new Date(dateString);
   return date instanceof Date && !isNaN(date);
 };

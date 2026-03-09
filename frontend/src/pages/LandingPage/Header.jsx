@@ -75,12 +75,11 @@ const Header = () => {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100 transition-all duration-300">
-      <nav className="max-w-[1200px] mx-auto px-6">
-        <div className="flex justify-between items-center h-24">
-          {/* Logo Section */}
-          <div className="flex-shrink-0 flex items-center space-x-3">
-            <img src="/logo.png" alt="Logo" className="h-6 w-auto object-contain" />
-            <h1 className="text-xl font-light tracking-[0.2em] uppercase text-[#111] leading-none mb-0 pt-1">
+      <nav className="max-w-[1200px] mx-auto px-4 md:px-6">
+        <div className="flex justify-between items-center h-20 md:h-24">
+          <div className="flex-shrink-0 flex items-center space-x-2 md:space-x-3">
+            <img src="/logo.png" alt="Logo" className="h-5 md:h-6 w-auto object-contain" />
+            <h1 className="text-lg md:text-xl font-light tracking-[0.1em] sm:tracking-[0.2em] uppercase text-[#111] leading-none mb-0 pt-1">
               <span>Cipher</span>
               <span className="font-semibold text-[#B76E79]">Gate</span>
             </h1>
@@ -173,9 +172,9 @@ const Header = () => {
               className="text-[#111] p-2 hover:bg-gray-50 transition-colors duration-300"
             >
               {isMenuOpen ? (
-                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="square" strokeLinejoin="miter" strokeWidth="1" d="M6 18L18 6M6 6l12 12" /></svg>
+                <svg className="h-5 w-5 md:h-6 md:w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="square" strokeLinejoin="miter" strokeWidth="1" d="M6 18L18 6M6 6l12 12" /></svg>
               ) : (
-                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="square" strokeLinejoin="miter" strokeWidth="1" d="M4 6h16M4 12h16M4 18h16" /></svg>
+                <svg className="h-5 w-5 md:h-6 md:w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="square" strokeLinejoin="miter" strokeWidth="1" d="M4 6h16M4 12h16M4 18h16" /></svg>
               )}
             </button>
           </div>

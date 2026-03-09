@@ -4,7 +4,7 @@ import { getAuthToken } from '../utils/authUtils';
 export const giveBonusAmount = async (salaryData) => {
   try {
     const token = getAuthToken();
-    const response = await api.post(`/salary/give-bonus/${salaryData.id}`, {
+    const response = await api.post(`salary/give-bonus/${salaryData.id}`, {
       amount: salaryData.amount,
       fromDate: salaryData.fromDate,
       toDate: salaryData.toDate
@@ -20,7 +20,7 @@ export const giveBonusAmount = async (salaryData) => {
 export const removeBonusAmount = async (workerId) => {
   try {
     const token = getAuthToken();
-    const response = await api.post(`/salary/remove-bonus/${workerId}`, {}, {
+    const response = await api.post(`salary/remove-bonus/${workerId}`, {}, {
       headers: { Authorization: `Bearer ${token}` }
     });
     return response.data;
@@ -32,7 +32,7 @@ export const removeBonusAmount = async (workerId) => {
 export const resetSalaryAmount = async (salaryData) => {
   try {
     const token = getAuthToken();
-    const response = await api.post(`/salary/reset-salary`, {subdomain: salaryData.subdomain}, {
+    const response = await api.post(`salary/reset-salary`, { subdomain: salaryData.subdomain }, {
       headers: { Authorization: `Bearer ${token}` }
     });
     return response.data;
@@ -44,7 +44,7 @@ export const resetSalaryAmount = async (salaryData) => {
 export const getSalaryReport = async (workerId, fromDate, toDate) => { // ADD THIS
   try {
     const token = getAuthToken();
-    const response = await api.get(`/salary/report/${workerId}`, {
+    const response = await api.get(`salary/report/${workerId}`, {
       params: { fromDate, toDate },
       headers: { Authorization: `Bearer ${token}` }
     });

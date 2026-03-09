@@ -157,39 +157,39 @@ const Contact = () => {
 
   return (
     <section id="contact" className="py-24 md:py-32 bg-[#fafafa]">
-      <div className="max-w-[1000px] mx-auto px-6">
+      <div className="max-w-[1000px] mx-auto px-4 md:px-6">
         {/* Header Section */}
         <motion.div
           ref={contactRef}
-          className="text-center mb-20 max-w-2xl mx-auto"
+          className="text-center mb-16 md:mb-20 max-w-2xl mx-auto"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-100px" }}
           transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
         >
           <span
-            className="inline-block border border-gray-200 text-gray-500 text-[10px] font-medium tracking-[0.25em] uppercase px-4 py-2 mb-6"
+            className="inline-block border border-gray-200 text-gray-500 text-[10px] md:text-[11px] font-medium tracking-[0.25em] uppercase px-4 py-2 mb-6 bg-white"
           >
             Inquiries
           </span>
-          <h2 className="text-4xl md:text-5xl font-light tracking-widest text-gray-900 uppercase leading-[1.2] mb-6">
+          <h2 className="text-3xl md:text-5xl font-light tracking-widest text-gray-900 uppercase leading-[1.2] mb-6">
             Get in <span className="text-[#B76E79]">Touch</span>
           </h2>
-          <p className="text-[#888] font-light text-base leading-relaxed tracking-wide">
+          <p className="text-gray-500 font-light text-sm md:text-base leading-relaxed tracking-wide">
             Ready to transform your business? Contact us today for a personalized consultation.
           </p>
         </motion.div>
 
         {/* Contact Form Card */}
         <motion.div
-          className="bg-white p-8 md:p-14 border border-gray-200"
+          className="bg-white p-5 sm:p-10 md:p-14 border border-gray-200"
           variants={itemVariants}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
         >
-          <form onSubmit={handleSubmit} className="space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <form onSubmit={handleSubmit} className="space-y-6 md:space-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
               <div className="space-y-3">
                 <label className="block text-[10px] font-medium uppercase tracking-[0.2em] text-[#666]">
                   First Name
@@ -248,7 +248,7 @@ const Contact = () => {
 
             {/* Typing indicator */}
             {typingUsers.length > 0 && (
-              <div className="text-xs text-[#111] font-medium tracking-wide">
+              <div className="text-[10px] text-[#B76E79] font-medium tracking-wide">
                 {typingUsers.map((user, index) => (
                   <span key={index}>{user} is typing...</span>
                 ))}
@@ -267,7 +267,7 @@ const Contact = () => {
 
         {/* Company Logos Section */}
         <motion.div
-          className="mt-32 border-t border-gray-200 pt-16"
+          className="mt-24 md:mt-32 border-t border-gray-200 pt-16 overflow-hidden"
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true, margin: "-100px" }}
@@ -276,14 +276,14 @@ const Contact = () => {
           <h3 className="text-[10px] font-medium text-gray-400 text-center uppercase tracking-[0.3em] mb-12">
             Trusted by Leading Companies
           </h3>
-          <div className="relative overflow-hidden py-4">
-            <div className="flex animate-loop-scroll">
+          <div className="relative overflow-hidden py-4 w-full">
+            <div className="flex animate-loop-scroll whitespace-nowrap">
               {[...Array(20)].map((_, i) => (
-                <div key={i} className="flex-shrink-0 mx-8 md:mx-12">
+                <div key={i} className="flex-shrink-0 mx-6 md:mx-12">
                   <img
                     src={`/company${(i % 4) + 1}.png`}
                     alt={`Company ${(i % 4) + 1}`}
-                    className="h-8 md:h-10 object-contain grayscale opacity-60 transition-all duration-500 hover:grayscale-0 hover:opacity-100"
+                    className="h-6 md:h-10 object-contain transition-all duration-500"
                   />
                 </div>
               ))}

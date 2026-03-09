@@ -11,10 +11,10 @@ export const createDepartment = async (departmentData) => {
       throw new Error('Subdomain is missing, check the URL from server.');
     }
 
-    const trimmedName = departmentData.name.trim(); 
+    const trimmedName = departmentData.name.trim();
     const token = getAuthToken();
 
-    const response = await api.post('/departments', { name: trimmedName, subdomain: departmentData.subdomain }, {
+    const response = await api.post('departments', { name: trimmedName, subdomain: departmentData.subdomain }, {
       headers: { Authorization: `Bearer ${token}` },
     });
 
@@ -25,7 +25,7 @@ export const createDepartment = async (departmentData) => {
     if (error.response) {
       console.error('Server Error Response:', error.response.data);
       throw new Error(error.response.data.message || 'Failed to create department');
-    } else if (error.request) { 
+    } else if (error.request) {
       console.error('No Response Received:', error.request);
       throw new Error('No response from server. Please check your connection.');
     } else {
@@ -38,23 +38,23 @@ export const createDepartment = async (departmentData) => {
 export const getDepartments = async (subdomain) => {
   try {
     const token = getAuthToken();
-    
+
     // Ensure subdomain is wrapped in an object as expected by the backend
     const payload = typeof subdomain === 'object' ? subdomain : { subdomain };
-    const response = await api.post('/departments/all', payload, {
+    const response = await api.post('departments/all', payload, {
       headers: { Authorization: `Bearer ${token}` }
     });
-    
+
     console.log('Departments API Response:', response.data);
     return Array.isArray(response.data) ? response.data : [];
-    
+
   } catch (error) {
     console.error('Departments fetch error:', error);
 
     if (error.response) {
       console.error('Server Error Response:', error.response.data);
       throw new Error(error.response.data.message || 'Failed to fetch departments');
-    } else if (error.request) { 
+    } else if (error.request) {
       console.error('No Response Received:', error.request);
       throw new Error('No response from server. Please check your connection.');
     } else {
@@ -67,13 +67,13 @@ export const getDepartments = async (subdomain) => {
 export const deleteDepartment = async (id) => {
   try {
     const token = getAuthToken(); // Get the auth token
-    const response = await api.delete(`/departments/${id}`, {
+    const response = await api.delete(`departments/${id}`, {
       headers: { Authorization: `Bearer ${token}` }
     });
     return response.data;
-  } catch (error) {  
+  } catch (error) {
     console.error('Department Delete Error:', error);
-    
+
     if (error.response) {
       throw new Error(error.response.data.message || 'Failed to delete department');
     }
@@ -91,8 +91,8 @@ export const updateDepartment = async (id, departmentData) => {
     const trimmedName = departmentData.name.trim(); // Remove .toLowerCase()
     const token = getAuthToken();
 
-    const response = await api.put(`/departments/${id}`, { name: trimmedName }, {
-      headers: { 
+    const response = await api.put(`departments/${id}`, { name: trimmedName }, {
+      headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       },
@@ -111,7 +111,7 @@ export const updateDepartment = async (id, departmentData) => {
     if (error.response) {
       console.error('Server Error Response:', error.response.data);
       throw new Error(error.response.data.message || 'Failed to update department');
-    } else if (error.request) { 
+    } else if (error.request) {
       console.error('No Response Received:', error.request);
       throw new Error('No response from server. Please check your connection.');
     } else {

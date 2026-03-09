@@ -70,18 +70,25 @@ const TwoStepRegistration = () => {
   };
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    let { name, value } = e.target;
+
+    // Sanitize subdomain: lowercase and remove spaces
+    if (name === 'subdomain') {
+      value = value.toLowerCase().replace(/\s+/g, '');
+    }
+
     setFormData(prev => ({
       ...prev,
       [name]: value
     }));
 
     if (name === 'subdomain') {
-      setTimeout(() => {
-        handleSubdomainChange({ target: { value } });
-      }, 0);
+      handleSubdomainChange({ target: { value } });
     }
   };
+
+  // Use a ref to track the latest subdomain check to avoid race conditions
+  const latestCheckRef = React.useRef(0);
 
   const handleSubdomainChange = async (e) => {
     const { value } = e.target;
@@ -89,13 +96,24 @@ const TwoStepRegistration = () => {
       setDomainAvailable(false);
       return;
     }
-    try {
-      const response = await subdomainAvailable({ subdomain: value });
-      setDomainAvailable(response.available);
-    } catch (error) {
-      console.error('Subdomain check error:', error);
-      setDomainAvailable(false);
-    }
+
+    const checkId = ++latestCheckRef.current;
+
+    // Simple debounce logic: wait 500ms before checking
+    clearTimeout(window.subdomainTimeout);
+    window.subdomainTimeout = setTimeout(async () => {
+      try {
+        const response = await subdomainAvailable({ subdomain: value });
+        if (checkId === latestCheckRef.current) {
+          setDomainAvailable(response.available);
+        }
+      } catch (error) {
+        if (checkId === latestCheckRef.current) {
+          console.error('Subdomain check error:', error);
+          setDomainAvailable(false);
+        }
+      }
+    }, 500);
   };
 
   const handleSubmit = async (e) => {

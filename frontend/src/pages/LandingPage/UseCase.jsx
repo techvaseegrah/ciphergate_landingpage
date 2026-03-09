@@ -67,7 +67,7 @@ const CinematicBrowser = ({ images, activeIndex, name, onImageClick }) => {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
-              className="w-full h-auto object-cover grayscale transition-all duration-700 group-hover:grayscale-0 group-hover:scale-105"
+              className="w-full h-auto object-cover transition-all duration-700 group-hover:scale-105"
               alt={`${name} Screenshot`}
             />
           </AnimatePresence>
@@ -128,7 +128,7 @@ const UseCaseSection = () => {
         )}
       </AnimatePresence>
 
-      <div className="max-w-7xl mx-auto px-6 relative z-10">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 relative z-10">
 
         <div className="flex flex-col items-center text-center mb-24 max-w-2xl mx-auto">
           <motion.p className="text-gray-500 font-medium text-xs tracking-[0.2em] uppercase mb-6">
@@ -157,7 +157,7 @@ const UseCaseSection = () => {
               </div>
 
               <div className="w-full md:w-1/2 relative px-4 md:px-12">
-                <span className="absolute -top-12 -left-6 md:-left-12 text-[8rem] md:text-[12rem] font-extralight text-gray-50/80 pointer-events-none -z-10 select-none tracking-tighter">
+                <span className="absolute -top-8 -left-2 md:-top-12 md:-left-12 text-7xl md:text-[12rem] font-extralight text-gray-50/80 pointer-events-none -z-10 select-none tracking-tighter">
                   {useCase.id}
                 </span>
 

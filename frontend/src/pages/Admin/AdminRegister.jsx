@@ -34,7 +34,13 @@ const AdminRegister = () => {
   };
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    let { name, value } = e.target;
+
+    // Sanitize subdomain: lowercase and remove spaces
+    if (name === 'subdomain') {
+      value = value.toLowerCase().replace(/\s+/g, '');
+    }
+
     setFormData(prev => ({
       ...prev,
       [name]: value
@@ -42,16 +48,13 @@ const AdminRegister = () => {
 
     // Check subdomain availability when subdomain field changes
     if (name === 'subdomain') {
-      // Use setTimeout to ensure state is updated before checking availability
-      setTimeout(() => {
-        handleSubdomainChange({ target: { value } });
-      }, 0);
+      handleSubdomainChange({ target: { value } });
     }
   };
 
   const handleSubdomainChange = async (e) => {
     const { value } = e.target;
-    
+
     // Basic validation
     if (value.length < 3) {
       setDomainAvailable(false);
@@ -69,13 +72,13 @@ const AdminRegister = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Validate passwords match
     if (formData.password !== formData.confirmPassword) {
       toast.error('Passwords do not match');
       return;
     }
-    
+
     // Validate subdomain
     if (!domainAvailable) {
       toast.error('Please choose an available company name');
@@ -87,17 +90,17 @@ const AdminRegister = () => {
     try {
       const response = await registerAdmin(formData);
       toast.success(response.message || 'Registration successful! Your account has been created.');
-      
+
       // Automatically log in the user after successful registration
       const loginCredentials = {
         username: formData.username,
         password: formData.password,
         subdomain: formData.subdomain
       };
-      
+
       await login(loginCredentials, 'admin');
       localStorage.setItem('tasktracker-subdomain', formData.subdomain);
-      
+
       // Redirect directly to client dashboard
       navigate('/client');
     } catch (error) {
@@ -137,7 +140,7 @@ const AdminRegister = () => {
         ))}
       </div>
 
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
@@ -163,7 +166,7 @@ const AdminRegister = () => {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Username Field */}
-          <motion.div 
+          <motion.div
             className="form-group"
             variants={formFieldVariants}
             initial="hidden"
@@ -189,7 +192,7 @@ const AdminRegister = () => {
           </motion.div>
 
           {/* Subdomain Field */}
-          <motion.div 
+          <motion.div
             className="form-group"
             variants={formFieldVariants}
             initial="hidden"
@@ -218,7 +221,7 @@ const AdminRegister = () => {
           </motion.div>
 
           {/* Email Field */}
-          <motion.div 
+          <motion.div
             className="form-group"
             variants={formFieldVariants}
             initial="hidden"
@@ -245,7 +248,7 @@ const AdminRegister = () => {
           </motion.div>
 
           {/* Password Field */}
-          <motion.div 
+          <motion.div
             className="form-group relative"
             variants={formFieldVariants}
             initial="hidden"
@@ -291,7 +294,7 @@ const AdminRegister = () => {
           </motion.div>
 
           {/* Confirm Password Field */}
-          <motion.div 
+          <motion.div
             className="form-group relative"
             variants={formFieldVariants}
             initial="hidden"
@@ -370,7 +373,7 @@ const AdminRegister = () => {
             </div>
             <div className="ml-3">
               <p className="text-sm text-blue-700">
-                <span className="font-medium">Free Account Limit:</span> Your account includes up to 5 employees. 
+                <span className="font-medium">Free Account Limit:</span> Your account includes up to 5 employees.
                 Upgrade anytime for unlimited employees and premium features.
               </p>
             </div>

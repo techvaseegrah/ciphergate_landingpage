@@ -53,9 +53,9 @@ const Footer = () => {
   ];
 
   return (
-    <footer className="bg-white border-t border-gray-200 py-24 md:py-32">
-      <div className="max-w-[1200px] mx-auto px-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-16 mb-24">
+    <footer className="bg-white border-t border-gray-200 py-20 md:py-32">
+      <div className="max-w-[1200px] mx-auto px-4 md:px-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 sm:gap-16 mb-20 md:mb-24">
 
           {/* Brand and Description */}
           <div className="space-y-8">
