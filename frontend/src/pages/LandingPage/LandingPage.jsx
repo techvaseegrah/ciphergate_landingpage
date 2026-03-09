@@ -24,13 +24,13 @@ function LandingPage() {
       <Header />
 
       <div className="relative">
-        <div className="max-w-[1280px] mx-auto px-6">
+        <div>
           <Hero scrollYProgress={scrollYProgress} />
         </div>
         <ParallaxImage scrollYProgress={scrollYProgress} />
       </div>
 
-      <div className="max-w-[1280px] mx-auto px-6 space-y-16 md:space-y-20">
+      <div className="space-y-16 md:space-y-20">
         <Features />
         <UseCase />
         <Pricing />

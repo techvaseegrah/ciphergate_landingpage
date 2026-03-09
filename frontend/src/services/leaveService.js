@@ -7,7 +7,7 @@ export const getAllLeaves = async (leaveData) => {
     }
 
     // Ensure subdomain is properly formatted for the API call - use it in the URL path
-    const response = await api.get(`/leaves/${leaveData.subdomain}/0`);
+    const response = await api.get(`leaves/${leaveData.subdomain}/0`);
     return response.data;
   } catch (error) {
     console.error('Leaves fetch error:', error);
@@ -15,7 +15,7 @@ export const getAllLeaves = async (leaveData) => {
     if (error.response) {
       console.error('Server Error Response:', error.response.data);
       throw new Error(error.response.data.message || 'Failed to fetch leaves');
-    } else if (error.request) { 
+    } else if (error.request) {
       console.error('No Response Received:', error.request);
       throw new Error('No response from server. Please check your connection.');
     } else {
@@ -28,7 +28,7 @@ export const getAllLeaves = async (leaveData) => {
 export const getMyLeaves = async (leaveData) => {
   try {
     console.log('Fetching leaves for subdomain:', leaveData.subdomain);
-    const response = await api.get(`/leaves/${leaveData.subdomain}/1`);
+    const response = await api.get(`leaves/${leaveData.subdomain}/1`);
     console.log('Leaves Service Response:', response.data);
     console.log('Number of leaves found:', Array.isArray(response.data) ? response.data.length : 'Not an array');
 
@@ -45,7 +45,7 @@ export const createLeave = async (leaveData) => {
     // Check if leaveData is already a FormData object
     let formData;
     let subdomain, reason, startDate, endDate, leaveType;
-    
+
     if (leaveData instanceof FormData) {
       // If it's already FormData, extract values for validation
       formData = leaveData;
@@ -61,7 +61,7 @@ export const createLeave = async (leaveData) => {
       startDate = leaveData.startDate;
       endDate = leaveData.endDate;
       leaveType = leaveData.leaveType;
-      
+
       formData = new FormData();
       Object.keys(leaveData).forEach(key => {
         if (key === 'document' && leaveData.document) {
@@ -89,7 +89,7 @@ export const createLeave = async (leaveData) => {
       throw new Error('Leave type is required');
     }
 
-    const response = await api.post('/leaves', formData, {
+    const response = await api.post('leaves', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
@@ -105,7 +105,7 @@ export const createLeave = async (leaveData) => {
 // Update leave status (admin)
 export const updateLeaveStatus = async (leaveId, status, leaveData) => {
   try {
-    const response = await api.put(`/leaves/${leaveId}/status`, { status, leaveData });
+    const response = await api.put(`leaves/${leaveId}/status`, { status, leaveData });
     return response.data;
   } catch (error) {
     throw error.response ? error.response.data : new Error('Failed to update leave status');
@@ -115,7 +115,7 @@ export const updateLeaveStatus = async (leaveId, status, leaveData) => {
 // Mark leave as viewed (worker)
 export const markLeaveAsViewed = async (leaveId) => {
   try {
-    const response = await api.put(`/leaves/${leaveId}/viewed`);
+    const response = await api.put(`leaves/${leaveId}/viewed`);
     return response.data;
   } catch (error) {
     throw error.response ? error.response.data : new Error('Failed to mark leave as viewed');
@@ -125,7 +125,7 @@ export const markLeaveAsViewed = async (leaveId) => {
 // Get leaves by date range (admin)
 export const getLeavesByDateRange = async (startDate, endDate) => {
   try {
-    const response = await api.get(`/leaves/range?startDate=${startDate}&endDate=${endDate}`);
+    const response = await api.get(`leaves/range?startDate=${startDate}&endDate=${endDate}`);
     return response.data;
   } catch (error) {
     throw error.response ? error.response.data : new Error('Failed to fetch leaves');
@@ -134,7 +134,7 @@ export const getLeavesByDateRange = async (startDate, endDate) => {
 
 export const getLeavesByStatus = async (status) => {
   try {
-    const response = await api.get(`/leaves/status?status=${status}`);
+    const response = await api.get(`leaves/status?status=${status}`);
     return response.data;
   } catch (error) {
     throw error.response ? error.response.data : new Error('Failed to fetch leaves');
@@ -143,7 +143,7 @@ export const getLeavesByStatus = async (status) => {
 
 export const markLeavesAsViewedByAdmin = async () => {
   try {
-    await api.put('/leaves/mark-viewed-by-admin');
+    await api.put('leaves/mark-viewed-by-admin');
   } catch (error) {
     console.error('Failed to mark leaves as viewed:', error);
   }

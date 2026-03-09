@@ -4,7 +4,7 @@ import { getAuthToken } from '../utils/authUtils';
 export const addFine = async (workerId, fineData) => {
   try {
     const token = getAuthToken();
-    const response = await api.post(`/fines/add-fine/${workerId}`, fineData, {
+    const response = await api.post(`fines/add-fine/${workerId}`, fineData, {
       headers: { Authorization: `Bearer ${token}` }
     });
     return response.data;
@@ -16,7 +16,7 @@ export const addFine = async (workerId, fineData) => {
 export const removeFine = async (workerId, fineId) => {
   try {
     const token = getAuthToken();
-    const response = await api.post(`/fines/remove-fine/${workerId}/${fineId}`, {}, {
+    const response = await api.post(`fines/remove-fine/${workerId}/${fineId}`, {}, {
       headers: { Authorization: `Bearer ${token}` }
     });
     return response.data;
@@ -29,7 +29,7 @@ export const removeFine = async (workerId, fineId) => {
 export const deleteFine = async (workerId, fineId) => {
   try {
     const token = getAuthToken();
-    const response = await api.delete(`/fines/delete-fine/${workerId}/${fineId}`, {
+    const response = await api.delete(`fines/delete-fine/${workerId}/${fineId}`, {
       headers: { Authorization: `Bearer ${token}` }
     });
     return response.data;
@@ -41,7 +41,7 @@ export const deleteFine = async (workerId, fineId) => {
 export const getWorkerFines = async (workerId) => {
   try {
     const token = getAuthToken();
-    const response = await api.get(`/fines/worker-fines/${workerId}`, {
+    const response = await api.get(`fines/worker-fines/${workerId}`, {
       headers: { Authorization: `Bearer ${token}` }
     });
     return response.data;

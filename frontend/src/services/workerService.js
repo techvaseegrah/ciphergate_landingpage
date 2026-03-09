@@ -4,7 +4,7 @@ import { getAuthToken } from '../utils/authUtils';
 
 export const getUniqueId = async () => {
   try {
-    const response = await api.get('/workers/generate-id');
+    const response = await api.get('workers/generate-id');
     console.log(response.data);
     return response.data || [];
   } catch (error) {
@@ -53,13 +53,13 @@ export const createWorker = async (workerData) => {
       }
     }
 
-    const response = await api.post('/workers', workerData);
+    const response = await api.post('workers', workerData);
     return response.data;
   } catch (error) {
     console.error('Worker creation error:', error.response?.data || error);
     throw error.response?.data || new Error('Failed to create worker');
   }
-};  
+};
 
 export const getWorkers = async (subdomain) => {
   try {
@@ -67,15 +67,15 @@ export const getWorkers = async (subdomain) => {
     const timestamp = new Date().getTime();
     // Ensure subdomain is wrapped in an object as expected by the backend
     const payload = typeof subdomain === 'object' ? subdomain : { subdomain };
-    const response = await api.post(`/workers/all?_t=${timestamp}`, payload);
+    const response = await api.post(`workers/all?_t=${timestamp}`, payload);
     return response.data || [];
   } catch (error) {
     console.error('Workers fetch error:', error);
-    
+
     if (error.response) {
       console.error('Server Error Response:', error.response.data);
       throw new Error(error.response.data.message || 'Failed to fetch workers');
-    } else if (error.request) { 
+    } else if (error.request) {
       console.error('No Response Received:', error.request);
       throw new Error('No response from server. Please check your connection.');
     } else {
@@ -89,7 +89,7 @@ export const getWorkerById = async (id) => {
   try {
     // Add timestamp to prevent caching
     const timestamp = new Date().getTime();
-    const response = await api.get(`/workers/${id}?_t=${timestamp}`);
+    const response = await api.get(`workers/${id}?_t=${timestamp}`);
     return response.data;
   } catch (error) {
     console.error('Worker fetch error:', error);
@@ -99,7 +99,7 @@ export const getWorkerById = async (id) => {
 
 export const getWorkersInDepartment = async (departmentId, subdomain) => {
   try {
-    const response = await api.get(`/workers/department/${departmentId}`, {
+    const response = await api.get(`workers/department/${departmentId}`, {
       headers: {
         'Content-Type': 'application/json',
       },
@@ -114,7 +114,7 @@ export const getWorkersInDepartment = async (departmentId, subdomain) => {
 
 export const getPublicWorkers = async (subdomainObj) => {
   try {
-    const response = await api.post('/workers/public', subdomainObj);
+    const response = await api.post('workers/public', subdomainObj);
     return response.data || [];
   } catch (error) {
     console.error('Public workers fetch error:', error);
@@ -136,7 +136,7 @@ export const updateWorker = async (id, workerData) => {
       }
     }
 
-    const response = await api.put(`/workers/${id}`, workerData);
+    const response = await api.put(`workers/${id}`, workerData);
     return response.data;
   } catch (error) {
     console.error('Update Worker Error:', {
@@ -150,7 +150,7 @@ export const updateWorker = async (id, workerData) => {
 
 export const deleteWorker = async (id) => {
   try {
-    const response = await api.delete(`/workers/${id}`);
+    const response = await api.delete(`workers/${id}`);
     return response.data;
   } catch (error) {
     throw error.response ? error.response.data : new Error('Failed to delete worker');
@@ -164,15 +164,15 @@ export const getAllWorkers = async (subdomain) => {
     const timestamp = new Date().getTime();
     // Ensure subdomain is wrapped in an object as expected by the backend
     const payload = typeof subdomain === 'object' ? subdomain : { subdomain };
-    const response = await api.post(`/workers/all?_t=${timestamp}`, payload);
+    const response = await api.post(`workers/all?_t=${timestamp}`, payload);
     return response.data || [];
   } catch (error) {
     console.error('All workers fetch error:', error);
-    
+
     if (error.response) {
       console.error('Server Error Response:', error.response.data);
       throw new Error(error.response.data.message || 'Failed to fetch all workers');
-    } else if (error.request) { 
+    } else if (error.request) {
       console.error('No Response Received:', error.request);
       throw new Error('No response from server. Please check your connection.');
     } else {
@@ -184,7 +184,7 @@ export const getAllWorkers = async (subdomain) => {
 
 export const getWorkerByRfid = async (rfid) => {
   try {
-    const response = await api.post('/workers/get-worker-by-rfid', { rfid });
+    const response = await api.post('workers/get-worker-by-rfid', { rfid });
     return response.data;
   } catch (error) {
     console.error('Worker fetch by RFID error:', error);

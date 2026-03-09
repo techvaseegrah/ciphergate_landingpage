@@ -3,7 +3,7 @@ import { getAuthToken } from '../utils/authUtils';
 
 export const subdomainAvailable = async (formData) => {
   try {
-    const response = await api.post('/auth/admin/subdomain-available', formData);
+    const response = await api.post('auth/admin/subdomain-available', formData);
     return response.data;
   } catch (error) {
     console.error("Subdomain not available", error);
@@ -13,7 +13,7 @@ export const subdomainAvailable = async (formData) => {
 
 export const registerAdmin = async (userData) => {
   try {
-    const response = await api.post('/auth/admin/register', userData);
+    const response = await api.post('auth/admin/register', userData);
     const responseData = response.data;
 
     // Store the token and user data in localStorage after registration
@@ -48,7 +48,7 @@ export const registerAdmin = async (userData) => {
 
 export const login = async (credentials, userType) => {
   try {
-    const response = await api.post(`/auth/${userType}`, credentials);
+    const response = await api.post(`auth/${userType}`, credentials);
     const userData = response.data;
 
     // Include department and salary information when saving to localStorage
@@ -96,7 +96,7 @@ export const login = async (credentials, userType) => {
 
 export const googleLoginAdmin = async (tokenData) => {
   try {
-    const response = await api.post('/auth/admin/google', tokenData);
+    const response = await api.post('auth/admin/google', tokenData);
     const userData = response.data;
 
     // Store the token and user data in localStorage
@@ -160,7 +160,7 @@ export const getCurrentUser = () => {
 // Corrected initialization check
 export const checkAndInitAdmin = async () => {
   try {
-    const response = await api.get('/auth/check-admin');
+    const response = await api.get('auth/check-admin');
     return response.data;
   } catch (error) {
     console.error('Admin check failed:', error);
@@ -171,7 +171,7 @@ export const checkAndInitAdmin = async () => {
 // New functions for password reset functionality with OTP
 export const requestPasswordResetOtp = async (data) => {
   try {
-    const response = await api.post('/auth/request-reset-otp', data);
+    const response = await api.post('auth/request-reset-otp', data);
     return response.data;
   } catch (error) {
     throw error.response?.data || new Error('Failed to request password reset OTP.');
@@ -180,7 +180,7 @@ export const requestPasswordResetOtp = async (data) => {
 
 export const resetPasswordWithOtp = async (data) => {
   try {
-    const response = await api.put('/auth/reset-password-with-otp', data);
+    const response = await api.put('auth/reset-password-with-otp', data);
     return response.data;
   } catch (error) {
     throw error.response?.data || new Error('Failed to reset password.');
@@ -190,7 +190,7 @@ export const resetPasswordWithOtp = async (data) => {
 // New function to get all admin accounts
 export const getAllAdmins = async () => {
   try {
-    const response = await api.get('/auth/admins');
+    const response = await api.get('auth/admins');
     return response.data;
   } catch (error) {
     throw error.response?.data || new Error('Failed to fetch admin accounts.');
@@ -200,7 +200,7 @@ export const getAllAdmins = async () => {
 // New function to update an admin account
 export const updateAdmin = async (id, adminData) => {
   try {
-    const response = await api.put(`/auth/admins/${id}`, adminData);
+    const response = await api.put(`auth/admins/${id}`, adminData);
     return response.data;
   } catch (error) {
     throw error.response?.data || new Error('Failed to update admin account.');
@@ -210,7 +210,7 @@ export const updateAdmin = async (id, adminData) => {
 // New function to delete an admin account
 export const deleteAdmin = async (id) => {
   try {
-    const response = await api.delete(`/auth/admins/${id}`);
+    const response = await api.delete(`auth/admins/${id}`);
     return response.data;
   } catch (error) {
     throw error.response?.data || new Error('Failed to delete admin account.');
@@ -221,7 +221,7 @@ export const deleteAdmin = async (id) => {
 export const loginClient = async (credentials) => {
   try {
     console.log('DEBUG: Calling client login API with endpoint: /auth/client/login');
-    const response = await api.post('/auth/client/login', credentials);
+    const response = await api.post('auth/client/login', credentials);
     console.log('DEBUG: Client login response:', response.data);
     const userData = response.data;
 
@@ -246,7 +246,7 @@ export const loginClient = async (credentials) => {
 // New function to get admin by ID
 export const getAdminById = async (id) => {
   try {
-    const response = await api.get(`/auth/admins/${id}`);
+    const response = await api.get(`auth/admins/${id}`);
     return response.data;
   } catch (error) {
     throw error.response?.data || new Error('Failed to fetch admin account details.');

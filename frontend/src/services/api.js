@@ -1,11 +1,14 @@
 import axios from 'axios';
 import { getAuthToken } from '../utils/authUtils';
 
+const getBaseURL = () => {
+  const url = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+  return url.endsWith('/') ? url : `${url}/`;
+};
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
-  // https://task-tracker-backend-1-r8os.onrender.com/api
-  // 'http://localhost:5000/api',
-  withCredentials: true, // If you need cookies for CORS, otherwise can remove
+  baseURL: getBaseURL(),
+  withCredentials: true,
 });
 
 // Request interceptor: adds token from localStorage
@@ -17,7 +20,20 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     } else {
-      console.error('API Request - No token found for request to:', config.url);
+      // Don't log error for public routes like login or registration
+      const publicRoutes = [
+        'auth/admin',
+        'auth/worker',
+        'auth/client/login',
+        'auth/admin/subdomain-available',
+        'auth/admin/google',
+        'auth/admin/register'
+      ];
+      const isPublicRoute = publicRoutes.some(route => config.url.includes(route));
+
+      if (!isPublicRoute) {
+        console.warn('API Request - No token found for private request to:', config.url);
+      }
     }
     return config;
   },

@@ -30,8 +30,18 @@ const ParallaxImage = ({ scrollYProgress }) => {
     return () => clearInterval(tzTimer);
   }, []);
 
-  const y = useTransform(scrollYProgress, [0, 0.4], ['0px', '0%']);
-  const scale = useTransform(scrollYProgress, [0.05, 0.5], [0.92, 1.1]);
+  const y = useTransform(
+    scrollYProgress,
+    [0, 1],
+    typeof window !== 'undefined' && window.innerWidth < 768 ? ['0px', '0px'] : ['0px', '-50px']
+  );
+
+  // Responsive scale transform to prevent horizontal overflow on mobile
+  const scale = useTransform(
+    scrollYProgress,
+    [0.05, 0.5],
+    typeof window !== 'undefined' && window.innerWidth < 768 ? [0.95, 1.0] : [0.92, 1.1]
+  );
 
 
   const attendanceLogs = [
@@ -43,24 +53,25 @@ const ParallaxImage = ({ scrollYProgress }) => {
 
   return (
     <motion.section
-      className="relative w-full flex flex-col items-center justify-center z-10 pointer-events-auto py-24 max-w-[1200px] mx-auto bg-transparent"
+      className="relative w-full flex flex-col items-center justify-center z-10 pointer-events-auto py-8 md:py-24 max-w-[1200px] mx-auto bg-transparent"
       style={{ y }}
     >
-      <div className="w-full px-6">
-        <motion.div className="text-center mb-16">
-          <h2 className="text-3xl md:text-5xl font-light text-[#111] tracking-widest uppercase mb-4 leading-tight">
-            Presence is not performance. <span className="text-[#B76E79] font-medium">We track both.</span>
+      <div className="w-full px-2 sm:px-6">
+        <motion.div className="text-center mb-8 md:mb-16">
+          <h2 className="text-xl sm:text-3xl md:text-5xl font-light text-[#111] tracking-tighter md:tracking-widest uppercase mb-4 leading-[1.1]">
+            Presence is not performance. <br className="sm:hidden" />
+            <span className="text-[#B76E79] font-medium">We track both.</span>
           </h2>
         </motion.div>
 
         <motion.div
-          className="w-full max-w-6xl bg-white border border-gray-200 p-6 md:p-10 relative mx-auto"
+          className="w-full max-w-6xl bg-white border border-gray-200 p-2 sm:p-6 md:p-10 relative mx-auto"
           style={{ scale }}
         >
-          <div className="grid grid-cols-12 gap-8 md:gap-12">
+          <div className="grid grid-cols-12 gap-4 sm:gap-8 md:gap-12">
             {/* LEFT SIDEBAR SECTION */}
-            <div className="col-span-12 lg:col-span-3 space-y-6">
-              <div className="p-6 bg-[#fafafa] border border-gray-100 min-h-[120px]">
+            <div className="col-span-12 lg:col-span-3 space-y-3 sm:space-y-6">
+              <div className="p-3 sm:p-6 bg-[#fafafa] border border-gray-100 min-h-[90px] sm:min-h-[120px]">
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={currentTimezoneIndex}
@@ -71,7 +82,7 @@ const ParallaxImage = ({ scrollYProgress }) => {
                     className="flex flex-col"
                   >
                     <p className="text-[#888] text-[9px] uppercase tracking-[0.2em] font-medium mb-3">{timezones[currentTimezoneIndex].label}</p>
-                    <h2 className="text-2xl md:text-3xl font-light text-[#111] tracking-wider">
+                    <h2 className="text-xl md:text-3xl font-light text-[#111] tracking-wider">
                       {currentTime.toLocaleTimeString('en-US', {
                         timeZone: timezones[currentTimezoneIndex].timeZone,
                         hour: '2-digit',
@@ -86,13 +97,13 @@ const ParallaxImage = ({ scrollYProgress }) => {
               <div
                 onMouseEnter={() => setIsHoveringTask(true)}
                 onMouseLeave={() => setIsHoveringTask(false)}
-                className="p-6 bg-white border border-gray-100 relative overflow-hidden cursor-pointer transition-all duration-400 hover:border-[#111] group"
+                className="p-3 sm:p-6 bg-white border border-gray-100 relative overflow-hidden cursor-pointer transition-all duration-400 hover:border-[#111] group"
                 data-cursor-text="MANAGE TASK"
               >
                 <div className="flex justify-between items-end mb-4">
                   <div>
                     <p className="text-[#888] text-[9px] font-medium uppercase tracking-[0.2em] mb-2">Daily Task</p>
-                    <h3 className="text-3xl font-light text-[#111]">12<span className="text-gray-400 text-xl">/15</span></h3>
+                    <h3 className="text-2xl sm:text-3xl font-light text-[#111]">12<span className="text-gray-400 text-lg">/15</span></h3>
                   </div>
                   <span className="text-[#111] text-xs font-semibold tracking-widest">80%</span>
                 </div>
@@ -109,7 +120,7 @@ const ParallaxImage = ({ scrollYProgress }) => {
               <div
                 onMouseEnter={() => setIsHoveringSalary(true)}
                 onMouseLeave={() => setIsHoveringSalary(false)}
-                className="p-6 bg-[#111] border border-[#111] relative overflow-hidden group cursor-pointer transition-all duration-400"
+                className="p-3 sm:p-6 bg-[#111] border border-[#111] relative overflow-hidden group cursor-pointer transition-all duration-400"
                 data-cursor-text="PAYROLL"
               >
                 <div className="flex justify-between items-start mb-4">
@@ -131,22 +142,21 @@ const ParallaxImage = ({ scrollYProgress }) => {
                   <div className="w-full h-[1px] bg-gray-800 relative">
                     <motion.div animate={{ x: ['-100%', '0%'] }} transition={{ duration: 3, repeat: Infinity, ease: "linear" }} className="absolute top-0 left-0 h-full w-full bg-white" />
                   </div>
-                  <p className="text-[9px] text-gray-400 font-light tracking-[0.1em] uppercase">Hover to view</p>
+                  <p className="text-[8px] sm:text-[9px] text-gray-400 font-light tracking-[0.1em] uppercase">Hover to view</p>
                 </div>
               </div>
             </div>
 
             {/* RIGHT MAIN TABLE SECTION */}
-            <div className="col-span-12 lg:col-span-9 bg-[#fafafa] border border-gray-200 p-6 md:p-8 flex flex-col relative overflow-hidden">
+            <div className="col-span-12 lg:col-span-9 bg-[#fafafa] border border-gray-200 p-2 sm:p-6 md:p-8 flex flex-col relative overflow-hidden">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 sm:mb-8">
+                <h4 className="text-[11px] md:text-lg font-light tracking-[0.1em] md:tracking-[0.2em] text-[#111] uppercase">Recent Logs</h4>
 
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-8">
-                <h4 className="text-lg font-light tracking-[0.2em] text-[#111] uppercase">Recent Logs</h4>
-
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-1.5 sm:gap-4 w-full sm:w-auto">
                   <button
                     onMouseEnter={() => setIsHoveringRFID(true)}
                     onMouseLeave={() => setIsHoveringRFID(false)}
-                    className="flex items-center gap-3 bg-white hover:bg-[#111] hover:text-white text-[#111] border border-gray-200 hover:border-[#111] px-6 py-3 transition-all duration-400 font-medium text-[9px] uppercase tracking-[0.2em]"
+                    className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 sm:gap-3 bg-white hover:bg-[#111] hover:text-white text-[#111] border border-gray-200 hover:border-[#111] px-2 sm:px-6 py-2.5 sm:py-3 transition-all duration-400 font-medium text-[8px] sm:text-[9px] uppercase tracking-[0.1em] sm:tracking-[0.2em]"
                   >
                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="square" strokeLinejoin="miter" strokeWidth="1.5" d="M12 4v16m8-8H4" />
@@ -156,7 +166,7 @@ const ParallaxImage = ({ scrollYProgress }) => {
                   <button
                     onMouseEnter={() => setIsHoveringFace(true)}
                     onMouseLeave={() => setIsHoveringFace(false)}
-                    className="flex items-center gap-3 bg-white hover:bg-[#111] hover:text-white text-[#111] border border-gray-200 hover:border-[#111] px-6 py-3 transition-all duration-400 font-medium text-[9px] uppercase tracking-[0.2em]"
+                    className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 sm:gap-3 bg-white hover:bg-[#111] hover:text-white text-[#111] border border-gray-200 hover:border-[#111] px-2 sm:px-6 py-2.5 sm:py-3 transition-all duration-400 font-medium text-[8px] sm:text-[9px] uppercase tracking-[0.1em] sm:tracking-[0.2em]"
                   >
                     <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M4 5a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-1.586a1 1 0 01-.707-.293l-1.121-1.121A2 2 0 0011.172 3H8.828a2 2 0 00-1.414.586L6.293 4.707A1 1 0 015.586 5H4zm6 9a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
@@ -169,29 +179,29 @@ const ParallaxImage = ({ scrollYProgress }) => {
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="text-[9px] font-medium text-gray-400 tracking-[0.15em] uppercase border-b border-gray-200">
-                      <th className="pb-4 px-4 font-medium">Name</th>
-                      <th className="pb-4 px-4 font-medium">Emp ID</th>
-                      <th className="pb-4 px-4 font-medium">Dept</th>
-                      <th className="pb-4 px-4 font-medium">Date</th>
-                      <th className="pb-4 px-4 font-medium">In Time</th>
-                      <th className="pb-4 px-4 font-medium">Out Time</th>
-                      <th className="pb-4 px-4 font-medium">Hours</th>
+                    <tr className="text-[8px] sm:text-[9px] font-medium text-gray-400 tracking-[0.05em] sm:tracking-[0.15em] uppercase border-b border-gray-200">
+                      <th className="pb-3 md:pb-4 px-1.5 sm:px-4 font-medium">Name</th>
+                      <th className="pb-3 md:pb-4 px-1.5 sm:px-4 font-medium hidden sm:table-cell">ID</th>
+                      <th className="pb-3 md:pb-4 px-1.5 sm:px-4 font-medium hidden md:table-cell">Dept</th>
+                      <th className="pb-3 md:pb-4 px-1.5 sm:px-4 font-medium hidden lg:table-cell">Date</th>
+                      <th className="pb-3 md:pb-4 px-1.5 sm:px-4 font-medium">In</th>
+                      <th className="pb-3 md:pb-4 px-1.5 sm:px-4 font-medium">Out</th>
+                      <th className="pb-3 md:pb-4 px-1.5 sm:px-4 font-medium">Hrs</th>
                     </tr>
                   </thead>
                   <tbody>
                     {attendanceLogs.map((log, i) => (
                       <tr key={i} className="border-b border-gray-100 last:border-0 hover:bg-white transition-colors">
-                        <td className="py-4 px-4 flex items-center gap-4" data-cursor-text="PROFILE">
-                          <img src={log.img} className="w-6 h-6 grayscale" alt="" />
-                          <span className="text-xs font-light text-[#111] tracking-wide">{log.name}</span>
+                        <td className="py-2.5 md:py-4 px-1.5 sm:px-4 flex items-center gap-1.5 sm:gap-4" data-cursor-text="PROFILE">
+                          <img src={log.img} className="w-4 h-4 sm:w-6 sm:h-6" alt="" />
+                          <span className="text-[9px] sm:text-xs font-light text-[#111] tracking-tight truncate max-w-[50px] sm:max-w-none">{log.name}</span>
                         </td>
-                        <td className="py-4 px-4 text-xs font-light text-gray-500">{log.id}</td>
-                        <td className="py-4 px-4 text-xs font-light text-gray-500">{log.dept}</td>
-                        <td className="py-4 px-4 text-xs font-light text-gray-500">{log.date}</td>
-                        <td className="py-4 px-4 text-xs font-medium text-green-500">{log.in}</td>
-                        <td className="py-4 px-4 text-xs font-medium text-red-500">{log.out}</td>
-                        <td className="py-4 px-4 text-xs font-light text-gray-500">{log.hours}</td>
+                        <td className="py-2.5 md:py-4 px-1.5 sm:px-4 text-[9px] sm:text-xs font-light text-gray-500 hidden sm:table-cell">{log.id}</td>
+                        <td className="py-2.5 md:py-4 px-1.5 sm:px-4 text-[9px] sm:text-xs font-light text-gray-500 hidden md:table-cell">{log.dept}</td>
+                        <td className="py-2.5 md:py-4 px-1.5 sm:px-4 text-[9px] sm:text-xs font-light text-gray-500 hidden lg:table-cell">{log.date}</td>
+                        <td className="py-2.5 md:py-4 px-1.5 sm:px-4 text-[9px] sm:text-xs font-medium text-green-500 whitespace-nowrap">{log.in.replace(' AM', 'A').replace(' PM', 'P')}</td>
+                        <td className="py-2.5 md:py-4 px-1.5 sm:px-4 text-[9px] sm:text-xs font-medium text-red-500 whitespace-nowrap">{log.out.replace(' AM', 'A').replace(' PM', 'P')}</td>
+                        <td className="py-2.5 md:py-4 px-1.5 sm:px-4 text-[9px] sm:text-xs font-light text-gray-500">{log.hours.split(':')[0] + 'h'}</td>
                       </tr>
                     ))}
                   </tbody>

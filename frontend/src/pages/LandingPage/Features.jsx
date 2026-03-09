@@ -28,88 +28,41 @@ const Features = () => {
   return (
     <section
       id="features"
-      style={{
-        background: '#fafafa',
-        padding: '120px 0',
-        position: 'relative',
-        overflow: 'hidden',
-        borderTop: '1px solid #eaeaea',
-      }}
+      className="py-24 md:py-32 bg-[#fafafa] relative overflow-hidden border-t border-gray-100"
     >
-      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 24px', position: 'relative', zIndex: 1 }}>
+      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 relative z-10">
 
         {/* Header */}
-        <div style={{ textAlign: 'center', marginBottom: '80px' }}>
-          <span style={{
-            display: 'inline-block',
-            padding: '4px 12px',
-            border: '1px solid #d1d5db',
-            color: '#6b7280',
-            fontSize: '11px',
-            fontWeight: 500,
-            letterSpacing: '0.2em',
-            textTransform: 'uppercase',
-            marginBottom: '24px',
-            backgroundColor: '#ffffff'
-          }}>
-            Our <span style={{ color: '#B76E79' }}>Build</span> Websites
+        <div className="text-center mb-16 md:mb-20">
+          <span className="inline-block px-3 py-1 border border-gray-300 text-gray-500 text-[10px] md:text-[11px] font-medium tracking-[0.2em] uppercase mb-6 bg-white">
+            Our <span className="text-[#B76E79]">Build</span> Websites
           </span>
-          <h2 style={{
-            fontSize: 'clamp(2.5rem, 5vw, 4rem)',
-            fontWeight: 300,
-            color: '#111827',
-            lineHeight: 1.1,
-            margin: '0 auto 24px',
-            letterSpacing: '0.05em'
-          }}>
+          <h2 className="text-2xl md:text-5xl lg:text-6xl font-light text-gray-900 leading-tight mb-6 tracking-wide">
             Our{' '}
-            <span style={{ fontWeight: 400, color: '#B76E79' }}>
+            <span className="font-normal text-[#B76E79]">
               Build
             </span>{' '}
             Websites
           </h2>
-          <p style={{
-            color: '#6b7280',
-            fontSize: '15px',
-            maxWidth: '500px',
-            margin: '0 auto',
-            fontWeight: 300,
-            lineHeight: 1.8,
-            letterSpacing: '0.02em'
-          }}>
+          <p className="text-gray-500 text-sm md:text-base max-w-lg mx-auto font-light leading-relaxed tracking-wide">
             Handcrafted digital experiences tailored for every budget and business goal.
           </p>
         </div>
 
         {/* Category Pills */}
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '60px' }}>
+        <div className="grid grid-cols-2 md:flex md:flex-wrap justify-center gap-1.5 md:gap-2 mb-12 md:mb-16">
           {categories.map((cat, i) => {
             const isActive = i === activeIdx;
             return (
               <button
                 key={i}
                 onClick={() => setActiveIdx(i)}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: '12px',
-                  padding: '12px 24px', cursor: 'pointer',
-                  border: isActive ? '1px solid #111' : '1px solid #e5e7eb',
-                  background: isActive ? '#111' : '#fff',
-                  color: isActive ? '#fff' : '#6b7280',
-                  fontWeight: 400, fontSize: '12px',
-                  letterSpacing: '0.1em',
-                  textTransform: 'uppercase',
-                  transition: 'all 0.4s ease',
-                  borderRadius: '0'
-                }}
+                className={`flex items-center justify-between md:justify-start gap-2 md:gap-3 px-3 md:px-6 py-2.5 md:py-3.5 cursor-pointer text-[9px] md:text-xs tracking-[0.1em] uppercase transition-all duration-400 border ${isActive ? 'bg-[#111] text-white border-[#111]' : 'bg-white text-gray-500 border-gray-200 hover:border-gray-900'
+                  }`}
               >
-                {cat.label}
-                <span style={{
-                  padding: '2px 6px',
-                  fontSize: '10px',
-                  background: isActive ? '#333' : '#f3f4f6',
-                  color: isActive ? '#fff' : '#9ca3af',
-                  letterSpacing: '0.05em'
-                }}>
+                <span>{cat.label}</span>
+                <span className={`px-1.5 py-0.5 text-[8px] md:text-[9px] tracking-normal ${isActive ? 'bg-[#333] text-white' : 'bg-gray-100 text-gray-400'
+                  }`}>
                   {cat.tag}
                 </span>
               </button>
@@ -125,13 +78,7 @@ const Features = () => {
               initial="hidden"
               animate="visible"
               exit="exit"
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
-                gap: '2px', // Thin grid line effect
-                background: '#e5e7eb',
-                border: '1px solid #e5e7eb'
-              }}
+              className="grid grid-cols-2 lg:grid-cols-3 gap-px bg-gray-100 border border-gray-100"
             >
               {filtered.map((site, i) => (
                 <WebsiteCard key={site.id} site={site} index={i} cat={activeCat} />
@@ -144,25 +91,15 @@ const Features = () => {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
-              style={{
-                display: 'flex', flexDirection: 'column', alignItems: 'center',
-                justifyContent: 'center', padding: '100px 24px',
-                border: '1px solid #e5e7eb', background: '#fff'
-              }}
+              className="flex flex-col items-center justify-center py-24 px-6 border border-gray-200 bg-white"
             >
-              <div style={{ textAlign: 'center' }}>
-                <h3 style={{
-                  fontSize: '18px', fontWeight: 400, color: '#111827',
-                  margin: '0 0 16px', letterSpacing: '0.1em', textTransform: 'uppercase'
-                }}>
+              <div className="text-center">
+                <h3 className="text-lg font-normal text-gray-900 mb-4 tracking-[0.1em] uppercase">
                   Coming Soon
                 </h3>
-                <p style={{
-                  fontSize: '14px', color: '#6b7280', margin: 0, maxWidth: '340px',
-                  lineHeight: 1.8, fontWeight: 300, letterSpacing: '0.02em'
-                }}>
+                <p className="text-sm text-gray-500 max-w-xs mx-auto leading-relaxed font-light tracking-wide">
                   We're crafting exciting new projects for the{' '}
-                  <span style={{ color: '#111827', fontWeight: 500 }}>
+                  <span className="text-gray-900 font-medium">
                     {activeCat.tag}
                   </span>{' '}
                   package. Check back soon.
@@ -187,94 +124,38 @@ const WebsiteCard = ({ site, index, cat }) => {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       data-cursor-text="VISIT SITE"
-      style={{
-        background: '#ffffff',
-        position: 'relative',
-        cursor: 'pointer',
-        display: 'flex',
-        flexDirection: 'column',
-        transition: 'background 0.4s ease',
-      }}
+      className={`bg-white relative cursor-pointer flex flex-col transition-colors duration-400 ${hovered ? 'bg-[#fafafa]' : ''}`}
     >
       {/* Image Section */}
-      <div style={{ position: 'relative', height: '300px', overflow: 'hidden', flexShrink: 0, padding: '32px', backgroundColor: '#fafafa' }}>
+      <div className="relative h-56 sm:h-64 md:h-72 overflow-hidden flex-shrink-0 p-4 sm:p-8 bg-[#fafafa]">
         <img
           src={site.image}
           alt={site.name}
-          style={{
-            width: '100%', height: '100%', objectFit: 'contain',
-            filter: hovered ? 'grayscale(0%)' : 'grayscale(100%)',
-            transform: hovered ? 'scale(1.05)' : 'scale(1)',
-            transition: 'all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-            opacity: hovered ? 1 : 0.8
-          }}
+          className={`w-full h-full object-contain transition-all duration-700 ${hovered ? 'scale-105' : 'scale-100'}`}
         />
         {/* Subtle overlay */}
-        <div style={{
-          position: 'absolute', inset: 0,
-          background: hovered ? 'rgba(0,0,0,0.1)' : 'rgba(0,0,0,0.02)',
-          transition: 'background 0.8s ease',
-        }} />
+        <div className={`absolute inset-0 transition-colors duration-700 ${hovered ? 'bg-black/10' : 'bg-black/5'}`} />
 
         {/* Price badge */}
-        <div style={{
-          position: 'absolute', top: '16px', right: '16px',
-          background: '#ffffff',
-          padding: '6px 14px',
-          fontSize: '11px', fontWeight: 500, color: '#111',
-          letterSpacing: '0.1em', border: '1px solid #e5e7eb'
-        }}>
+        <div className="absolute top-3 right-3 bg-white px-2 py-1 text-[9px] font-medium text-gray-900 tracking-widest border border-gray-100">
           {cat.label}
         </div>
       </div>
 
       {/* Card Body */}
-      <div style={{
-        padding: '32px 24px',
-        display: 'flex', flexDirection: 'column',
-        flex: 1,
-        background: hovered ? '#fafafa' : '#ffffff',
-        transition: 'background 0.4s ease'
-      }}>
-        <h3 style={{
-          fontWeight: 400,
-          fontSize: '18px',
-          color: '#111827',
-          margin: '0 0 12px 0',
-          letterSpacing: '0.05em',
-          textTransform: 'uppercase'
-        }}>
+      <div className="p-4 sm:p-8 md:p-10 flex flex-col flex-1 overflow-hidden">
+        <h3 className="font-normal text-[11px] sm:text-lg text-gray-900 mb-2 sm:mb-4 tracking-wide uppercase break-words leading-tight">
           {site.name}
         </h3>
 
-        <p style={{
-          color: '#6b7280',
-          fontSize: '13px',
-          fontWeight: 300,
-          lineHeight: 1.6,
-          margin: '0 0 32px 0',
-          flex: 1
-        }}>
+        <p className="text-gray-500 text-[10px] sm:text-sm font-light leading-relaxed mb-6 sm:mb-8 flex-1 line-clamp-3 sm:line-clamp-none">
           {site.description}
         </p>
 
         {/* CTA Button */}
         <a
           href={site.url}
-          style={{
-            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-            width: 'max-content',
-            padding: '12px 24px',
-            background: hovered ? '#111' : 'transparent',
-            border: hovered ? '1px solid #111' : '1px solid #d1d5db',
-            color: hovered ? '#fff' : '#4b5563',
-            fontWeight: 400,
-            fontSize: '11px',
-            textDecoration: 'none',
-            letterSpacing: '0.15em',
-            textTransform: 'uppercase',
-            transition: 'all 0.4s ease',
-          }}
+          className={`inline-flex items-center justify-center w-max px-4 sm:px-6 py-2.5 sm:py-3 text-[9px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.15em] uppercase transition-all duration-400 border ${hovered ? 'bg-[#111] text-white border-[#111]' : 'bg-transparent text-gray-600 border-gray-300'}`}
         >
           View Live Site
         </a>
@@ -283,4 +164,4 @@ const WebsiteCard = ({ site, index, cat }) => {
   );
 };
 
-export default Features; 
+export default Features;

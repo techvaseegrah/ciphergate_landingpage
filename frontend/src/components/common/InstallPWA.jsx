@@ -52,36 +52,29 @@ const InstallPWA = () => {
 
     return (
         <div className="animated-border-wrapper transition-all duration-300">
-            <div className="animated-border-inner">
-                <div className="flex items-center gap-3">
-                    <div className="bg-[#111]/5 p-2.5 rounded-full flex-shrink-0 border border-gray-100">
-                        <Download className="w-5 h-5 text-[#111]" />
+            <div className="animated-border-inner p-3 sm:p-4">
+                <div className="flex items-center gap-2 sm:gap-3">
+                    <div className="bg-[#111]/5 p-2 rounded-full flex-shrink-0 border border-gray-100">
+                        <Download className="w-4 h-4 sm:w-5 sm:h-5 text-[#111]" />
                     </div>
                     <div className="flex flex-col pt-0.5">
-                        <h3 className="text-[#111] text-[13px] uppercase tracking-[0.2em] leading-tight flex items-center">
+                        <h3 className="text-[#111] text-[11px] sm:text-[13px] uppercase tracking-[0.15em] sm:tracking-[0.2em] leading-tight flex items-center">
                             <span className="font-light">Cipher</span>
                             <span className="font-semibold text-[#B76E79]">Gate</span>
                         </h3>
-                        <p className="text-[#666] text-[9px] mt-1 hidden sm:block uppercase tracking-[0.1em]">App for quick access</p>
+                        <p className="text-[#666] text-[8px] sm:text-[9px] mt-0.5 uppercase tracking-[0.1em]">App access</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
                     <button
                         onClick={onDismiss}
-                        className="p-2 text-gray-400 hover:text-[#111] rounded-full transition-colors hidden sm:block"
-                        title="Dismiss"
-                    >
-                        <X className="w-4 h-4" />
-                    </button>
-                    <button
-                        onClick={onDismiss}
-                        className="text-[#666] text-[10px] uppercase tracking-[0.1em] font-medium hover:text-[#111] px-2 sm:hidden transition-colors"
+                        className="text-[#666] text-[9px] sm:text-[10px] uppercase tracking-[0.1em] font-medium hover:text-[#111] px-1 sm:px-2 transition-colors"
                     >
                         Later
                     </button>
                     <button
                         onClick={onClick}
-                        className="bg-[#111] hover:bg-black text-white px-5 py-2.5 text-[10px] font-semibold tracking-[0.2em] uppercase transition-all duration-500 flex items-center gap-1.5"
+                        className="bg-[#111] hover:bg-black text-white px-4 sm:px-5 py-2 sm:py-2.5 text-[9px] sm:text-[10px] font-semibold tracking-[0.15em] sm:tracking-[0.2em] uppercase transition-all duration-500 flex items-center gap-1.5"
                     >
                         Install
                     </button>

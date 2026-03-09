@@ -29,10 +29,12 @@ const startServer = async () => {
           'http://localhost:5173', // Vite dev server
           'https://tvtasks.netlify.app',
           'https://techvaseegrah.ciphergate.in',
+          'https://ciphergate.in',
         ];
-        const regex = /^http:\/\/.*\.localhost:3000$/; // Allow subdomains of localhost:3000
+        const localhostRegex = /^http:\/\/.*\.localhost:3000$/;
+        const ciphergateRegex = /^https:\/\/.*\.ciphergate\.in$/;
 
-        if (!origin || allowedOrigins.includes(origin) || regex.test(origin)) {
+        if (!origin || allowedOrigins.includes(origin) || localhostRegex.test(origin) || ciphergateRegex.test(origin)) {
           callback(null, true);
         } else {
           callback(new Error('Not allowed by CORS'));
@@ -123,6 +125,7 @@ const startServer = async () => {
           'http://localhost:5173', // Vite dev server
           'https://tvtasks.netlify.app',
           'https://techvaseegrah.ciphergate.in',
+          'https://ciphergate.in',
         ],
         methods: ['GET', 'POST']
       }
