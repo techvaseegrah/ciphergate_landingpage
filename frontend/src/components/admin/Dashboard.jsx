@@ -7,6 +7,8 @@ import { getDepartments } from '../../services/departmentService'; // Added impo
 import Card from '../common/Card';
 import Spinner from '../common/Spinner';
 import appContext from '../../context/AppContext';
+import { useAuth } from '../../hooks/useAuth';
+import PricingModal from '../common/PricingModal';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -23,6 +25,8 @@ const Dashboard = () => {
   const [departments, setDepartments] = useState([]); // Changed from topWorkers to departments
   const [pendingLeaves, setPendingLeaves] = useState([]);
   const { subdomain } = useContext(appContext);
+  const { user } = useAuth();
+  const [isPricingModalOpen, setIsPricingModalOpen] = useState(false);
 
   const loadDashboardData = async () => {
     setIsLoading(true);
@@ -117,11 +121,24 @@ const Dashboard = () => {
 
   return (
     <div className="bg-transparent min-h-screen p-2">
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex justify-between items-start mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800">My Dashboard</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-800">My Dashboard</h1>
+            {/* Mobile Tag: Next to title - Matches layout style */}
+            {user?.accountType !== 'premium' && (
+              <button
+                onClick={() => setIsPricingModalOpen(true)}
+                className="md:hidden flex items-center gap-1.5 bg-white/80 backdrop-blur-md px-3 py-1.5 rounded-full border border-gray-200 shadow-sm active:scale-95 transition-all mt-1"
+              >
+                <span className="text-[9px] font-bold text-gray-500 uppercase tracking-wider">Free Plan</span>
+                <span className="text-[8px] bg-teal-500 text-white px-1 py-0.5 rounded font-bold animate-pulse">UPGRADE</span>
+              </button>
+            )}
+          </div>
           <p className="text-gray-500 text-sm mt-1">Overview of your administration</p>
         </div>
+        {/* Note: Desktop Upgrade tag is handled by AdminLayout to avoid duplication */}
       </div>
 
       {/* Stats Grid - Clean Style */}
@@ -253,7 +270,12 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
-    </div>
+
+      <PricingModal
+        isOpen={isPricingModalOpen}
+        onClose={() => setIsPricingModalOpen(false)}
+      />
+    </div >
   );
 };
 

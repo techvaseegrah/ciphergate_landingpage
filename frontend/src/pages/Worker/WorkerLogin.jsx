@@ -199,8 +199,8 @@ const WorkerLogin = () => {
           key={i}
           onClick={() => setCurrentPage(i)}
           className={`w-9 h-9 rounded-full flex items-center justify-center ${currentPage === i
-              ? 'bg-[#111111] text-white'
-              : 'bg-gray-200 text-black hover:bg-[#111111] hover:text-white'
+            ? 'bg-[#111111] text-white'
+            : 'bg-gray-200 text-black hover:bg-[#111111] hover:text-white'
             } transition-colors border-2 border-[#111111]`}
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
@@ -241,12 +241,12 @@ const WorkerLogin = () => {
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.3 }}
-          className="absolute top-6 left-6 flex items-center gap-2 text-gray-600 hover:text-[#111111] transition-colors group z-20"
+          title="Back to Home"
+          className="absolute top-6 left-6 flex items-center justify-center w-10 h-10 rounded-full bg-gray-100 border border-gray-300 text-gray-600 hover:bg-[#111111] hover:text-white hover:border-[#111111] transition-all group z-20 shadow-sm"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 group-hover:-translate-x-1 transition-transform" viewBox="0 0 20 20" fill="currentColor">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 group-hover:-translate-x-0.5 transition-transform" viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
           </svg>
-          <span className="font-medium">Back to Home</span>
         </motion.button>
         {/* Animated Particles */}
         {particles.map((particle) => (
@@ -354,12 +354,12 @@ const WorkerLogin = () => {
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.3 }}
-        className="absolute top-6 left-6 flex items-center gap-2 text-gray-600 hover:text-[#111111] transition-colors group z-20"
+        title="Back to Home"
+        className="absolute top-6 left-6 flex items-center justify-center w-10 h-10 rounded-full bg-gray-100 border border-gray-300 text-gray-600 hover:bg-[#111111] hover:text-white hover:border-[#111111] transition-all group z-20 shadow-sm"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 group-hover:-translate-x-1 transition-transform" viewBox="0 0 20 20" fill="currentColor">
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 group-hover:-translate-x-0.5 transition-transform" viewBox="0 0 20 20" fill="currentColor">
           <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
         </svg>
-        <span className="font-medium">Back to Home</span>
       </motion.button>
       {/* Animated Particles */}
       {particles.map((particle) => (
@@ -489,8 +489,8 @@ const WorkerLogin = () => {
                   onClick={() => setSelectedWorker(worker)}
                   whileHover={{ scale: 1.05, y: -5 }}
                   className={`cursor-pointer p-4 rounded-lg text-center transition-all ${selectedWorker?._id === worker._id
-                      ? 'bg-white border-2 border-[#111111] shadow-lg shadow-[#111111]/20'
-                      : 'bg-white border border-gray-300 hover:border-[#111111]'
+                    ? 'bg-white border-2 border-[#111111] shadow-lg shadow-[#111111]/20'
+                    : 'bg-white border border-gray-300 hover:border-[#111111]'
                     }`}
                 >
                   <div className="w-16 h-16 rounded-full mx-auto mb-3 overflow-hidden border-2 border-[#111111]/30">

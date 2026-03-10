@@ -7,8 +7,7 @@ import { FaLink } from 'react-icons/fa';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 import Spinner from '../../components/common/Spinner';
-import { useGoogleLogin } from '@react-oauth/google';
-import { jwtDecode } from 'jwt-decode';
+
 
 const TwoStepRegistration = () => {
   const [formData, setFormData] = useState({
@@ -25,40 +24,7 @@ const TwoStepRegistration = () => {
   const [domainAvailable, setDomainAvailable] = useState(true);
   const navigate = useNavigate();
 
-  const handleGoogleLogin = useGoogleLogin({
-    onSuccess: async (tokenResponse) => {
-      try {
-        console.log("Google token raw response:", tokenResponse);
 
-        let userInfo = {};
-        if (tokenResponse.credential) {
-          userInfo = jwtDecode(tokenResponse.credential);
-        } else if (tokenResponse.access_token) {
-          userInfo = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-            headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
-          }).then(res => res.json());
-        }
-
-        if (userInfo.email) {
-          setFormData(prev => ({
-            ...prev,
-            email: userInfo.email,
-            username: userInfo.given_name || userInfo.name || ''
-          }));
-          toast.success("Details fetched from Google successfully. Please complete the remaining fields.");
-        } else {
-          throw new Error("No Email returned");
-        }
-      } catch (error) {
-        console.error("Failed to extract Google user info", error);
-        toast.error("Failed to fetch details from Google. Please enter manually.");
-      }
-    },
-    onError: errorResponse => {
-      console.error("Google login error", errorResponse);
-      toast.error('Google sign-in failed. Please try again or enter details manually.');
-    }
-  });
 
   const formFieldVariants = {
     hidden: { opacity: 0, x: -20 },
@@ -214,34 +180,6 @@ const TwoStepRegistration = () => {
           />
         </div>
 
-        <motion.div
-          className="mb-6"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.5 }}
-        >
-          <button
-            type="button"
-            onClick={() => handleGoogleLogin()}
-            className="w-full flex justify-center items-center px-4 py-3 bg-white border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#111111] transition-colors"
-          >
-            <img
-              src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
-              alt="Google"
-              className="w-5 h-5 mr-3"
-            />
-            Continue with Google
-          </button>
-        </motion.div>
-
-        <div className="relative mb-6">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300" />
-          </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-white text-gray-500">Or continue with</span>
-          </div>
-        </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <motion.div

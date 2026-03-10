@@ -2,7 +2,13 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useAuth } from './useAuth';
-import { createSubscription, verifySubscription, cancelSubscription } from '../services/paymentService';
+import { createOrder, verifyPayment, cancelSubscription } from '../services/paymentService';
+
+// ── Plan amounts in INR (single source of truth in code) ──
+const PLAN_AMOUNTS = {
+    monthly: 99,   // ₹99/month
+    yearly: 1100,  // ₹1100/year
+};
 
 export const usePayment = () => {
     const [isProcessing, setIsProcessing] = useState(false);
@@ -21,7 +27,7 @@ export const usePayment = () => {
         });
     };
 
-    // ── Subscribe with auto-pay ──
+    // ── One-time order payment (amount driven by code, not Razorpay plan ID) ──
     const handlePremiumSubscribe = async (isYearly = false) => {
         if (!user || user.role !== 'admin') {
             toast.info('Please login as an admin to subscribe');
@@ -44,22 +50,27 @@ export const usePayment = () => {
 
         try {
             const planType = isYearly ? 'yearly' : 'monthly';
-            const subscription = await createSubscription({ planType });
+            const amount = PLAN_AMOUNTS[planType]; // ₹99 or ₹1100
+
+            // Create a one-time Razorpay order with the correct amount
+            const order = await createOrder({ amount, currency: 'INR', planType });
 
             const options = {
                 key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_live_RqbpSczDZIkHfe',
-                subscription_id: subscription.id,
+                order_id: order.id,
+                amount: order.amount,           // in paise (already multiplied by 100 on backend)
+                currency: order.currency,
                 name: 'CipherGate Premium',
-                description: `${isYearly ? 'Yearly' : 'Monthly'} Auto-Pay Subscription`,
+                description: `${isYearly ? 'Yearly ₹1,100' : 'Monthly ₹99'} Premium Plan`,
                 handler: async (response) => {
                     try {
-                        await verifySubscription({
+                        await verifyPayment({
+                            razorpay_order_id: response.razorpay_order_id,
                             razorpay_payment_id: response.razorpay_payment_id,
-                            razorpay_subscription_id: response.razorpay_subscription_id,
                             razorpay_signature: response.razorpay_signature,
-                            planType
+                            planType,
                         });
-                        toast.success('🎉 Subscription activated! Auto-pay is now enabled.');
+                        toast.success('🎉 Payment successful! Welcome to Premium.');
                         setTimeout(() => window.location.reload(), 2000);
                     } catch (err) {
                         toast.error('Payment verification failed. Please contact support.');
@@ -68,22 +79,22 @@ export const usePayment = () => {
                 prefill: {
                     name: user.username,
                     email: user.email,
-                    contact: user.phoneNumber || ''
+                    contact: user.phoneNumber || '',
                 },
                 theme: { color: '#111111' },
                 modal: {
                     ondismiss: () => {
                         toast.info('Payment cancelled.');
                         setIsProcessing(false);
-                    }
-                }
+                    },
+                },
             };
 
             const paymentObject = new window.Razorpay(options);
             paymentObject.open();
         } catch (error) {
-            console.error('Subscription Error:', error);
-            toast.error('Failed to initiate subscription. Please try again.');
+            console.error('Payment Error:', error);
+            toast.error('Failed to initiate payment. Please try again.');
         } finally {
             setIsProcessing(false);
         }
