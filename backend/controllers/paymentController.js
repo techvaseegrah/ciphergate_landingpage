@@ -16,11 +16,16 @@ const razorpay = new Razorpay({
 const createSubscription = asyncHandler(async (req, res) => {
     const { planType } = req.body; // 'monthly' | 'yearly'
 
-    const planId = planType === 'yearly'
+    const planId = (planType === 'yearly'
         ? process.env.RAZORPAY_YEARLY_PLAN_ID
-        : process.env.RAZORPAY_MONTHLY_PLAN_ID;
+        : process.env.RAZORPAY_MONTHLY_PLAN_ID) || process.env.RAZORPAY_PLAN_ID;
+
+    console.log(`[Razorpay] Creating subscription for subdomian: ${req.user.subdomain}`);
+    console.log(`[Razorpay] Plan Type: ${planType}`);
+    console.log(`[Razorpay] Using Plan ID: ${planId}`);
 
     if (!planId) {
+        console.error('[Razorpay] Configuration Error: No Plan ID found in .env');
         res.status(500);
         throw new Error(`Razorpay Plan ID for "${planType}" is not configured in .env`);
     }
@@ -38,9 +43,10 @@ const createSubscription = asyncHandler(async (req, res) => {
             }
         });
 
+        console.log(`[Razorpay] Success! Subscription ID: ${subscription.id}`);
         res.status(200).json(subscription);
     } catch (error) {
-        console.error('Razorpay Subscription Error:', error);
+        console.error('[Razorpay] Subscription Error Detail:', error);
         res.status(500);
         throw new Error('Failed to create Razorpay subscription');
     }

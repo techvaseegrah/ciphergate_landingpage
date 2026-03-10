@@ -178,17 +178,10 @@ const Sidebar = ({
                 </div>
               </div>
               <div className="ml-1 flex-shrink-0 flex items-center gap-2">
-                {user.accountType === 'premium' ? (
+                {user.accountType === 'premium' && (
                   <span className="text-[10px] bg-yellow-400 text-yellow-900 font-bold px-1.5 py-0.5 rounded shadow-sm whitespace-nowrap">
                     PRO
                   </span>
-                ) : (
-                  <button
-                    onClick={onUpgradeClick}
-                    className="text-[9px] bg-white/20 hover:bg-white/30 text-white font-medium px-1.5 py-0.5 rounded transition-colors whitespace-nowrap cursor-pointer"
-                  >
-                    UPGRADE
-                  </button>
                 )}
                 {onLogout && <button
                   className="text-white p-1 hover:text-red-200 text-sm"

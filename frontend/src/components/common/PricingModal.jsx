@@ -55,10 +55,9 @@ const PricingModal = ({ isOpen, onClose }) => {
                     </svg>
                 </button>
 
-                <div className="text-center mb-8">
-                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mb-4 block">Our Website Packages</span>
-                    <h2 className="text-3xl font-light text-gray-900 uppercase tracking-widest mb-4">Choose Your Plan</h2>
-                    <p className="text-gray-500 font-light text-sm max-w-md mx-auto">Upgrade specifically to fit your business goals with no hidden fees.</p>
+                <div className="text-center mb-6 md:mb-8">
+                    <h2 className="text-lg md:text-3xl font-light text-gray-900 uppercase tracking-widest mb-2">Our Website Packages</h2>
+                    <p className="text-gray-500 font-light text-[10px] md:text-sm max-w-md mx-auto">Upgrade specifically to fit your business goals with no hidden fees.</p>
                 </div>
 
                 {/* Toggle */}
@@ -80,55 +79,62 @@ const PricingModal = ({ isOpen, onClose }) => {
                 </div>
 
                 {/* Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-0 border border-gray-200 rounded-2xl overflow-hidden shadow-xl max-w-4xl mx-auto">
+                <div className="grid grid-cols-2 gap-px border border-gray-200 rounded-2xl overflow-hidden shadow-xl max-w-4xl mx-auto">
                     {/* Free Plan */}
-                    <div className="bg-white p-8 md:p-10 border-b md:border-b-0 md:border-r border-gray-200 flex flex-col">
-                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 block">Starter</span>
-                        <h3 className="text-2xl font-light text-gray-900 uppercase tracking-wider mb-3">Free Plan</h3>
-                        <p className="text-sm text-gray-500 font-light mb-8">Perfect for small businesses exploring smart attendance.</p>
+                    <div className="bg-white p-3 md:p-10 border-b md:border-b-0 md:border-r border-gray-200 flex flex-col">
+                        <span className="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 md:mb-2 block">Starter</span>
+                        <h3 className="text-[10px] md:text-2xl font-light text-gray-900 uppercase tracking-wider mb-1 md:mb-2 leading-tight">Free Plan</h3>
+                        <p className="text-[10px] md:text-sm text-gray-500 font-light mb-4 md:mb-6 hidden sm:block">Perfect for small businesses exploring smart attendance.</p>
 
-                        <div className="mb-10">
-                            <span className="text-5xl font-light text-gray-900 leading-none mr-1">₹0</span>
-                            <span className="text-xs text-gray-500 uppercase tracking-widest">/month</span>
+                        <div className="mb-4 md:mb-10">
+                            <span className="text-xl md:text-5xl font-light text-gray-900 leading-none mr-1">₹0</span>
+                            <span className="text-[8px] md:text-xs text-gray-500 uppercase tracking-widest">/mo</span>
                         </div>
 
-                        <ul className="space-y-5 mb-10 flex-1">
+                        <ul className="space-y-2 md:space-y-5 mb-6 md:mb-10 flex-1">
                             {freeFeatures.map((f, i) => (
-                                <li key={i} className={`flex items-center gap-3 ${f.enabled ? 'opacity-100' : 'opacity-50'}`}>
+                                <li key={i} className={`flex items-center gap-2 md:gap-3 ${f.enabled ? 'opacity-100' : 'opacity-50'}`}>
                                     {f.enabled ? <CheckIcon color="#111" /> : <CrossIcon />}
-                                    <span className={`text-sm tracking-wide ${f.enabled ? 'text-gray-800' : 'text-gray-400'}`}>{f.text}</span>
+                                    <span className={`text-[10px] md:text-sm tracking-wide ${f.enabled ? 'text-gray-800' : 'text-gray-400'}`}>{f.text}</span>
                                 </li>
                             ))}
                         </ul>
 
                         <button
-                            className="w-full py-4 border border-gray-200 bg-gray-50 text-gray-400 text-xs font-medium uppercase tracking-widest rounded-xl cursor-not-allowed"
+                            className="w-full py-2 md:py-4 border border-gray-200 bg-gray-50 text-gray-400 text-[8px] md:text-xs font-medium uppercase tracking-widest rounded-xl cursor-not-allowed"
                             disabled
                         >
-                            Current Plan
+                            Current
                         </button>
                     </div>
 
                     {/* Premium Plan */}
-                    <div className="bg-gray-900 p-8 md:p-10 relative flex flex-col">
-                        <div className="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold uppercase tracking-widest py-2 px-4 shadow-sm">
-                            Pro Features
+                    <div className="bg-gray-900 p-3 md:p-10 relative flex flex-col">
+                        <div className="absolute top-0 right-0 bg-[#B76E79] text-white text-[7px] md:text-[10px] font-bold uppercase tracking-widest py-1 md:py-2 px-2 md:px-4 shadow-sm">
+                            Pro
                         </div>
 
-                        <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3 block">Pro</span>
-                        <h3 className="text-2xl font-light text-white uppercase tracking-wider mb-3">Premium Plan</h3>
-                        <p className="text-sm text-gray-400 font-light mb-8">For growing businesses and enterprises needing full power.</p>
+                        <span className="text-[8px] md:text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1 md:mb-2 block">Pro</span>
+                        <h3 className="text-[10px] md:text-2xl font-light text-white uppercase tracking-wider mb-1 md:mb-2 leading-tight">Premium Plan</h3>
+                        <p className="text-[10px] md:text-sm text-gray-400 font-light mb-4 md:mb-6 hidden sm:block">For growing businesses and enterprises needing full power.</p>
 
-                        <div className="mb-10 flex items-end">
-                            <span className="text-5xl font-light text-white leading-none mr-1">{isYearly ? '₹1,200' : '₹99'}</span>
-                            <span className="text-xs text-gray-500 uppercase tracking-widest mb-1.5">{isYearly ? '/year' : '/month'}</span>
+                        <div className="mb-4 md:mb-10 flex items-end">
+                            <div className="text-xl md:text-5xl font-light text-white leading-none mr-1">
+                                {isYearly ? (
+                                    <>
+                                        <span className="sm:hidden">₹1.1k</span>
+                                        <span className="hidden sm:inline">₹1,100</span>
+                                    </>
+                                ) : '₹99'}
+                            </div>
+                            <span className="text-[8px] md:text-xs text-gray-500 uppercase tracking-widest mb-0.5 md:mb-1.5">{isYearly ? '/yr' : '/mo'}</span>
                         </div>
 
-                        <ul className="space-y-5 mb-10 flex-1">
+                        <ul className="space-y-3 md:space-y-5 mb-8 md:mb-10 flex-1">
                             {premiumFeatures.map((f, i) => (
-                                <li key={i} className="flex items-center gap-3">
-                                    <CheckIcon color="#fff" />
-                                    <span className="text-sm tracking-wide text-gray-300">{f.text}</span>
+                                <li key={i} className="flex items-start md:items-center gap-2 md:gap-3">
+                                    <div className="mt-1 md:mt-0 shadow-sm"><CheckIcon color="#fff" /></div>
+                                    <span className="text-[10px] md:text-sm tracking-wide text-gray-300 leading-tight">{f.text}</span>
                                 </li>
                             ))}
                         </ul>
@@ -136,12 +142,12 @@ const PricingModal = ({ isOpen, onClose }) => {
                         <button
                             onClick={() => handlePremiumSubscribe(isYearly)}
                             disabled={isProcessing}
-                            className={`w-full py-4 border border-white text-xs font-medium uppercase tracking-widest transition-colors rounded-xl shadow-lg hover:shadow-xl ${isProcessing
+                            className={`w-full py-2.5 md:py-4 border border-white text-[8px] md:text-xs font-medium uppercase tracking-widest transition-colors rounded-xl shadow-lg hover:shadow-xl ${isProcessing
                                 ? 'bg-gray-800 text-gray-500 border-gray-700 cursor-not-allowed'
                                 : 'bg-white text-gray-900 hover:bg-transparent hover:text-white'
                                 }`}
                         >
-                            {isProcessing ? 'Processing Transaction...' : 'Upgrade Now'}
+                            {isProcessing ? '...' : 'Upgrade'}
                         </button>
                     </div>
                 </div>

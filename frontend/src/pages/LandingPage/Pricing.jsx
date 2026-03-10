@@ -20,7 +20,7 @@ const CrossIcon = ({ color = "#ccc" }) => (
 const Pricing = () => {
   const [isYearly, setIsYearly] = useState(false);
   const navigate = useNavigate();
-  const { user } = useAuth(); // Keeping useAuth here as it's used elsewhere in Pricing components
+  const { user } = useAuth();
 
   const { handlePremiumSubscribe, isProcessing } = usePayment();
 
@@ -72,32 +72,22 @@ const Pricing = () => {
 
         {/* Section Header */}
         <motion.div
-          className="text-center mb-16 md:mb-20 max-w-2xl mx-auto"
+          className="text-center mb-12 md:mb-16 max-w-2xl mx-auto"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-80px' }}
           transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
         >
-          {/* Eyebrow label */}
-          <span
-            className="inline-block border border-gray-200 text-gray-500 text-[10px] md:text-[11px] font-medium tracking-[0.25em] uppercase px-4 py-2 mb-6 bg-white"
-          >
+          <h2 className="text-2xl md:text-5xl lg:text-6xl font-light tracking-widest text-gray-900 leading-tight mb-6 uppercase">
             Our Website Packages
-          </span>
-
-          <h2
-            className="text-3xl md:text-5xl lg:text-6xl font-light tracking-widest text-gray-900 leading-tight mb-6 uppercase"
-          >
-            Handcrafted <span className="text-[#B76E79]">Digital</span> Experiences
           </h2>
-          <p className="text-gray-500 text-sm md:text-base max-w-lg mx-auto font-light leading-relaxed tracking-wide mb-10">
+          <p className="text-gray-500 text-xs md:text-base max-w-lg mx-auto font-light leading-relaxed tracking-wide">
             Tailored for every budget and business goal — simple, transparent pricing with no hidden fees.
           </p>
 
           {/* Premium Animated Toggle */}
           <div className="flex justify-center mt-4 mb-4">
             <div className="relative flex items-center p-1 bg-[#fafafa] border border-gray-200 rounded-full shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)] max-w-full overflow-hidden">
-
               <button
                 onClick={() => setIsYearly(false)}
                 className={`relative z-10 px-4 sm:px-8 py-2.5 sm:py-3.5 text-[9px] sm:text-[10px] font-medium uppercase tracking-[0.1em] sm:tracking-[0.2em] transition-colors duration-500 rounded-full outline-none ${!isYearly ? 'text-white' : 'text-gray-500 hover:text-gray-900'}`}
@@ -133,109 +123,103 @@ const Pricing = () => {
 
         {/* Cards */}
         <motion.div
-          className="grid grid-cols-1 lg:grid-cols-2 gap-px border border-gray-200 bg-gray-200 max-w-5xl mx-auto"
+          className="grid grid-cols-2 gap-px border border-gray-200 bg-gray-200 max-w-5xl mx-auto overflow-hidden"
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
         >
-          {/* ── FREE PLAN ── */}
-          <motion.div variants={cardVariants} className="bg-white p-6 sm:p-10 md:p-14 border-gray-200">
+          {/* FREE PLAN */}
+          <motion.div variants={cardVariants} className="bg-white p-4 sm:p-10 md:p-14 border-gray-200">
             <div className="flex flex-col h-full">
-              {/* Plan badge + name */}
-              <div className="mb-8">
-                <span className="text-[10px] md:text-[11px] font-medium tracking-[0.2em] uppercase text-gray-400 inline-block mb-3">
+              <div className="mb-6 md:mb-8">
+                <span className="text-[8px] md:text-[11px] font-medium tracking-[0.2em] uppercase text-gray-400 inline-block mb-2 md:mb-3">
                   Starter
                 </span>
-                <h3 className="text-2xl md:text-3xl font-light text-gray-900 tracking-wide uppercase">
+                <h3 className="text-sm md:text-3xl font-light text-gray-900 tracking-wide uppercase leading-tight">
                   Free Plan
                 </h3>
-                <p className="text-gray-500 text-sm mt-3 font-light leading-relaxed">
+                <p className="text-gray-500 text-[10px] md:text-sm mt-3 font-light leading-relaxed hidden sm:block">
                   Perfect for small businesses and startups exploring smart attendance.
                 </p>
               </div>
 
-              {/* Price */}
-              <div className="mb-10 flex flex-col">
-                <span className="text-5xl md:text-6xl font-extralight text-gray-900 leading-none tracking-tight">₹0</span>
-                <span className="text-[10px] text-gray-400 mt-2 tracking-[0.1em] uppercase">/month</span>
+              <div className="mb-8 md:mb-10 flex flex-col">
+                <span className="text-3xl md:text-6xl font-extralight text-gray-900 leading-none tracking-tight">₹0</span>
+                <span className="text-[8px] md:text-[10px] text-gray-400 mt-2 tracking-[0.1em] uppercase">/month</span>
               </div>
 
-              {/* Features */}
-              <ul className="list-none p-0 m-0 mb-10 flex flex-col gap-4 flex-1">
+              <ul className="list-none p-0 m-0 mb-8 md:mb-10 flex flex-col gap-3 md:gap-4 flex-1">
                 {freeFeatures.map((f, i) => (
-                  <li key={i} className={`flex items-center gap-3 ${f.enabled ? 'opacity-100' : 'opacity-40'}`}>
-                    {f.enabled ? <CheckIcon color="#111" /> : <CrossIcon />}
-                    <span className={`text-sm tracking-wide font-light ${f.enabled ? 'text-gray-700' : 'text-gray-400'}`}>
+                  <li key={i} className={`flex items-start md:items-center gap-2 md:gap-3 ${f.enabled ? 'opacity-100' : 'opacity-40'}`}>
+                    <div className="mt-1 md:mt-0"><CheckIcon color="#111" /></div>
+                    <span className={`text-[10px] md:text-sm tracking-wide font-light leading-tight ${f.enabled ? 'text-gray-700' : 'text-gray-400'}`}>
                       {f.text}
                     </span>
                   </li>
                 ))}
               </ul>
 
-              {/* CTA */}
               <button
                 onClick={handleGetStarted}
-                className="w-full py-4 bg-transparent text-gray-900 border border-gray-900 text-[10px] font-medium tracking-[0.15em] uppercase transition-all duration-400 hover:bg-gray-900 hover:text-white"
+                className="w-full py-3 md:py-4 bg-transparent text-gray-900 border border-gray-900 text-[8px] md:text-[10px] font-medium tracking-[0.15em] uppercase transition-all duration-400 hover:bg-gray-900 hover:text-white"
               >
-                Get Started Free
+                Get Started
               </button>
             </div>
           </motion.div>
 
-          {/* ── PREMIUM PLAN ── */}
-          <motion.div variants={cardVariants} className="bg-[#111] p-6 sm:p-10 md:p-14 relative overflow-hidden">
-            {/* Subtle highlight line instead of glow */}
+          {/* PREMIUM PLAN */}
+          <motion.div variants={cardVariants} className="bg-[#111] p-4 sm:p-10 md:p-14 relative overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-gray-800 via-gray-700 to-gray-800" />
-
             <div className="flex flex-col h-full relative z-10">
-              {/* Pro badge */}
-              <div className="absolute top-0 right-0 text-white text-[9px] font-medium tracking-[0.2em] uppercase px-3 py-1.5 bg-[#B76E79]">
-                Pro Features
+              <div className="absolute top-0 right-0 text-white text-[7px] md:text-[9px] font-medium tracking-[0.2em] uppercase px-2 md:px-3 py-1 md:py-1.5 bg-[#B76E79]">
+                Pro
               </div>
 
-              {/* Plan badge + name */}
-              <div className="mb-8 text-white">
-                <span className="text-[10px] md:text-[11px] font-medium tracking-[0.2em] uppercase text-gray-500 inline-block mb-3">
+              <div className="mb-6 md:mb-8 text-white">
+                <span className="text-[8px] md:text-[11px] font-medium tracking-[0.2em] uppercase text-gray-500 inline-block mb-2 md:mb-3">
                   Pro
                 </span>
-                <h3 className="text-2xl md:text-3xl font-light tracking-wide uppercase">
+                <h3 className="text-sm md:text-3xl font-light tracking-wide uppercase leading-tight">
                   Premium Plan
                 </h3>
-                <p className="text-gray-400 text-sm mt-3 font-light leading-relaxed">
+                <p className="text-gray-400 text-[10px] md:text-sm mt-3 font-light leading-relaxed hidden sm:block">
                   For growing businesses and enterprises that need full power.
                 </p>
               </div>
 
-              {/* Price */}
-              <div className="mb-10 flex flex-col">
+              <div className="mb-8 md:mb-10 flex flex-col">
                 <div className="flex items-baseline gap-1 text-white">
-                  <span className="text-5xl md:text-6xl font-extralight leading-none tracking-tight">
-                    {isYearly ? '₹1,200' : '₹99'}
+                  <span className="text-3xl md:text-6xl font-extralight leading-none tracking-tight">
+                    {isYearly ? (
+                      <>
+                        <span className="hidden sm:inline">₹1,100</span>
+                        <span className="inline sm:hidden">₹1.1k</span>
+                      </>
+                    ) : '₹99'}
                   </span>
                 </div>
-                <span className="text-[10px] text-gray-600 mt-2 tracking-[0.1em] uppercase">{isYearly ? '/year' : '/month'}</span>
+                <span className="text-[8px] md:text-[10px] text-gray-600 mt-2 tracking-[0.1em] uppercase">{isYearly ? '/year' : '/month'}</span>
               </div>
 
-              {/* Features */}
-              <ul className="list-none p-0 m-0 mb-10 flex flex-col gap-4 flex-1">
+              <ul className="list-none p-0 m-0 mb-8 md:mb-10 flex flex-col gap-3 md:gap-4 flex-1">
                 {premiumFeatures.map((f, i) => (
-                  <li key={i} className="flex items-center gap-3">
-                    <CheckIcon color="#fff" />
-                    <span className="text-sm text-gray-300 font-light tracking-wide">
+                  <li key={i} className="flex items-start md:items-center gap-2 md:gap-3">
+                    <div className="mt-1 md:mt-0"><CheckIcon color="#fff" /></div>
+                    <span className="text-[10px] md:text-sm text-gray-300 font-light tracking-wide leading-tight">
                       {f.text}
                     </span>
                   </li>
                 ))}
               </ul>
 
-              {/* CTA enabled */}
               <button
                 onClick={() => handlePremiumSubscribe(isYearly)}
                 disabled={isProcessing}
-                className={`w-full py-4 text-[10px] font-medium tracking-[0.15em] uppercase transition-all duration-400 border ${isProcessing ? 'bg-gray-800 text-gray-500 border-gray-800 cursor-not-allowed' : 'bg-white text-gray-900 border-white hover:bg-transparent hover:text-white'}`}
+                className={`w-full py-3 md:py-4 text-[8px] md:text-[10px] font-medium tracking-[0.15em] uppercase transition-all duration-400 border ${isProcessing ? 'bg-gray-800 text-gray-500 border-gray-800 cursor-not-allowed' : 'bg-white text-gray-900 border-white hover:bg-transparent hover:text-white'}`}
               >
-                {isProcessing ? 'Processing...' : user?.accountType === 'premium' ? 'Current Plan' : 'Upgrade Now'}
+                {isProcessing ? '...' : user?.accountType === 'premium' ? 'Current' : 'Upgrade'}
               </button>
             </div>
           </motion.div>
