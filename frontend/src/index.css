@@ -301,7 +301,6 @@ h3 {
   display: none;
 }
 
-/* Hide scrollbar for IE, Edge and Firefox */
 .sidebar-container {
   -ms-overflow-style: none;
   /* IE and Edge */
@@ -321,6 +320,78 @@ h3 {
   100% {
     background-position: 0% 50%;
   }
+}
+
+@keyframes roseGoldFlow {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes slowScale {
+  0% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+
+  50% {
+    transform: scale(1.08);
+    opacity: 0.7;
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+}
+
+.text-rose-gold-animate {
+  background: linear-gradient(90deg, #B76E79, #FFB6C1, #E6BE8A, #F4C2C2, #B76E79);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: roseGoldFlow 5s linear infinite;
+  display: inline-block;
+}
+
+.bg-rose-gold-animate {
+  background: linear-gradient(135deg, #B76E79, #FFB6C1, #E6BE8A, #B76E79);
+  background-size: 400% 400%;
+  animation: roseGoldFlow 10s ease infinite;
+}
+
+.rose-gold-blob {
+  position: absolute;
+  width: 40vw;
+  height: 40vw;
+  background: radial-gradient(circle, rgba(183, 110, 121, 0.12) 0%, transparent 70%);
+  filter: blur(100px);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  animation: slowScale 12s ease-in-out infinite;
+}
+
+.rose-gold-blob-2 {
+  position: absolute;
+  width: 50vw;
+  height: 50vw;
+  background: radial-gradient(circle, rgba(230, 190, 138, 0.08) 0%, transparent 75%);
+  filter: blur(120px);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  animation: slowScale 18s ease-in-out infinite;
+  animation-delay: -3.5s;
 }
 
 .text-gradient-animate {

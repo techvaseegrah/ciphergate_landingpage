@@ -81,7 +81,7 @@ const Header = () => {
             <img src="/logo.png" alt="Logo" className="h-5 md:h-6 w-auto object-contain" />
             <h1 className="text-lg md:text-xl font-light tracking-[0.1em] sm:tracking-[0.2em] uppercase text-[#111] leading-none mb-0 pt-1">
               <span>Cipher</span>
-              <span className="font-semibold text-[#B76E79]">Gate</span>
+              <span className="font-semibold text-rose-gold-animate">Gate</span>
             </h1>
           </div>
 
@@ -270,7 +270,7 @@ const Header = () => {
                     <img src="/logo.png" alt="Logo" className="h-6 w-auto object-contain" />
                     <h3 className="text-xl font-light tracking-[0.2em] uppercase text-[#111] leading-none mb-0 pt-1">
                       <span>Cipher</span>
-                      <span className="font-semibold text-[#B76E79]">Gate</span>
+                      <span className="font-semibold text-rose-gold-animate">Gate</span>
                     </h3>
                   </div>
                   <button onClick={() => setIsSignInOpen(false)} className="text-gray-400 hover:text-[#111] transition-colors">

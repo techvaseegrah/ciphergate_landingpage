@@ -60,7 +60,7 @@ const ParallaxImage = ({ scrollYProgress }) => {
         <motion.div className="text-center mb-8 md:mb-16">
           <h2 className="text-xl sm:text-3xl md:text-5xl font-light text-[#111] tracking-tighter md:tracking-widest uppercase mb-4 leading-[1.1]">
             Presence is not performance. <br className="sm:hidden" />
-            <span className="text-[#B76E79] font-medium">We track both.</span>
+            <span className="text-rose-gold-animate font-medium tracking-tight">We track both.</span>
           </h2>
         </motion.div>
 

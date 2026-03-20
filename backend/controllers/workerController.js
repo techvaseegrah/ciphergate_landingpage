@@ -16,34 +16,18 @@ const createWorker = asyncHandler(async (req, res) => {
   try {
     // Extract subdomain from the authenticated user (from JWT token via auth middleware)
     let subdomain = req.user?.subdomain || '';
-    
+
     // If subdomain is still empty, try to get it from request body as fallback
     if (!subdomain && req.body.subdomain) {
-      const bodySubdomain = typeof req.body === 'object' && req.body.subdomain 
-        ? req.body.subdomain.trim() 
+      const bodySubdomain = typeof req.body === 'object' && req.body.subdomain
+        ? req.body.subdomain.trim()
         : '';
       if (bodySubdomain && bodySubdomain !== 'main') {
         subdomain = bodySubdomain;
       }
     }
-    
-    // Debug logging
-    console.log('Worker creation - User info:', req.user ? { id: req.user._id, role: req.user.role, subdomain: req.user.subdomain } : 'No user');
-    console.log('Worker creation - Subdomain:', subdomain);
 
     // Get admin account info to check account type
-    if (typeof Admin === 'undefined') {
-      console.error('Admin model is not defined');
-      res.status(500);
-      throw new Error('Admin model is not defined');
-    }
-    
-    if (!subdomain) {
-      console.error('Subdomain is not provided');
-      res.status(400);
-      throw new Error('Subdomain is required');
-    }
-    
     const admin = await Admin.findOne({ subdomain });
     if (!admin) {
       res.status(404);
@@ -59,51 +43,71 @@ const createWorker = asyncHandler(async (req, res) => {
       }
     }
 
-    // Trim and validate name with extra checks
-    const name = req.body.name ? req.body.name.trim() : '';
-    const username = req.body.username ? req.body.username.trim() : '';
-    const rfid = req.body.rfid ? req.body.rfid.trim() : '';
-    // FIX: Convert salary to string before calling trim(), then back to number
-    const salary = req.body.salary ? Number(String(req.body.salary).trim()) : 0;
-    const finalSalary = req.body.salary ? Number(String(req.body.salary).trim()) : 0;
-    const password = req.body.password ? req.body.password.trim() : '';
-    const department = req.body.department ? req.body.department.trim() : '';
-    const photo = req.body.photo ? req.body.photo.trim() : '';
-    const batch = req.body.batch ? req.body.batch.trim() : ''; // ADDED THIS
-    const faceEmbeddings = req.body.faceEmbeddings ? req.body.faceEmbeddings : []; // ADDED THIS
-    let perDaySalary = 0;
+    const {
+      name, username, rfid, salary, password, department, photo, batch, faceEmbeddings,
+      employeeId, pinNumber, contactNumber, email, gender, dob,
+      dateOfJoining, dateOfExit, resignationStatus,
+      workPassType, passportNumber, nationality, passExpiryDate,
+      address, emergencyContactNumber, emergencyContactName, relationship,
+      bankAccountNumber, qualification
+    } = req.body;
 
-    if (salary <= 0) {
+    const trimmedName = name ? name.trim() : '';
+    const trimmedUsername = username ? username.trim() : '';
+    const trimmedRfid = rfid ? rfid.trim() : '';
+    const numericSalary = salary ? Number(String(salary).trim()) : 0;
+    const trimmedPassword = password ? password.trim() : '';
+    const trimmedDepartment = department ? department.trim() : '';
+
+    if (numericSalary <= 0) {
       res.status(400);
       throw new Error('Minimum salary is required and cannot be empty');
     }
 
-    perDaySalary = salary / 30;
+    const perDaySalary = numericSalary / 30;
 
     // Comprehensive server-side validation
-    if (!name || name.length === 0) {
+    if (!trimmedName) {
       res.status(400);
-      throw new Error('Name is required and cannot be empty');
+      throw new Error('Name is required');
     }
 
-    if (!username) {
+    if (!trimmedUsername) {
       res.status(400);
-      throw new Error('Username is required and cannot be empty');
+      throw new Error('Username is required');
     }
 
-    if (!subdomain) {
+    if (!trimmedPassword) {
       res.status(400);
-      throw new Error('Company name is required, login again.');
+      throw new Error('Password is required');
     }
 
-    if (!password) {
-      res.status(400);
-      throw new Error('Password is required and cannot be empty');
-    }
-
-    if (!department) {
+    if (!trimmedDepartment) {
       res.status(400);
       throw new Error('Department is required');
+    }
+
+    if (!contactNumber) {
+      res.status(400);
+      throw new Error('Contact number is required');
+    }
+
+    if (!workPassType) {
+      res.status(400);
+      throw new Error('Work Pass Type is required');
+    }
+
+    if (!dateOfJoining) {
+      res.status(400);
+      throw new Error('Date of Joining is required');
+    }
+
+    if (employeeId) {
+      const idExists = await Worker.findOne({ employeeId });
+      if (idExists) {
+        res.status(400);
+        throw new Error('Employee ID already exists');
+      }
     }
 
     // Check if worker exists
@@ -114,7 +118,7 @@ const createWorker = asyncHandler(async (req, res) => {
     }
 
     // Validate department
-    const departmentDoc = await Department.findById(department);
+    const departmentDoc = await Department.findById(trimmedDepartment);
     if (!departmentDoc) {
       res.status(400);
       throw new Error('Invalid department');
@@ -122,43 +126,52 @@ const createWorker = asyncHandler(async (req, res) => {
 
     // Hash password
     const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+    const hashedPassword = await bcrypt.hash(trimmedPassword, salt);
 
     // Create worker
     const worker = await Worker.create({
-      name,
-      username,
-      rfid,
-      salary,
-      finalSalary,
+      name: trimmedName,
+      username: trimmedUsername,
+      rfid: trimmedRfid,
+      salary: numericSalary,
+      finalSalary: numericSalary,
       perDaySalary,
       subdomain,
       password: hashedPassword,
       department: departmentDoc._id,
       photo: photo || '',
-      batch, // ADDED THIS
-      faceEmbeddings: faceEmbeddings || [], // ADDED THIS
+      batch: batch || '',
+      faceEmbeddings: faceEmbeddings || [],
+      employeeId,
+      pinNumber,
+      contactNumber,
+      email,
+      gender,
+      dob,
+      dateOfJoining,
+      dateOfExit,
+      resignationStatus: resignationStatus || 'Active',
+      workPassType,
+      passportNumber,
+      nationality,
+      passExpiryDate,
+      address,
+      emergencyContactNumber,
+      emergencyContactName,
+      relationship,
+      bankAccountNumber,
+      qualification,
       totalPoints: 0
     });
 
     res.status(201).json({
-      _id: worker._id,
-      name: worker.name,
-      username: worker.username,
-      salary: worker.salary,
-      finalSalary: worker.finalSalary,
-      perDaySalary: worker.perDaySalary,
-      rfid: worker.rfid,
-      subdomain: worker.subdomain,
+      ...worker.toObject(),
       department: departmentDoc.name,
-      photo: worker.photo,
-      batch: worker.batch, // ADDED THIS
-      faceEmbeddings: worker.faceEmbeddings // ADDED THIS
+      password: undefined // Don't return password
     });
 
   } catch (error) {
     console.error('Worker Creation Error:', error);
-    console.error('Error stack:', error.stack);
     res.status(400);
     throw new Error(error.message || 'Failed to create worker');
   }
@@ -204,39 +217,63 @@ const generateId = asyncHandler(async (req, res) => {
 // @route   GET /api/workers
 // @access  Private/Admin
 const getWorkers = asyncHandler(async (req, res) => {
-    try {
-        // Handle both object and string formats for subdomain
-        const subdomain = typeof req.body === 'object' && req.body.subdomain 
-          ? req.body.subdomain 
-          : req.body;
+  try {
+    // Handle both object and string formats for subdomain
+    const subdomain = typeof req.body === 'object' && req.body.subdomain
+      ? req.body.subdomain
+      : (req.query.subdomain || req.body);
 
-        const workers = await Worker.find({ subdomain })
-            .select('-password')
-            .populate('department', 'name');
+    const { workPassType, expiryStatus, resignationStatus } = req.query;
 
-        // Transform workers to include department name and full photo URL
-        const transformedWorkers = workers.map(worker => ({
-            ...worker.toObject(),
-            department: worker.department ? worker.department.name : 'N/A',
-            photoUrl: worker.photo
-                ? `/uploads/${worker.photo}`
-                : `https://ui-avatars.com/api/?name=${encodeURIComponent(worker.name)}`
-        }));
+    let query = { subdomain };
 
-        res.json(transformedWorkers);
-    } catch (error) {
-        console.error('Get Workers Error:', error);
-        res.status(500);
-        throw new Error('Failed to retrieve workers');
+    if (workPassType) {
+      query.workPassType = workPassType;
     }
+
+    if (resignationStatus) {
+      query.resignationStatus = resignationStatus;
+    }
+
+    if (expiryStatus) {
+      const today = new Date();
+      const thirtyDaysFromNow = new Date();
+      thirtyDaysFromNow.setDate(today.getDate() + 30);
+
+      if (expiryStatus === 'expired') {
+        query.passExpiryDate = { $lt: today };
+      } else if (expiryStatus === 'expiring') {
+        query.passExpiryDate = { $gte: today, $lte: thirtyDaysFromNow };
+      }
+    }
+
+    const workers = await Worker.find(query)
+      .select('-password')
+      .populate('department', 'name');
+
+    // Transform workers to include department name and full photo URL
+    const transformedWorkers = workers.map(worker => ({
+      ...worker.toObject(),
+      department: worker.department ? worker.department.name : 'N/A',
+      photoUrl: worker.photo
+        ? `/uploads/${worker.photo}`
+        : `https://ui-avatars.com/api/?name=${encodeURIComponent(worker.name)}`
+    }));
+
+    res.json(transformedWorkers);
+  } catch (error) {
+    console.error('Get Workers Error:', error);
+    res.status(500);
+    throw new Error('Failed to retrieve workers');
+  }
 });
 const getPublicWorkers = asyncHandler(async (req, res) => {
   try {
     // Handle both object and string formats for subdomain
-    const subdomain = typeof req.body === 'object' && req.body.subdomain 
-      ? req.body.subdomain 
+    const subdomain = typeof req.body === 'object' && req.body.subdomain
+      ? req.body.subdomain
       : req.body;
-      
+
     const workers = await Worker.find({ subdomain })
       .select('name username subdomain department photo')
       .populate('department', 'name');
@@ -291,7 +328,15 @@ const updateWorker = asyncHandler(async (req, res) => {
       throw new Error('Worker not found');
     }
 
-    const { name, username, salary, department, password, photo, batch, faceEmbeddings } = req.body; // ADDED faceEmbeddings
+    const {
+      name, username, salary, department, password, photo, batch, faceEmbeddings,
+      employeeId, pinNumber, contactNumber, email, gender, dob,
+      dateOfJoining, dateOfExit, resignationStatus,
+      workPassType, passportNumber, nationality, passExpiryDate,
+      address, emergencyContactNumber, emergencyContactName, relationship,
+      bankAccountNumber, qualification
+    } = req.body;
+
     const updateData = {};
 
     // Validate department if provided
@@ -304,10 +349,8 @@ const updateWorker = asyncHandler(async (req, res) => {
       updateData.department = department;
     }
 
-    // Update name if provided
     if (name) updateData.name = name;
 
-    // Update username if provided and ensure uniqueness
     if (username) {
       const usernameExists = await Worker.findOne({
         username,
@@ -320,41 +363,58 @@ const updateWorker = asyncHandler(async (req, res) => {
       updateData.username = username;
     }
 
-    // Update photo if provided
-    if (photo) {
-      updateData.photo = photo;
+    if (employeeId) {
+      const idExists = await Worker.findOne({
+        employeeId,
+        _id: { $ne: req.params.id }
+      });
+      if (idExists) {
+        res.status(400);
+        throw new Error('Employee ID already exists');
+      }
+      updateData.employeeId = employeeId;
     }
 
-    // Handle password update
+    if (photo) updateData.photo = photo;
+    if (batch) updateData.batch = batch;
+    if (faceEmbeddings) updateData.faceEmbeddings = faceEmbeddings;
+
+    // New fields
+    if (pinNumber !== undefined) updateData.pinNumber = pinNumber;
+    if (contactNumber !== undefined) updateData.contactNumber = contactNumber;
+    if (email !== undefined) updateData.email = email;
+    if (gender !== undefined) updateData.gender = gender;
+    if (dob !== undefined) updateData.dob = dob;
+    if (dateOfJoining !== undefined) updateData.dateOfJoining = dateOfJoining;
+    if (dateOfExit !== undefined) updateData.dateOfExit = dateOfExit;
+    if (resignationStatus !== undefined) updateData.resignationStatus = resignationStatus;
+    if (workPassType !== undefined) updateData.workPassType = workPassType;
+    if (passportNumber !== undefined) updateData.passportNumber = passportNumber;
+    if (nationality !== undefined) updateData.nationality = nationality;
+    if (passExpiryDate !== undefined) updateData.passExpiryDate = passExpiryDate;
+    if (address !== undefined) updateData.address = address;
+    if (emergencyContactNumber !== undefined) updateData.emergencyContactNumber = emergencyContactNumber;
+    if (emergencyContactName !== undefined) updateData.emergencyContactName = emergencyContactName;
+    if (relationship !== undefined) updateData.relationship = relationship;
+    if (bankAccountNumber !== undefined) updateData.bankAccountNumber = bankAccountNumber;
+    if (qualification !== undefined) updateData.qualification = qualification;
+
     if (password) {
       const salt = await bcrypt.genSalt(10);
       updateData.password = await bcrypt.hash(password, salt);
     }
-    
-    // ADDED: Handle batch update
-    if (batch) {
-        updateData.batch = batch;
-    }
 
-    // ADDED: Handle face embeddings update
-    if (faceEmbeddings) {
-        updateData.faceEmbeddings = faceEmbeddings;
-    }
-
-    // Update salary-related fields if salary is provided
     if (salary) {
       const numericSalary = Number(salary);
       if (isNaN(numericSalary) || numericSalary <= 0) {
         res.status(400);
         throw new Error('Invalid salary value');
       }
-
       updateData.salary = numericSalary;
       updateData.finalSalary = numericSalary;
       updateData.perDaySalary = numericSalary / 30;
     }
 
-    // Perform the update
     const updatedWorker = await Worker.findByIdAndUpdate(
       req.params.id,
       updateData,
@@ -362,16 +422,9 @@ const updateWorker = asyncHandler(async (req, res) => {
     ).populate('department', 'name');
 
     res.json({
-      _id: updatedWorker._id,
-      name: updatedWorker.name,
-      username: updatedWorker.username,
-      salary: updatedWorker.salary,
-      perDaySalary: updatedWorker.perDaySalary,
-      finalSalary: updatedWorker.finalSalary,
-      department: updatedWorker.department.name,
-      photo: updatedWorker.photo,
-      batch: updatedWorker.batch, // ADDED this to the response
-      faceEmbeddings: updatedWorker.faceEmbeddings // ADDED this to the response
+      ...updatedWorker.toObject(),
+      department: updatedWorker.department ? updatedWorker.department.name : 'N/A',
+      password: undefined
     });
   } catch (error) {
     console.error('Update Worker Error:', error);
