@@ -45,6 +45,8 @@ const Hero = () => {
           <source src={viewModel.videoUrl} type="video/mp4" />
         </video>
         <div className="absolute inset-0 bg-gradient-to-b from-[#fafafa]/60 via-[#fafafa]/30 to-[#fafafa]/90 backdrop-blur-sm"></div>
+        {/* Subtle Rose Gold Animated Overlay */}
+        <div className="absolute inset-0 bg-rose-gold-animate opacity-[0.03] pointer-events-none"></div>
       </div>
 
       {/* --- MAIN CONTENT (Middle) --- */}
@@ -58,7 +60,7 @@ const Hero = () => {
           {/* BRAND NAME */}
           <motion.h1 className="text-3xl sm:text-5xl md:text-7xl lg:text-8xl font-light mb-6 md:mb-8 tracking-[0.05em] sm:tracking-[0.1em] md:tracking-widest text-gray-900 uppercase" variants={itemVariants}>
             <span className="font-extralight">{viewModel.title.blackPart}</span>
-            <span className="font-medium text-[#B76E79]">{viewModel.title.greenPart}</span>
+            <span className="font-medium text-rose-gold-animate">{viewModel.title.greenPart}</span>
           </motion.h1>
 
           {/* SUBTITLE */}

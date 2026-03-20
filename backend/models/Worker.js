@@ -24,13 +24,85 @@ const workerSchema = mongoose.Schema({
     type: String,
     required: [true, 'Please add a password']
   },
-    batch: { // ADD THIS
+  batch: {
     type: String
   },
   department: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Department',
     required: [true, 'Please select a department']
+  },
+  // Basic Employee Details
+  employeeId: {
+    type: String,
+    unique: true,
+    sparse: true // Allow nulls while maintaining uniqueness
+  },
+  pinNumber: {
+    type: String
+  },
+  contactNumber: {
+    type: String,
+    required: [true, 'Please add a contact number']
+  },
+  email: {
+    type: String
+  },
+  gender: {
+    type: String,
+    enum: ['Male', 'Female', 'Other']
+  },
+  dob: {
+    type: Date
+  },
+  // Employment Details
+  dateOfJoining: {
+    type: Date,
+    required: [true, 'Please add a date of joining']
+  },
+  dateOfExit: {
+    type: Date
+  },
+  resignationStatus: {
+    type: String,
+    enum: ['Active', 'Resigned'],
+    default: 'Active'
+  },
+  // Work Pass Details
+  workPassType: {
+    type: String,
+    enum: ['Work Permit', 'S Pass', 'E Pass', 'TEP']
+  },
+  passportNumber: {
+    type: String
+  },
+  nationality: {
+    type: String
+  },
+  passExpiryDate: {
+    type: Date
+  },
+  // Address Details
+  address: {
+    type: String
+  },
+  // Emergency Contact Details
+  emergencyContactNumber: {
+    type: String
+  },
+  emergencyContactName: {
+    type: String
+  },
+  relationship: {
+    type: String
+  },
+  // Bank & Payroll Details
+  bankAccountNumber: {
+    type: String
+  },
+  // Additional Details
+  qualification: {
+    type: String
   },
   photo: {
     type: String,

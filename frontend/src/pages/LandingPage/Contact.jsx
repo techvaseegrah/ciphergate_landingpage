@@ -173,7 +173,7 @@ const Contact = () => {
             Inquiries
           </span>
           <h2 className="text-3xl md:text-5xl font-light tracking-widest text-gray-900 uppercase leading-[1.2] mb-6">
-            Get in <span className="text-[#B76E79]">Touch</span>
+            Get in <span className="text-rose-gold-animate font-semibold">Touch</span>
           </h2>
           <p className="text-gray-500 font-light text-sm md:text-base leading-relaxed tracking-wide">
             Ready to transform your business? Contact us today for a personalized consultation.

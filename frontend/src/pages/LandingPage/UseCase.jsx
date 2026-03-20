@@ -135,7 +135,7 @@ const UseCaseSection = () => {
             Capabilities & Impact
           </motion.p>
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-light text-gray-900 tracking-wide mb-8">
-            Perfect for <span className="font-normal text-[#B76E79]">Every Use Case.</span>
+            Perfect for <span className="font-normal text-rose-gold-animate font-semibold">Every Use Case.</span>
           </h2>
           <div className="w-16 h-[1px] bg-gray-300" />
         </div>

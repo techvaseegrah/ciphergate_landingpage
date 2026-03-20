@@ -20,7 +20,12 @@ function LandingPage() {
   });
 
   return (
-    <div className="App bg-transparent relative">
+    <div className="App bg-transparent relative overflow-hidden">
+      {/* Rose Gold Animated Blobs for Background Atmosphere */}
+      <div className="rose-gold-blob top-[-10%] left-[-5%]" />
+      <div className="rose-gold-blob-2 bottom-[10%] right-[-5%]" />
+      <div className="rose-gold-blob top-[40%] right-[10%] opacity-40" style={{ width: '30vw', height: '30vw' }} />
+
       <Header />
 
       <div className="relative">

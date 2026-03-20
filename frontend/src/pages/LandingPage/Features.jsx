@@ -35,11 +35,11 @@ const Features = () => {
         {/* Header */}
         <div className="text-center mb-16 md:mb-20">
           <span className="inline-block px-3 py-1 border border-gray-300 text-gray-500 text-[10px] md:text-[11px] font-medium tracking-[0.2em] uppercase mb-6 bg-white">
-            Our <span className="text-[#B76E79]">Build</span> Websites
+            Our <span className="text-rose-gold-animate font-bold">Build</span> Websites
           </span>
           <h2 className="text-2xl md:text-5xl lg:text-6xl font-light text-gray-900 leading-tight mb-6 tracking-wide">
             Our{' '}
-            <span className="font-normal text-[#B76E79]">
+            <span className="font-normal text-rose-gold-animate font-semibold">
               Build
             </span>{' '}
             Websites

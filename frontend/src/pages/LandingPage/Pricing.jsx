@@ -173,7 +173,7 @@ const Pricing = () => {
           <motion.div variants={cardVariants} className="bg-[#111] p-4 sm:p-10 md:p-14 relative overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-gray-800 via-gray-700 to-gray-800" />
             <div className="flex flex-col h-full relative z-10">
-              <div className="absolute top-0 right-0 text-white text-[7px] md:text-[9px] font-medium tracking-[0.2em] uppercase px-2 md:px-3 py-1 md:py-1.5 bg-[#B76E79]">
+              <div className="absolute top-0 right-0 text-white text-[7px] md:text-[9px] font-medium tracking-[0.2em] uppercase px-2 md:px-3 py-1 md:py-1.5 bg-rose-gold-animate shadow-lg shadow-[#B76E79]/20">
                 Pro
               </div>
 

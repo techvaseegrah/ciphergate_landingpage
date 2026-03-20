@@ -63,7 +63,7 @@ const Footer = () => {
               <img src="/logo.png" alt="Logo" className="h-6 w-auto object-contain" />
               <h1 className="text-xl font-light tracking-[0.2em] uppercase text-[#111] leading-none mb-0 pt-1">
                 <span>Cipher</span>
-                <span className="font-semibold text-[#B76E79]">Gate</span>
+                <span className="font-semibold text-rose-gold-animate">Gate</span>
               </h1>
             </div>
             <p className="text-[#888] text-sm leading-relaxed font-light tracking-wide max-w-[260px]">
