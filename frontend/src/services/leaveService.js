@@ -103,9 +103,9 @@ export const createLeave = async (leaveData) => {
 };
 
 // Update leave status (admin)
-export const updateLeaveStatus = async (leaveId, status, leaveData) => {
+export const updateLeaveStatus = async (leaveId, status, adminNote = '') => {
   try {
-    const response = await api.put(`leaves/${leaveId}/status`, { status, leaveData });
+    const response = await api.put(`leaves/${leaveId}/status`, { status, adminNote });
     return response.data;
   } catch (error) {
     throw error.response ? error.response.data : new Error('Failed to update leave status');
@@ -146,5 +146,41 @@ export const markLeavesAsViewedByAdmin = async () => {
     await api.put('leaves/mark-viewed-by-admin');
   } catch (error) {
     console.error('Failed to mark leaves as viewed:', error);
+  }
+};
+
+export const getLeaveBalance = async () => {
+  try {
+    const response = await api.get('leaves/balance');
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : new Error('Failed to get leave balance');
+  }
+};
+
+export const getWorkerLeaveSummary = async (workerId) => {
+  try {
+    const response = await api.get(`leaves/summary/${workerId}`);
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : new Error('Failed to get leave summary');
+  }
+};
+
+export const resetLeaveBalance = async (subdomain) => {
+  try {
+    const response = await api.post('leaves/reset-balance', { subdomain });
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : new Error('Failed to reset leave balance');
+  }
+};
+
+export const updateWorkerLeaveBalance = async (workerId, leaveBalance) => {
+  try {
+    const response = await api.put(`leaves/balance/${workerId}`, { leaveBalance });
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : new Error('Failed to update leave balance');
   }
 };

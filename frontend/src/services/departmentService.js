@@ -120,3 +120,18 @@ export const updateDepartment = async (id, departmentData) => {
     }
   }
 };
+
+export const updateDepartmentPolicy = async (id, policyData) => {
+  try {
+    const token = getAuthToken();
+    const response = await api.put(`departments/${id}/policy`, policyData, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      throw new Error(error.response.data.message || 'Failed to update department policy');
+    }
+    throw error;
+  }
+};

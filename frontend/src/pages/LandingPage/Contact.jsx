@@ -20,8 +20,15 @@ const Contact = () => {
 
   // Initialize Socket.IO connection
   useEffect(() => {
-    const newSocket = io(import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000', {
-      transports: ['websocket', 'polling']
+    const socketUrl = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001';
+
+    const newSocket = io(socketUrl, {
+      transports: ['websocket', 'polling'],
+      reconnection: true,
+      reconnectionAttempts: 3,        // stop after 3 attempts so it doesn't loop forever
+      reconnectionDelay: 3000,
+      reconnectionDelayMax: 10000,
+      timeout: 10000,
     });
 
     newSocket.on('connect', () => {
@@ -30,6 +37,10 @@ const Contact = () => {
 
     newSocket.on('disconnect', () => {
       console.log('Disconnected from real-time server');
+    });
+
+    newSocket.on('connect_error', (err) => {
+      console.warn('Contact socket connection error (will retry):', err.message);
     });
 
     // Listen for new contact messages

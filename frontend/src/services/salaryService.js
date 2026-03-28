@@ -7,13 +7,14 @@ export const giveBonusAmount = async (salaryData) => {
     const response = await api.post(`salary/give-bonus/${salaryData.id}`, {
       amount: salaryData.amount,
       fromDate: salaryData.fromDate,
-      toDate: salaryData.toDate
+      toDate: salaryData.toDate,
+      reason: salaryData.reason || ''
     }, {
       headers: { Authorization: `Bearer ${token}` }
     });
     return response.data;
   } catch (error) {
-    throw error.response ? error.response.data : new Error('Failed to update leave status');
+    throw error.response ? error.response.data : new Error('Failed to give bonus');
   }
 };
 
@@ -37,11 +38,11 @@ export const resetSalaryAmount = async (salaryData) => {
     });
     return response.data;
   } catch (error) {
-    throw error.response ? error.response.data : new Error('Failed to update leave status');
+    throw error.response ? error.response.data : new Error('Failed to reset salary');
   }
 };
 
-export const getSalaryReport = async (workerId, fromDate, toDate) => { // ADD THIS
+export const getSalaryReport = async (workerId, fromDate, toDate) => {
   try {
     const token = getAuthToken();
     const response = await api.get(`salary/report/${workerId}`, {
@@ -51,5 +52,54 @@ export const getSalaryReport = async (workerId, fromDate, toDate) => { // ADD TH
     return response.data;
   } catch (error) {
     throw error.response ? error.response.data : new Error('Failed to get salary report');
+  }
+};
+
+export const addDeduction = async (workerId, deductionData) => {
+  try {
+    const token = getAuthToken();
+    const response = await api.post(`salary/add-deduction/${workerId}`, deductionData, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : new Error('Failed to add deduction');
+  }
+};
+
+export const deleteDeduction = async (workerId, deductionId) => {
+  try {
+    const token = getAuthToken();
+    const response = await api.delete(`salary/deduction/${workerId}/${deductionId}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : new Error('Failed to delete deduction');
+  }
+};
+
+export const giveIncrement = async (workerId, incrementData) => {
+  try {
+    const token = getAuthToken();
+    const response = await api.post(`salary/increment/${workerId}`, incrementData, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : new Error('Failed to give increment');
+  }
+};
+
+export const getDepartmentSalarySummary = async (subdomain, fromDate, toDate) => {
+  try {
+    const token = getAuthToken();
+    const response = await api.get(`salary/department-summary/${subdomain}`, {
+      params: { fromDate, toDate },
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : new Error('Failed to get department salary summary');
   }
 };

@@ -36,7 +36,7 @@ const workerSchema = mongoose.Schema({
   employeeId: {
     type: String,
     unique: true,
-    sparse: true // Allow nulls while maintaining uniqueness
+    sparse: true
   },
   pinNumber: {
     type: String
@@ -67,6 +67,15 @@ const workerSchema = mongoose.Schema({
     type: String,
     enum: ['Active', 'Resigned'],
     default: 'Active'
+  },
+  // Probation
+  onProbation: {
+    type: Boolean,
+    default: false
+  },
+  probationEndDate: {
+    type: Date,
+    default: null
   },
   // Work Pass Details
   workPassType: {
@@ -110,7 +119,7 @@ const workerSchema = mongoose.Schema({
   },
   // Face embeddings for face recognition
   faceEmbeddings: {
-    type: [[Number]], // Storing arrays of numbers for face embeddings
+    type: [[Number]],
     default: []
   },
   totalPoints: {
@@ -125,6 +134,8 @@ const workerSchema = mongoose.Schema({
     type: Object,
     default: {}
   },
+
+  // ─── Salary Fields ──────────────────────────────────────────────────────────
   salary: {
     type: Number,
     default: 0
@@ -142,6 +153,7 @@ const workerSchema = mongoose.Schema({
       amount: Number,
       fromDate: Date,
       toDate: Date,
+      reason: { type: String, default: '' },
       createdAt: {
         type: Date,
         default: Date.now
@@ -160,6 +172,90 @@ const workerSchema = mongoose.Schema({
       }
     }],
     default: []
+  },
+
+  // ─── Deductions ─────────────────────────────────────────────────────────────
+  deductions: {
+    type: [{
+      amount: Number,
+      date: Date,
+      reason: String,       // e.g. "Property Damage", "Utility Excess", "Policy Violation"
+      deductionType: {
+        type: String,
+        enum: ['Property Damage', 'Utility Excess', 'Policy Violation', 'Other'],
+        default: 'Other'
+      },
+      isAutomatic: { type: Boolean, default: false },
+      createdAt: { type: Date, default: Date.now }
+    }],
+    default: []
+  },
+
+  // ─── Overtime Records ───────────────────────────────────────────────────────
+  overtimeRecords: {
+    type: [{
+      date: Date,
+      hoursWorked: Number,
+      regularHours: Number,
+      overtimeHours: Number,
+      overtimePay: Number,
+      createdAt: { type: Date, default: Date.now }
+    }],
+    default: []
+  },
+
+  // ─── Leave Balance ──────────────────────────────────────────────────────────
+  leaveBalance: {
+    annualLeave: { type: Number, default: 7 },
+    sickLeave: { type: Number, default: 14 },
+    hospitalizationLeave: { type: Number, default: 60 },
+    urgentLeave: { type: Number, default: 3 },
+    marriageLeave: { type: Number, default: 3 },
+    paternityLeave: { type: Number, default: 3 },
+    compassionateLeave: { type: Number, default: 3 },
+    unpaidLeave: { type: Number, default: 0 },
+    homeCountryLeave: { type: Number, default: 0 },
+    personalLeave: { type: Number, default: 3 }
+  },
+
+  // ─── Warning Records ────────────────────────────────────────────────────────
+  warnings: {
+    type: [{
+      reason: String,
+      warningType: {
+        type: String,
+        enum: ['Safety Violation', 'Misconduct', 'Policy Violation', 'Performance', 'Other'],
+        default: 'Other'
+      },
+      date: Date,
+      severity: {
+        type: String,
+        enum: ['Low', 'Medium', 'High'],
+        default: 'Medium'
+      },
+      linkedDeduction: { type: Number, default: 0 },
+      notes: String,
+      issuedBy: String,
+      createdAt: { type: Date, default: Date.now }
+    }],
+    default: []
+  },
+
+  // ─── Performance ────────────────────────────────────────────────────────────
+  performance: {
+    rating: { type: Number, default: 0, min: 0, max: 5 },
+    lastReviewDate: { type: Date, default: null },
+    incrementHistory: {
+      type: [{
+        amount: Number,
+        previousSalary: Number,
+        newSalary: Number,
+        reason: String,
+        date: Date,
+        createdAt: { type: Date, default: Date.now }
+      }],
+      default: []
+    }
   }
 }, {
   timestamps: true

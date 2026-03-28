@@ -24,13 +24,16 @@ export const SocketProvider = ({ children }) => {
             return;
         }
 
+        const socketUrl = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001';
+
         // Create socket connection
-        const newSocket = io(process.env.REACT_APP_API_URL || 'http://localhost:5000', {
-            transports: ['websocket'],
+        const newSocket = io(socketUrl, {
+            transports: ['websocket', 'polling'],
             reconnection: true,
             reconnectionAttempts: 5,
-            reconnectionDelay: 1000,
-            reconnectionDelayMax: 5000,
+            reconnectionDelay: 2000,
+            reconnectionDelayMax: 10000,
+            timeout: 10000,
         });
 
         socketRef.current = newSocket;
@@ -39,8 +42,6 @@ export const SocketProvider = ({ children }) => {
         newSocket.on('connect', () => {
             console.log('Socket connected:', newSocket.id);
             setIsConnected(true);
-            toast.success('Live updates connected');
-            
             // Join subdomain room
             newSocket.emit('join-subdomain', subdomain);
         });
@@ -48,13 +49,11 @@ export const SocketProvider = ({ children }) => {
         newSocket.on('disconnect', () => {
             console.log('Socket disconnected');
             setIsConnected(false);
-            toast.info('Live updates disconnected');
         });
 
         newSocket.on('connect_error', (error) => {
-            console.error('Socket connection error:', error);
+            console.warn('Socket connection error (will retry):', error.message);
             setIsConnected(false);
-            toast.error('Failed to connect to live updates');
         });
 
         newSocket.on('attendance-update', (data) => {

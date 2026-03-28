@@ -119,15 +119,27 @@ const startServer = async () => {
     // Initialize Socket.IO for real-time communication
     const io = socketIo(server, {
       cors: {
-        origin: [
-          'http://localhost:3000',
-          'http://localhost:3001',
-          'http://localhost:5173', // Vite dev server
-          'https://tvtasks.netlify.app',
-          'https://techvaseegrah.ciphergate.in',
-          'https://ciphergate.in',
-        ],
-        methods: ['GET', 'POST']
+        origin: (origin, callback) => {
+          // Allow all localhost ports (dev) + known production origins
+          const allowedOrigins = [
+            'http://localhost:3000',
+            'http://localhost:3001',
+            'http://localhost:5173',
+            'https://tvtasks.netlify.app',
+            'https://techvaseegrah.ciphergate.in',
+            'https://ciphergate.in',
+          ];
+          const localhostRegex = /^http:\/\/.*localhost(:\d+)?$/;
+          const ciphergateRegex = /^https:\/\/.*\.ciphergate\.in$/;
+
+          if (!origin || allowedOrigins.includes(origin) || localhostRegex.test(origin) || ciphergateRegex.test(origin)) {
+            callback(null, true);
+          } else {
+            callback(new Error('Socket.IO: Not allowed by CORS'));
+          }
+        },
+        methods: ['GET', 'POST'],
+        credentials: true
       }
     });
 

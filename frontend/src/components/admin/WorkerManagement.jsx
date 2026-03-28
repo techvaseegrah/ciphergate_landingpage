@@ -12,7 +12,7 @@ import Table from '../common/Table';
 import Modal from '../common/Modal';
 import Spinner from '../common/Spinner';
 import appContext from '../../context/AppContext';
-import QRCode from 'qrcode';
+
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import FaceCapture from './FaceCapture'; // Import FaceCapture component
 import PremiumUpgradeModal from '../common/PremiumUpgradeModal'; // Import the premium upgrade modal
@@ -328,17 +328,7 @@ const WorkerManagement = () => {
     setShowFaceCapture(false);
   };
 
-  const generateQRCode = async (username, uniqueId) => {
-    try {
-      const qrCodeDataURL = await QRCode.toDataURL(uniqueId, { width: 300 });
-      const link = document.createElement('a');
-      link.href = qrCodeDataURL;
-      link.download = `${username}_${uniqueId}.png`;
-      link.click();
-    } catch (error) {
-      console.error('QR Code generation error:', error);
-    }
-  };
+
 
   const handleAddWorker = async (e) => {
     e.preventDefault();
@@ -443,7 +433,6 @@ const WorkerManagement = () => {
         faceEmbeddings: workerFaceEmbeddings
       });
 
-      generateQRCode(trimmedUsername, formData.rfid);
       setWorkers(prev => [...prev, newWorker]);
       setIsAddModalOpen(false);
       toast.success('Employee added successfully');
@@ -521,8 +510,6 @@ const WorkerManagement = () => {
       );
 
       // Generate QR Code if it was changed/updated (or just to keep it consistent as user observed)
-      generateQRCode(updatedWorker.username || formData.username, updatedWorker.rfid || formData.rfid);
-
       setIsEditModalOpen(false);
       toast.success('Employee updated successfully');
       loadData();
@@ -1113,12 +1100,26 @@ const WorkerManagement = () => {
 
               <div className="form-group">
                 <label className="form-label">Photo</label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="form-input"
-                  onChange={handlePhotoChange}
-                />
+                <div className="relative">
+                  <input
+                    type="file"
+                    id="photo-add"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handlePhotoChange}
+                  />
+                  <label
+                    htmlFor="photo-add"
+                    className="form-input flex items-center justify-between cursor-pointer hover:bg-gray-50 transition-colors bg-white"
+                  >
+                    <span className="text-gray-500 truncate">
+                      {formData.photo instanceof File
+                        ? formData.photo.name
+                        : (formData.photo ? 'Photo selected' : 'Choose photo...')}
+                    </span>
+                    <FaCamera className="text-gray-400" />
+                  </label>
+                </div>
               </div>
             </div>
           </section>
@@ -1518,12 +1519,26 @@ const WorkerManagement = () => {
 
               <div className="form-group">
                 <label className="form-label">Photo</label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="form-input"
-                  onChange={handlePhotoChange}
-                />
+                <div className="relative">
+                  <input
+                    type="file"
+                    id="photo-edit"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handlePhotoChange}
+                  />
+                  <label
+                    htmlFor="photo-edit"
+                    className="form-input flex items-center justify-between cursor-pointer hover:bg-gray-50 transition-colors bg-white"
+                  >
+                    <span className="text-gray-500 truncate">
+                      {formData.photo instanceof File
+                        ? formData.photo.name
+                        : (formData.photo ? 'Current Photo' : 'Choose photo...')}
+                    </span>
+                    <FaCamera className="text-gray-400" />
+                  </label>
+                </div>
               </div>
             </div>
           </section>

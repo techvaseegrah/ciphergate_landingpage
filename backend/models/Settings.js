@@ -91,6 +91,10 @@ const settingsSchema = mongoose.Schema({
     type: Number,
     default: 10
   },
+  deductLateMinutes: {
+    type: Boolean,
+    default: true
+  },
 
   // Location settings for attendance restrictions
   attendanceLocation: {
@@ -102,7 +106,7 @@ const settingsSchema = mongoose.Schema({
       type: Number,
       default: 0,
       validate: {
-        validator: function(v) {
+        validator: function (v) {
           return v >= -90 && v <= 90;
         },
         message: props => `${props.value} is not a valid latitude! Must be between -90 and 90.`
@@ -112,7 +116,7 @@ const settingsSchema = mongoose.Schema({
       type: Number,
       default: 0,
       validate: {
-        validator: function(v) {
+        validator: function (v) {
           return v >= -180 && v <= 180;
         },
         message: props => `${props.value} is not a valid longitude! Must be between -180 and 180.`
@@ -122,7 +126,7 @@ const settingsSchema = mongoose.Schema({
       type: Number, // in meters
       default: 100,
       validate: {
-        validator: function(v) {
+        validator: function (v) {
           return v >= 10 && v <= 1000;
         },
         message: props => `${props.value} is not a valid radius! Must be between 10 and 1000 meters.`

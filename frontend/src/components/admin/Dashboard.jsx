@@ -399,7 +399,6 @@ const Dashboard = () => {
 
                 {stats.leaves.pending === 0 && (
                   <div className="bg-white p-3 rounded-xl border border-gray-200 flex items-center">
-                    <span className="text-xl mr-2">🎉</span>
                     <p className="text-sm text-gray-800">All caught up!</p>
                   </div>
                 )}

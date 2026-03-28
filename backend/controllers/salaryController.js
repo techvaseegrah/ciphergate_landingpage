@@ -4,46 +4,156 @@ const Worker = require('../models/Worker');
 const Attendance = require('../models/Attendance');
 const Holiday = require('../models/Holiday');
 const Leave = require('../models/Leave');
+const Department = require('../models/Department');
 const Settings = require('../models/Settings');
 const { calculateWorkerProductivity } = require('../utils/productivityCalculator');
 
+// ─────────────────────────────────────────────────────────────────────────────
+// OVERTIME CALCULATION ENGINE
+// ─────────────────────────────────────────────────────────────────────────────
+/**
+ * Calculate overtime for a worker in a given period.
+ * Rules: OT if > 8 hrs/day OR > 44 hrs/week. Pay: 1.5x hourly. Cap: 72 hrs/month.
+ */
+const calculateOvertime = (attendanceData, worker, department) => {
+    const regularHoursPerDay = department?.salaryPolicy?.regularHoursPerDay ?? 8;
+    const regularHoursPerWeek = department?.salaryPolicy?.regularHoursPerWeek ?? 44;
+    const overtimeRateMultiplier = department?.salaryPolicy?.overtimeRateMultiplier ?? 1.5;
+    const maxOvertimeHoursPerMonth = department?.salaryPolicy?.maxOvertimeHoursPerMonth ?? 72;
+
+    // Group attendance by week for weekly OT check
+    const weeklyHours = {};
+    const dailyOTRecords = [];
+
+    let totalOvertimeHours = 0;
+    let totalOvertimePay = 0;
+
+    const perHourSalary = (worker.salary || 0) / (22 * regularHoursPerDay); // ~22 working days/month
+
+    attendanceData.forEach(record => {
+        if (!record.checkIn || !record.checkOut) return;
+
+        const checkIn = new Date(record.checkIn);
+        const checkOut = new Date(record.checkOut);
+        const hoursWorked = (checkOut - checkIn) / (1000 * 60 * 60);
+
+        if (hoursWorked <= 0) return;
+
+        // Daily overtime
+        const dailyOT = Math.max(0, hoursWorked - regularHoursPerDay);
+
+        // Group by week (ISO week)
+        const dateStr = record.date || checkIn.toISOString().split('T')[0];
+        const date = new Date(dateStr);
+        const weekKey = `${date.getFullYear()}-W${Math.ceil((date.getDate() + new Date(date.getFullYear(), date.getMonth(), 1).getDay()) / 7)}`;
+
+        if (!weeklyHours[weekKey]) weeklyHours[weekKey] = 0;
+        weeklyHours[weekKey] += hoursWorked;
+
+        dailyOTRecords.push({
+            date: dateStr,
+            hoursWorked: parseFloat(hoursWorked.toFixed(2)),
+            regularHours: regularHoursPerDay,
+            overtimeHours: parseFloat(dailyOT.toFixed(2)),
+            weekKey
+        });
+    });
+
+    // Now apply OT caps: daily OT + weekly OT (whichever is higher)
+    dailyOTRecords.forEach(rec => {
+        const weeklyOT = Math.max(0, (weeklyHours[rec.weekKey] || 0) - regularHoursPerWeek);
+        const effectiveOT = Math.max(rec.overtimeHours, weeklyOT / Object.values(dailyOTRecords).filter(r => r.weekKey === rec.weekKey).length);
+
+        totalOvertimeHours += effectiveOT;
+    });
+
+    // Apply monthly cap
+    totalOvertimeHours = Math.min(totalOvertimeHours, maxOvertimeHoursPerMonth);
+    totalOvertimePay = totalOvertimeHours * perHourSalary * overtimeRateMultiplier;
+
+    return {
+        totalOvertimeHours: parseFloat(totalOvertimeHours.toFixed(2)),
+        totalOvertimePay: parseFloat(totalOvertimePay.toFixed(2)),
+        regularHoursPerDay,
+        regularHoursPerWeek,
+        overtimeRateMultiplier,
+        maxOvertimeHoursPerMonth,
+        perHourSalary: parseFloat(perHourSalary.toFixed(4)),
+        dailyBreakdown: dailyOTRecords
+    };
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DEDUCTION ENGINE
+// ─────────────────────────────────────────────────────────────────────────────
+/**
+ * Calculate total deductions for a worker in a period.
+ * Enforces max deduction cap (default 50% of salary).
+ */
+const calculateDeductions = (worker, fromDate, toDate, department) => {
+    const maxDeductionPercent = department?.salaryPolicy?.maxDeductionPercent ?? 50;
+    const maxDeductionAmount = (worker.salary || 0) * (maxDeductionPercent / 100);
+
+    const from = new Date(fromDate);
+    const to = new Date(toDate);
+
+    // Fines in period
+    const finesInPeriod = (worker.fines || []).filter(f => {
+        const d = new Date(f.date);
+        return d >= from && d <= to;
+    });
+    const totalFines = finesInPeriod.reduce((sum, f) => sum + (f.amount || 0), 0);
+
+    // Deductions in period
+    const deductionsInPeriod = (worker.deductions || []).filter(d => {
+        const dt = new Date(d.date);
+        return dt >= from && dt <= to;
+    });
+    const totalDeductions = deductionsInPeriod.reduce((sum, d) => sum + (d.amount || 0), 0);
+
+    const grossDeduction = totalFines + totalDeductions;
+    const cappedDeduction = Math.min(grossDeduction, maxDeductionAmount);
+
+    return {
+        totalFines,
+        totalDeductions,
+        grossDeduction,
+        cappedDeduction,
+        maxDeductionPercent,
+        maxDeductionAmount,
+        finesInPeriod,
+        deductionsInPeriod
+    };
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// @desc    Give a bonus to a worker
+// @route   POST /api/salary/give-bonus/:id
+// ─────────────────────────────────────────────────────────────────────────────
 const giveBonus = asyncHandler(async (req, res) => {
     const { id } = req.params;
-    const { amount, fromDate, toDate } = req.body;
+    const { amount, fromDate, toDate, reason } = req.body;
 
     if (!amount || isNaN(amount)) {
         return res.status(400).json({ message: 'Bonus amount must be a valid number' });
     }
-
-    // Validate date range for calculating actual earned salary
     if (!fromDate || !toDate) {
-        return res.status(400).json({ message: 'Date range (fromDate and toDate) is required for bonus calculation' });
+        return res.status(400).json({ message: 'Date range (fromDate and toDate) is required' });
     }
 
     const worker = await Worker.findById(id);
-    if (!worker) {
-        return res.status(404).json({ message: 'Worker not found' });
-    }
+    if (!worker) return res.status(404).json({ message: 'Worker not found' });
 
-    // Get attendance data for the specified period
     const attendanceData = await Attendance.find({
         worker: id,
-        date: {
-            $gte: new Date(fromDate),
-            $lte: new Date(toDate)
-        }
+        date: { $gte: new Date(fromDate), $lte: new Date(toDate) }
     });
 
-    const leaveData = await Leave.find({
-        worker: id,
-        status: 'Approved'
-    });
-
+    const leaveData = await Leave.find({ worker: id, status: 'Approved' });
     const holidays = await Holiday.find({});
     const settings = await Settings.findOne({ subdomain: worker.subdomain });
     const batches = settings ? settings.batches : [];
 
-    // Calculate worker productivity to get actual earned salary
     const productivityReport = calculateWorkerProductivity({
         worker,
         attendanceData,
@@ -54,137 +164,106 @@ const giveBonus = asyncHandler(async (req, res) => {
             holidays,
             permissionTimeMinutes: settings ? settings.permissionTimeMinutes : 15,
             deductSalary: settings ? settings.deductSalary : true,
+            deductLateMinutes: settings ? settings.deductLateMinutes : true,
             intervals: settings ? settings.intervals : []
         }
     });
 
-    // Get the worker's actual earned salary from the report
     const actualEarnedSalary = productivityReport.summary.finalSalary || 0;
-    const baseSalary = worker.salary || 0;
-    
-    // Calculate the new bonus logic:
-    // 1. Subtract base salary from bonus amount
-    // 2. Instead of paying full base salary, pay what they actually earned
-    // 3. Add remaining bonus to their actual earnings
     const bonusAmount = Number(amount);
-    const remainingBonus = Math.max(0, bonusAmount - baseSalary);
-    const finalPayout = actualEarnedSalary + remainingBonus;
 
-    // Store bonus information
+    // Fix bonus calculation: Add the bonus amount directly to the earned salary
+    const finalPayout = actualEarnedSalary + bonusAmount;
+
     worker.bonuses.push({
         amount: bonusAmount,
         fromDate: new Date(fromDate),
-        toDate: new Date(toDate)
+        toDate: new Date(toDate),
+        reason: reason || ''
     });
-
-    // Update worker's final salary with the new calculation
     worker.finalSalary = finalPayout;
     await worker.save();
-    
-    res.status(200).json({ 
-        message: 'Bonus calculated and added successfully', 
+
+    res.status(200).json({
+        message: 'Bonus calculated and added successfully',
         worker,
         calculationDetails: {
-            baseSalary: baseSalary,
-            bonusAmount: bonusAmount,
-            actualEarnedSalary: actualEarnedSalary,
-            remainingBonus: remainingBonus,
-            finalPayout: finalPayout
+            baseSalary,
+            bonusAmount,
+            actualEarnedSalary,
+            remainingBonus,
+            finalPayout
         }
     });
 });
 
+// ─────────────────────────────────────────────────────────────────────────────
+// @desc    Remove bonus from a worker
+// @route   POST /api/salary/remove-bonus/:id
+// ─────────────────────────────────────────────────────────────────────────────
 const removeBonus = asyncHandler(async (req, res) => {
     const { id } = req.params;
-
     const worker = await Worker.findById(id);
-    if (!worker) {
-        return res.status(404).json({ message: 'Worker not found' });
-    }
+    if (!worker) return res.status(404).json({ message: 'Worker not found' });
 
-    // Reset the worker's final salary to their base salary
     worker.finalSalary = worker.salary;
-    
-    // Remove all bonuses
     worker.bonuses = [];
-    
     await worker.save();
-    
-    res.status(200).json({ 
-        message: 'Bonus removed successfully', 
-        worker
-    });
+
+    res.status(200).json({ message: 'Bonus removed successfully', worker });
 });
 
+// ─────────────────────────────────────────────────────────────────────────────
+// @desc    Reset salary for all workers in a subdomain
+// @route   POST /api/salary/reset-salary
+// ─────────────────────────────────────────────────────────────────────────────
 const resetSalary = asyncHandler(async (req, res) => {
     const { subdomain } = req.body;
-
-    if (!subdomain) {
-        return res.status(400).json({ message: 'Subdomain is required' });
-    }
+    if (!subdomain) return res.status(400).json({ message: 'Subdomain is required' });
 
     const workers = await Worker.find({ subdomain });
-
-    if (workers.length === 0) {
-        return res.status(404).json({ message: 'No workers found for this subdomain' });
-    }
+    if (workers.length === 0) return res.status(404).json({ message: 'No workers found' });
 
     const updatePromises = workers.map(worker => {
         worker.finalSalary = worker.salary;
-        // Remove all bonuses when resetting salary
         worker.bonuses = [];
         return worker.save();
     });
-
     await Promise.all(updatePromises);
 
     res.status(200).json({ message: 'Salaries reset successfully', updatedCount: workers.length });
 });
 
+// ─────────────────────────────────────────────────────────────────────────────
+// @desc    Get salary report for a worker (with overtime + deductions)
+// @route   GET /api/salary/report/:id
+// ─────────────────────────────────────────────────────────────────────────────
 const getWorkerSalaryReport = asyncHandler(async (req, res) => {
     const { id } = req.params;
     const { fromDate, toDate } = req.query;
 
-    if (!fromDate || !toDate) {
-        return res.status(400).json({ message: 'Start and end dates are required' });
-    }
+    if (!fromDate || !toDate) return res.status(400).json({ message: 'Start and end dates are required' });
 
     try {
-        // POPULATE DEPARTMENT AND INCLUDE FINES IN THE WORKER DATA
-        const worker = await Worker.findById(id).populate('department').select('+fines');
+        const worker = await Worker.findById(id).populate('department').select('+fines +deductions +overtimeRecords');
+        if (!worker) return res.status(404).json({ message: 'Worker not found' });
 
-        if (!worker) {
-            return res.status(404).json({ message: 'Worker not found' });
-        }
-
-        // Since the date field in Attendance model is stored as a string,
-        // we need to fetch all attendance records and filter them manually
-        const allAttendanceData = await Attendance.find({
-            worker: id
-        });
-
-        // Filter attendance data manually by parsing the date strings
+        const allAttendanceData = await Attendance.find({ worker: id });
         const fromDateObj = new Date(fromDate);
         const toDateObj = new Date(toDate);
-        
+
         const attendanceData = allAttendanceData.filter(record => {
-            // Parse the string date from the record
             const recordDate = new Date(record.date);
             return recordDate >= fromDateObj && recordDate <= toDateObj;
         });
 
-        const leaveData = await Leave.find({
-            worker: id,
-            status: 'Approved'
-        });
-
+        const leaveData = await Leave.find({ worker: id, status: 'Approved' });
         const holidays = await Holiday.find({});
         const settings = await Settings.findOne({ subdomain: worker.subdomain });
         const batches = settings ? settings.batches : [];
 
-        // FIXED THIS LINE: Pass the worker object to the calculator function
         const report = calculateWorkerProductivity({
-            worker, // ADDED: Pass the worker object
+            worker,
             attendanceData,
             fromDate,
             toDate,
@@ -193,68 +272,62 @@ const getWorkerSalaryReport = asyncHandler(async (req, res) => {
                 holidays,
                 permissionTimeMinutes: settings ? settings.permissionTimeMinutes : 15,
                 deductSalary: settings ? settings.deductSalary : true,
+                deductLateMinutes: settings ? settings.deductLateMinutes : true,
                 intervals: settings ? settings.intervals : []
             }
         });
 
-        // Check if there are any bonuses for this period
-        const bonusesForPeriod = worker.bonuses.filter(bonus => {
-            return (
-                (new Date(bonus.fromDate) <= new Date(toDate)) &&
-                (new Date(bonus.toDate) >= new Date(fromDate))
-            );
-        });
-
-        // Calculate total bonus amount for this period
+        // Bonus calculation
+        const bonusesForPeriod = worker.bonuses.filter(bonus =>
+            new Date(bonus.fromDate) <= new Date(toDate) &&
+            new Date(bonus.toDate) >= new Date(fromDate)
+        );
         const totalBonusAmount = bonusesForPeriod.reduce((total, bonus) => total + bonus.amount, 0);
-        
-        // Calculate the final salary with bonus logic applied
-        // This is the salary that would be paid to the worker based on your bonus calculation
-        let finalSalaryWithBonus = report.summary.finalSalary; // Default to actual earned salary (after deductions)
-        
-        if (totalBonusAmount > 0 && bonusesForPeriod.length > 0) {
-            // Get the first bonus for calculation (assuming one bonus per period)
-            const bonus = bonusesForPeriod[0];
-            
-            // Recalculate using the same logic as giveBonus
-            const baseSalary = worker.salary || 0;
-            const actualEarnedSalary = report.summary.finalSalary || 0;
-            const remainingBonus = Math.max(0, bonus.amount - baseSalary);
-            finalSalaryWithBonus = actualEarnedSalary + remainingBonus;
+
+        let finalSalaryWithBonus = report.summary.finalSalary;
+        if (totalBonusAmount > 0) {
+            finalSalaryWithBonus = (report.summary.finalSalary || 0) + totalBonusAmount;
         }
-        
-        // ADD FINE CALCULATION FOR THE REPORT PERIOD
-        // Calculate total fines for the report period
-        let totalFinesAmount = 0;
-        if (worker.fines && Array.isArray(worker.fines)) {
-            const reportStartDate = new Date(fromDate);
-            const reportEndDate = new Date(toDate);
-            
-            totalFinesAmount = worker.fines
-                .filter(fine => {
-                    const fineDate = new Date(fine.date);
-                    return fineDate >= reportStartDate && fineDate <= reportEndDate;
-                })
-                .reduce((total, fine) => total + (fine.amount || 0), 0);
-        }
-        
-        // Calculate final salary after deducting fines
-        const finalSalaryWithFines = Math.max(0, finalSalaryWithBonus - totalFinesAmount);
+
+        // Deduction engine
+        const deductionSummary = calculateDeductions(worker, fromDate, toDate, worker.department);
+
+        // Overtime engine
+        const overtimeSummary = calculateOvertime(attendanceData, worker, worker.department);
+
+        // Final salary = earned + overtime - deductions
+        const finalSalaryWithFines = Math.max(0, finalSalaryWithBonus - deductionSummary.cappedDeduction);
+        const finalSalaryWithOvertime = finalSalaryWithFines + overtimeSummary.totalOvertimePay;
 
         res.status(200).json({
             message: 'Salary report generated successfully',
             report,
             bonuses: bonusesForPeriod,
-            totalBonusAmount: totalBonusAmount,
-            totalFinesAmount: totalFinesAmount, // ADD THIS
-            finalSalaryWithBonus: finalSalaryWithBonus,
-            finalSalaryWithFines: finalSalaryWithFines, // ADD THIS
+            totalBonusAmount,
+            // Deductions
+            totalFinesAmount: deductionSummary.totalFines,
+            totalDeductionsAmount: deductionSummary.totalDeductions,
+            grossDeduction: deductionSummary.grossDeduction,
+            cappedDeduction: deductionSummary.cappedDeduction,
+            maxDeductionPercent: deductionSummary.maxDeductionPercent,
+            // Overtime
+            overtime: overtimeSummary,
+            // Final salaries
+            finalSalaryWithBonus,
+            finalSalaryWithFines,
+            finalSalaryWithOvertime,
             worker: {
                 name: worker.name,
                 salary: worker.salary,
                 finalSalary: worker.finalSalary,
                 perDaySalary: worker.perDaySalary,
-                fines: worker.fines // ADD THIS
+                fines: worker.fines,
+                deductions: worker.deductions,
+                leaveBalance: worker.leaveBalance,
+                warnings: worker.warnings,
+                performance: worker.performance,
+                overtimeRecords: worker.overtimeRecords,
+                department: worker.department
             }
         });
     } catch (error) {
@@ -263,9 +336,160 @@ const getWorkerSalaryReport = asyncHandler(async (req, res) => {
     }
 });
 
+// ─────────────────────────────────────────────────────────────────────────────
+// @desc    Add a deduction for a worker
+// @route   POST /api/salary/add-deduction/:id
+// ─────────────────────────────────────────────────────────────────────────────
+const addDeduction = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const { amount, date, reason, deductionType } = req.body;
+
+    if (!amount || isNaN(amount) || Number(amount) <= 0) {
+        return res.status(400).json({ message: 'Deduction amount must be a positive number' });
+    }
+
+    const worker = await Worker.findById(id).populate('department');
+    if (!worker) return res.status(404).json({ message: 'Worker not found' });
+
+    // Enforce max deduction cap (including fines for this month)
+    const maxDeductionPercent = worker.department?.salaryPolicy?.maxDeductionPercent ?? 50;
+    const maxDeductionAmount = (worker.salary || 0) * (maxDeductionPercent / 100);
+
+    // Calculate total existing deductions and fines to enforce the cap properly
+    const totalExistingDeductions = (worker.deductions || []).reduce((s, d) => s + (d.amount || 0), 0);
+    const totalExistingFines = (worker.fines || []).reduce((s, f) => s + (f.amount || 0), 0);
+
+    if (totalExistingDeductions + totalExistingFines + Number(amount) > maxDeductionAmount) {
+        return res.status(400).json({
+            message: `Deduction exceeds maximum allowed (${maxDeductionPercent}% of salary = ${maxDeductionAmount.toFixed(2)}) including existing fines and deductions.`,
+            maxDeductionAmount
+        });
+    }
+
+    worker.deductions = worker.deductions || [];
+    worker.deductions.push({
+        amount: Number(amount),
+        date: date ? new Date(date) : new Date(),
+        reason: reason || '',
+        deductionType: deductionType || 'Other',
+        isAutomatic: false
+    });
+
+    // Update the worker's final salary by subtracting the deduction amount
+    const currentSalary = worker.finalSalary !== undefined ? worker.finalSalary : worker.salary || 0;
+    worker.finalSalary = Math.max(0, currentSalary - Number(amount));
+
+    await worker.save();
+    res.status(200).json({ message: 'Deduction added successfully', worker });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// @desc    Delete a deduction for a worker
+// @route   DELETE /api/salary/deduction/:workerId/:deductionId
+// ─────────────────────────────────────────────────────────────────────────────
+const deleteDeduction = asyncHandler(async (req, res) => {
+    const { workerId, deductionId } = req.params;
+    const worker = await Worker.findById(workerId);
+    if (!worker) return res.status(404).json({ message: 'Worker not found' });
+
+    // Find the deduction to restore the amount
+    const deduction = (worker.deductions || []).find(d => d._id.toString() === deductionId);
+    const amountToRestore = deduction ? (deduction.amount || 0) : 0;
+
+    worker.deductions = (worker.deductions || []).filter(d => d._id.toString() !== deductionId);
+
+    // Update the worker's final salary
+    const currentSalary = worker.finalSalary !== undefined ? worker.finalSalary : worker.salary || 0;
+    worker.finalSalary = currentSalary + amountToRestore;
+
+    await worker.save();
+    res.status(200).json({ message: 'Deduction deleted successfully', worker });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// @desc    Issue a performance-based salary increment
+// @route   POST /api/salary/increment/:id
+// ─────────────────────────────────────────────────────────────────────────────
+const giveIncrement = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const { incrementAmount, reason, performanceRating } = req.body;
+
+    if (!incrementAmount || isNaN(incrementAmount) || Number(incrementAmount) <= 0) {
+        return res.status(400).json({ message: 'Increment amount must be a positive number' });
+    }
+
+    const worker = await Worker.findById(id);
+    if (!worker) return res.status(404).json({ message: 'Worker not found' });
+
+    const previousSalary = worker.salary || 0;
+    const newSalary = previousSalary + Number(incrementAmount);
+
+    worker.salary = newSalary;
+    worker.finalSalary = newSalary;
+    worker.perDaySalary = newSalary / 26;
+
+    // Performance record
+    if (!worker.performance) worker.performance = { rating: 0, incrementHistory: [] };
+    if (performanceRating !== undefined) worker.performance.rating = Number(performanceRating);
+    worker.performance.lastReviewDate = new Date();
+    worker.performance.incrementHistory = worker.performance.incrementHistory || [];
+    worker.performance.incrementHistory.push({
+        amount: Number(incrementAmount),
+        previousSalary,
+        newSalary,
+        reason: reason || 'Performance-based increment',
+        date: new Date()
+    });
+
+    await worker.save();
+    res.status(200).json({
+        message: 'Salary increment applied successfully',
+        previousSalary,
+        newSalary,
+        worker
+    });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// @desc    Get department-wise salary summary
+// @route   GET /api/salary/department/:subdomain
+// ─────────────────────────────────────────────────────────────────────────────
+const getDepartmentSalarySummary = asyncHandler(async (req, res) => {
+    const { subdomain } = req.params;
+    const { fromDate, toDate } = req.query;
+
+    const workers = await Worker.find({ subdomain }).populate('department');
+    const departmentMap = {};
+
+    workers.forEach(worker => {
+        const deptName = worker.department?.name || 'Unassigned';
+        if (!departmentMap[deptName]) {
+            departmentMap[deptName] = {
+                department: deptName,
+                headCount: 0,
+                totalBaseSalary: 0,
+                totalFinalSalary: 0,
+                policy: worker.department?.salaryPolicy || {}
+            };
+        }
+        departmentMap[deptName].headCount++;
+        departmentMap[deptName].totalBaseSalary += worker.salary || 0;
+        departmentMap[deptName].totalFinalSalary += worker.finalSalary || 0;
+    });
+
+    res.status(200).json({
+        message: 'Department salary summary',
+        departments: Object.values(departmentMap)
+    });
+});
+
 module.exports = {
     giveBonus,
     removeBonus,
     resetSalary,
-    getWorkerSalaryReport
+    getWorkerSalaryReport,
+    addDeduction,
+    deleteDeduction,
+    giveIncrement,
+    getDepartmentSalarySummary
 };

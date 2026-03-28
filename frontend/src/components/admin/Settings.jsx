@@ -65,6 +65,7 @@ const Settings = () => {
         deductSalary: true,
         permissionTimeMinutes: 15,
         salaryDeductionPerBreak: 10,
+        deductLateMinutes: true,
 
         // Batches and intervals
         batches: [
@@ -176,6 +177,7 @@ const Settings = () => {
                 deductSalary: fetchedSettings.deductSalary !== undefined ? fetchedSettings.deductSalary : true,
                 permissionTimeMinutes: fetchedSettings.permissionTimeMinutes || 15,
                 salaryDeductionPerBreak: fetchedSettings.salaryDeductionPerBreak || 10,
+                deductLateMinutes: fetchedSettings.deductLateMinutes !== undefined ? fetchedSettings.deductLateMinutes : true,
 
                 // Batches and intervals
                 batches: fetchedSettings.batches || [{
@@ -731,6 +733,23 @@ const Settings = () => {
                                         })}
                                     />
                                 </div>
+
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <label className="text-sm font-medium text-gray-700">Deduct Late Minutes</label>
+                                        <p className="text-xs text-gray-500">Automatically deduct salary for late arrivals</p>
+                                    </div>
+                                    <CustomToggle
+                                        checked={settings.deductLateMinutes}
+                                        onChange={() => handleInputChange({
+                                            target: {
+                                                name: 'deductLateMinutes',
+                                                type: 'checkbox',
+                                                checked: !settings.deductLateMinutes
+                                            }
+                                        })}
+                                    />
+                                </div>
                             </div>
                         </div>
                     </Card>
@@ -1178,6 +1197,12 @@ const Settings = () => {
                                         <span>Salary Deduction:</span>
                                         <span className={settings.deductSalary ? 'text-green-600 font-medium' : 'text-gray-600'}>
                                             {settings.deductSalary ? '✓ Enabled' : '✗ Disabled'}
+                                        </span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span>Deduct Late Minutes:</span>
+                                        <span className={settings.deductLateMinutes ? 'text-green-600 font-medium' : 'text-gray-600'}>
+                                            {settings.deductLateMinutes ? '✓ Enabled' : '✗ Disabled'}
                                         </span>
                                     </div>
                                 </div>

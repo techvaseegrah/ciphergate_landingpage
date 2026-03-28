@@ -224,9 +224,39 @@ const updateDepartment = asyncHandler(async (req, res) => {
   }
 });
 
+const updateDepartmentPolicy = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { leavePolicy, salaryPolicy, workingHours, approvalHierarchy } = req.body;
+
+  const department = await Department.findById(id);
+  if (!department) {
+    res.status(404);
+    throw new Error('Department not found');
+  }
+
+  if (leavePolicy) {
+    department.leavePolicy = { ...department.leavePolicy.toObject(), ...leavePolicy };
+  }
+  if (salaryPolicy) {
+    department.salaryPolicy = { ...department.salaryPolicy.toObject(), ...salaryPolicy };
+  }
+  if (workingHours) {
+    department.workingHours = { ...department.workingHours.toObject(), ...workingHours };
+  }
+  if (approvalHierarchy) {
+    department.approvalHierarchy = { ...department.approvalHierarchy.toObject(), ...approvalHierarchy };
+  }
+
+  await department.save();
+
+  const workerCount = await Worker.countDocuments({ department: department._id });
+  res.json({ ...department.toObject(), workerCount });
+});
+
 module.exports = {
   createDepartment,
   getDepartments,
   deleteDepartment,
-  updateDepartment
+  updateDepartment,
+  updateDepartmentPolicy
 };

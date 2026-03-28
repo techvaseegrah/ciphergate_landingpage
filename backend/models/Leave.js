@@ -12,8 +12,20 @@ const leaveSchema = mongoose.Schema({
   },
   leaveType: {
     type: String,
-    // Updated enum to include the new 'Permission' leave type.
-    enum: ['Annual Leave', 'Sick Leave', 'Personal Leave', 'Permission'],
+    enum: [
+      'Annual Leave',
+      'Sick Leave',
+      'Hospitalization Leave',
+      'Urgent Leave',
+      'Marriage Leave',
+      'Paternity Leave',
+      'Compassionate Leave',
+      'Unpaid Leave',
+      'Personal Leave',
+      'Permission',
+      'Home Country Leave',
+      'Others'
+    ],
     required: [true, 'Please add leave type']
   },
   startDate: {
@@ -44,12 +56,51 @@ const leaveSchema = mongoose.Schema({
   document: {
     type: String
   },
-  // NEW FIELDS
+  // Time-based leave fields (for Permission / half-day)
   startTime: {
     type: String
   },
   endTime: {
     type: String
+  },
+  // Half-day support
+  isHalfDay: {
+    type: Boolean,
+    default: false
+  },
+  halfDayPeriod: {
+    type: String,
+    enum: ['AM', 'PM', null],
+    default: null
+  },
+  // Notice period details
+  noticeDaysBefore: {
+    type: Number,
+    default: 0
+  },
+  // Return ticket required flag (for long/home-country leaves)
+  returnTicketRequired: {
+    type: Boolean,
+    default: false
+  },
+  returnTicketProvided: {
+    type: Boolean,
+    default: false
+  },
+  // Admin approval notes
+  adminNote: {
+    type: String,
+    default: ''
+  },
+  // Track if sick leave certificate was provided
+  doctorCertificateProvided: {
+    type: Boolean,
+    default: false
+  },
+  // Salary deduction applied
+  deductionApplied: {
+    type: Number,
+    default: 0
   }
 }, {
   timestamps: true
