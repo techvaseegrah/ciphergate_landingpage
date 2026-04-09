@@ -29,9 +29,31 @@ const storage = multer.diskStorage({
   }
 });
 
-const upload = multer({ storage });
+const upload = multer({ 
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  fileFilter: (req, file, cb) => {
+    const allowedExtensions = ['.pdf', '.jpg', '.jpeg', '.png', '.doc', '.docx'];
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (allowedExtensions.includes(ext)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type. Only PDF, JPEG, PNG, DOC/DOCX allowed.'));
+    }
+  }
+});
 
-router.route('/').post(protect, upload.single('document'), createLeave);
+router.route('/').post(protect, (req, res, next) => {
+  upload.single('document')(req, res, (err) => {
+    if (err instanceof multer.MulterError || err) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Invalid file format or size exceeds limit' 
+      });
+    }
+    next();
+  });
+}, createLeave);
 
 router.get('/me', protect, workerOnly, getMyLeaves);
 router.get('/balance', protect, workerOnly, getLeaveBalance);

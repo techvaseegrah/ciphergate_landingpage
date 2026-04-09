@@ -7,6 +7,7 @@ import Spinner from '../common/Spinner';
 import Button from '../common/Button';
 import appContext from '../../context/AppContext';
 import { FaCalendarAlt, FaFilter, FaTimes, FaCheck, FaClock, FaTimesCircle } from 'react-icons/fa';
+import AttachmentViewerModal from '../common/AttachmentViewerModal';
 
 const LeaveRequests = () => {
   const [leaves, setLeaves] = useState([]);
@@ -18,6 +19,11 @@ const LeaveRequests = () => {
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
   const [isThisMonthActive, setIsThisMonthActive] = useState(false);
   const [showFutureLeaves, setShowFutureLeaves] = useState(true);
+  
+  // Attachment viewer modal
+  const [isViewerOpen, setIsViewerOpen] = useState(false);
+  const [viewerUrl, setViewerUrl] = useState('');
+  const [viewerFileName, setViewerFileName] = useState('');
 
   useEffect(() => {
     const loadLeaves = async () => {
@@ -461,17 +467,20 @@ const LeaveRequests = () => {
                   {leave.document && (
                     <div className="p-3">
                       <p className="text-xs text-gray-500 uppercase tracking-wide font-medium mb-1">Supporting Document</p>
-                      <a
-                        href={`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001'}/uploads/${leave.document}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-black hover:text-blue-800 hover:underline font-medium flex items-center"
+                      <button
+                        onClick={() => {
+                            const baseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').split('/api')[0];
+                            setViewerUrl(`${baseUrl}/uploads/${leave.document}`);
+                            setViewerFileName(leave.document);
+                            setIsViewerOpen(true);
+                        }}
+                        className="text-black hover:text-blue-800 font-medium flex items-center"
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                         </svg>
                         View Document
-                      </a>
+                      </button>
                     </div>
                   )}
                 </div>
@@ -480,6 +489,14 @@ const LeaveRequests = () => {
           </div>
         )}
       </Card>
+
+      {/* Attachment Viewer Modal */}
+      <AttachmentViewerModal
+        isOpen={isViewerOpen}
+        onClose={() => setIsViewerOpen(false)}
+        fileUrl={viewerUrl}
+        fileName={viewerFileName}
+      />
     </div>
   );
 };

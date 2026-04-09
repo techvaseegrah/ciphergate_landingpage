@@ -1,11 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import Card from '../common/Card';
 import { deleteInvoice } from '../../services/invoiceService';
+import appContext from '../../context/AppContext';
+import { formatCurrency } from '../../utils/formatUtils';
 
 const InvoiceHistory = ({ invoices, onEditInvoice, onDeleteInvoice }) => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [invoiceToDelete, setInvoiceToDelete] = useState(null);
   const [localInvoices, setLocalInvoices] = useState(invoices); // Add local state for invoices
+  const { settings } = useContext(appContext);
 
   // Update local state when invoices prop changes
   React.useEffect(() => {
@@ -111,7 +114,7 @@ const InvoiceHistory = ({ invoices, onEditInvoice, onDeleteInvoice }) => {
                     </span>
                   </td>
                   <td className="py-3 px-4 text-sm text-gray-700 border-b text-right">
-                    ₹{calculateTotal(invoice).toFixed(2)}
+                    {formatCurrency(calculateTotal(invoice), settings)}
                   </td>
                   <td className="py-3 px-4 text-sm text-gray-700 border-b text-center">
                     <div className="flex justify-center space-x-2">

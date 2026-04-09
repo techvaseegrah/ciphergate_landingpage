@@ -4,6 +4,9 @@ import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
 import { usePayment } from '../../hooks/usePayment';
 import { useAuth } from '../../hooks/useAuth';
+import appContext from '../../context/AppContext';
+import { formatCurrency } from '../../utils/formatUtils';
+import { useContext } from 'react';
 
 const CheckIcon = ({ color = "#111" }) => (
   <svg className="w-3 h-3 flex-shrink-0" viewBox="0 0 16 16" fill="none">
@@ -23,6 +26,7 @@ const Pricing = () => {
   const { user } = useAuth();
 
   const { handlePremiumSubscribe, isProcessing } = usePayment();
+  const { settings } = useContext(appContext);
 
   const handleGetStarted = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -145,7 +149,9 @@ const Pricing = () => {
               </div>
 
               <div className="mb-8 md:mb-10 flex flex-col">
-                <span className="text-3xl md:text-6xl font-extralight text-gray-900 leading-none tracking-tight">₹0</span>
+                <span className="text-3xl md:text-6xl font-extralight text-gray-900 leading-none tracking-tight">
+                  {formatCurrency(0, settings)}
+                </span>
                 <span className="text-[8px] md:text-[10px] text-gray-400 mt-2 tracking-[0.1em] uppercase">/month</span>
               </div>
 
@@ -194,10 +200,10 @@ const Pricing = () => {
                   <span className="text-3xl md:text-6xl font-extralight leading-none tracking-tight">
                     {isYearly ? (
                       <>
-                        <span className="hidden sm:inline">₹1,100</span>
-                        <span className="inline sm:hidden">₹1.1k</span>
+                        <span className="hidden sm:inline">{formatCurrency(1100, settings)}</span>
+                        <span className="inline sm:hidden">{formatCurrency(1100, settings)}</span>
                       </>
-                    ) : '₹99'}
+                    ) : formatCurrency(99, settings)}
                   </span>
                 </div>
                 <span className="text-[8px] md:text-[10px] text-gray-600 mt-2 tracking-[0.1em] uppercase">{isYearly ? '/year' : '/month'}</span>

@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { getWorkerDeleteHistory, getDeletedInvoiceById } from '../../services/invoiceService';
 import Card from '../common/Card';
+import appContext from '../../context/AppContext';
+import { formatCurrency } from '../../utils/formatUtils';
 
 const WorkerDeleteHistory = () => {
   const [deletedInvoices, setDeletedInvoices] = useState([]);
@@ -8,6 +10,7 @@ const WorkerDeleteHistory = () => {
   const [error, setError] = useState(null);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const { settings } = useContext(appContext);
 
   // Load delete history from backend on component mount
   useEffect(() => {
@@ -120,7 +123,7 @@ const WorkerDeleteHistory = () => {
                       {record.customerName || 'N/A'}
                     </td>
                     <td className="py-3 px-4 text-sm text-gray-700 border-b text-right">
-                      ₹{record.totalAmount.toFixed(2)}
+                      {formatCurrency(record.totalAmount, settings)}
                     </td>
                     <td className="py-3 px-4 text-sm text-gray-700 border-b">
                       {formatDate(record.deletedAt)}
@@ -227,9 +230,9 @@ const WorkerDeleteHistory = () => {
                         <td className="py-2 px-3 text-sm text-gray-700 border-b">{item.hsn || 'N/A'}</td>
                         <td className="py-2 px-3 text-sm text-gray-700 border-b">{item.gst}%</td>
                         <td className="py-2 px-3 text-sm text-gray-700 border-b">{item.qty}</td>
-                        <td className="py-2 px-3 text-sm text-gray-700 border-b">₹{item.rate.toFixed(2)}</td>
+                        <td className="py-2 px-3 text-sm text-gray-700 border-b">{formatCurrency(item.rate, settings)}</td>
                         <td className="py-2 px-3 text-sm text-gray-700 border-b text-right">
-                          ₹{item.isTotalOverridden ? item.total.toFixed(2) : (item.qty * item.rate).toFixed(2)}
+                          {formatCurrency(item.isTotalOverridden ? item.total : (item.qty * item.rate), settings)}
                         </td>
                       </tr>
                     ))}
@@ -262,27 +265,27 @@ const WorkerDeleteHistory = () => {
                 <div className="w-full md:w-1/2">
                   <div className="flex justify-between py-2">
                     <span className="font-medium">Subtotal:</span>
-                    <span>₹{calculateTotal(selectedInvoice).toFixed(2)}</span>
+                    <span>{formatCurrency(calculateTotal(selectedInvoice), settings)}</span>
                   </div>
                   {selectedInvoice.gstEnabled && (
                     <>
                       <div className="flex justify-between py-2">
                         <span className="font-medium">GST ({selectedInvoice.saleType}):</span>
-                        <span>₹{(calculateTotal(selectedInvoice) * (selectedInvoice.saleType === 'Interstate' ? 0.18 : 0.09)).toFixed(2)}</span>
+                        <span>{formatCurrency(calculateTotal(selectedInvoice) * (selectedInvoice.saleType === 'Interstate' ? 0.18 : 0.09), settings)}</span>
                       </div>
                       <div className="flex justify-between py-2 border-t border-gray-300 font-bold">
                         <span>Total:</span>
-                        <span>₹{(
+                        <span>{formatCurrency(
                           calculateTotal(selectedInvoice) +
-                          (calculateTotal(selectedInvoice) * (selectedInvoice.saleType === 'Interstate' ? 0.18 : 0.09))
-                        ).toFixed(2)}</span>
+                          (calculateTotal(selectedInvoice) * (selectedInvoice.saleType === 'Interstate' ? 0.18 : 0.09)), settings
+                        )}</span>
                       </div>
                     </>
                   )}
                   {!selectedInvoice.gstEnabled && (
                     <div className="flex justify-between py-2 border-t border-gray-300 font-bold">
                       <span>Total:</span>
-                      <span>₹{calculateTotal(selectedInvoice).toFixed(2)}</span>
+                      <span>{formatCurrency(calculateTotal(selectedInvoice), settings)}</span>
                     </div>
                   )}
                 </div>

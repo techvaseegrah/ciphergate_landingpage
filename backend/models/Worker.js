@@ -63,10 +63,24 @@ const workerSchema = mongoose.Schema({
   dateOfExit: {
     type: Date
   },
+  // Exit Workflow Fields
+  exitReasonType: {
+    type: String,
+    enum: ['Company Termination', 'Employee Resignation']
+  },
+  exitReasonDescription: {
+    type: String,
+    default: ''
+  },
   resignationStatus: {
     type: String,
     enum: ['Active', 'Resigned'],
     default: 'Active'
+  },
+  // ID Proof
+  idProofUrl: {
+    type: String,
+    default: ''
   },
   // Probation
   onProbation: {
@@ -216,6 +230,20 @@ const workerSchema = mongoose.Schema({
     unpaidLeave: { type: Number, default: 0 },
     homeCountryLeave: { type: Number, default: 0 },
     personalLeave: { type: Number, default: 3 }
+  },
+
+  // ─── Leave Overrides ────────────────────────────────────────────────────────
+  leaveOverrides: {
+    annual: { type: Number },
+    sick: { type: Number },
+    hospital: { type: Number },
+    urgent: { type: Number },
+    marriage: { type: Number },
+    paternity: { type: Number },
+    compassion: { type: Number },
+    personal: { type: Number },
+    unpaid: { type: Number },
+    homeCountry: { type: Number }
   },
 
   // ─── Warning Records ────────────────────────────────────────────────────────

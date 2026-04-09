@@ -3,6 +3,7 @@ const Worker = require('../models/Worker');
 const Task = require('../models/Task');
 const Department = require('../models/Department');
 const Admin = require('../models/Admin');
+const Settings = require('../models/Settings');
 const bcrypt = require('bcryptjs');
 const path = require('path');
 const fs = require('fs');
@@ -47,9 +48,10 @@ const createWorker = asyncHandler(async (req, res) => {
       name, username, rfid, salary, password, department, photo, batch, faceEmbeddings,
       employeeId, pinNumber, contactNumber, email, gender, dob,
       dateOfJoining, dateOfExit, resignationStatus,
+      exitReasonType, exitReasonDescription,
       workPassType, passportNumber, nationality, passExpiryDate,
       address, emergencyContactNumber, emergencyContactName, relationship,
-      bankAccountNumber, qualification
+      bankAccountNumber, qualification, leaveOverrides
     } = req.body;
 
     const trimmedName = name ? name.trim() : '';
@@ -57,6 +59,15 @@ const createWorker = asyncHandler(async (req, res) => {
     const trimmedRfid = rfid ? rfid.trim() : '';
     const numericSalary = salary ? Number(String(salary).trim()) : 0;
     const trimmedPassword = password ? password.trim() : '';
+
+    let parsedFaceEmbeddings = faceEmbeddings;
+    if (typeof faceEmbeddings === 'string') {
+      try {
+        parsedFaceEmbeddings = JSON.parse(faceEmbeddings);
+      } catch (e) {
+        console.error('Error parsing faceEmbeddings:', e);
+      }
+    }
     const trimmedDepartment = department ? department.trim() : '';
 
     if (numericSalary <= 0) {
@@ -102,6 +113,23 @@ const createWorker = asyncHandler(async (req, res) => {
       throw new Error('Date of Joining is required');
     }
 
+    // Validate exit workflow fields when resigned
+    const finalResignationStatus = resignationStatus || 'Active';
+    if (finalResignationStatus === 'Resigned') {
+      if (!exitReasonType) {
+        res.status(400);
+        throw new Error('Exit Reason Type is required when status is Resigned');
+      }
+      if (!exitReasonDescription || !exitReasonDescription.trim()) {
+        res.status(400);
+        throw new Error('Exit Reason Description is required when status is Resigned');
+      }
+      if (!dateOfExit) {
+        res.status(400);
+        throw new Error('Date of Exit is required when status is Resigned');
+      }
+    }
+
     if (employeeId) {
       const idExists = await Worker.findOne({ employeeId });
       if (idExists) {
@@ -128,6 +156,33 @@ const createWorker = asyncHandler(async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(trimmedPassword, salt);
 
+    // Fetch Settings
+    const settings = await Settings.findOne({ subdomain }) || {};
+    const policy = settings.leavePolicy || {};
+    
+    // Merge policy and overrides
+    let parsedOverrides = {};
+    if (leaveOverrides) {
+        if (typeof leaveOverrides === 'string') {
+            try { parsedOverrides = JSON.parse(leaveOverrides); } catch(e){}
+        } else {
+            parsedOverrides = leaveOverrides;
+        }
+    }
+
+    const initialLeaveBalance = {
+      annualLeave: parsedOverrides?.annual !== undefined ? parsedOverrides.annual : (policy.annual ?? 7),
+      sickLeave: parsedOverrides?.sick !== undefined ? parsedOverrides.sick : (policy.sick ?? 14),
+      hospitalizationLeave: parsedOverrides?.hospital !== undefined ? parsedOverrides.hospital : (policy.hospital ?? 60),
+      urgentLeave: parsedOverrides?.urgent !== undefined ? parsedOverrides.urgent : (policy.urgent ?? 3),
+      marriageLeave: parsedOverrides?.marriage !== undefined ? parsedOverrides.marriage : (policy.marriage ?? 3),
+      paternityLeave: parsedOverrides?.paternity !== undefined ? parsedOverrides.paternity : (policy.paternity ?? 3),
+      compassionateLeave: parsedOverrides?.compassion !== undefined ? parsedOverrides.compassion : (policy.compassion ?? 3),
+      unpaidLeave: parsedOverrides?.unpaid !== undefined ? parsedOverrides.unpaid : (policy.unpaid ?? 0),
+      homeCountryLeave: parsedOverrides?.homeCountry !== undefined ? parsedOverrides.homeCountry : (policy.homeCountry ?? 0),
+      personalLeave: parsedOverrides?.personal !== undefined ? parsedOverrides.personal : (policy.personal ?? 3)
+    };
+
     // Create worker
     const worker = await Worker.create({
       name: trimmedName,
@@ -141,7 +196,7 @@ const createWorker = asyncHandler(async (req, res) => {
       department: departmentDoc._id,
       photo: photo || '',
       batch: batch || '',
-      faceEmbeddings: faceEmbeddings || [],
+      faceEmbeddings: parsedFaceEmbeddings || [],
       employeeId,
       pinNumber,
       contactNumber,
@@ -149,8 +204,10 @@ const createWorker = asyncHandler(async (req, res) => {
       gender,
       dob,
       dateOfJoining,
-      dateOfExit,
-      resignationStatus: resignationStatus || 'Active',
+      dateOfExit: finalResignationStatus === 'Resigned' ? dateOfExit : undefined,
+      resignationStatus: finalResignationStatus,
+      exitReasonType: finalResignationStatus === 'Resigned' ? exitReasonType : undefined,
+      exitReasonDescription: finalResignationStatus === 'Resigned' ? exitReasonDescription : '',
       workPassType,
       passportNumber,
       nationality,
@@ -161,7 +218,10 @@ const createWorker = asyncHandler(async (req, res) => {
       relationship,
       bankAccountNumber,
       qualification,
-      totalPoints: 0
+      totalPoints: 0,
+      leaveOverrides: parsedOverrides,
+      leaveBalance: initialLeaveBalance,
+      idProofUrl: req.file ? `/uploads/id-proofs/${req.file.filename}` : ''
     });
 
     res.status(201).json({
@@ -332,12 +392,22 @@ const updateWorker = asyncHandler(async (req, res) => {
       name, username, salary, department, password, photo, batch, faceEmbeddings,
       employeeId, pinNumber, contactNumber, email, gender, dob,
       dateOfJoining, dateOfExit, resignationStatus,
+      exitReasonType, exitReasonDescription,
       workPassType, passportNumber, nationality, passExpiryDate,
       address, emergencyContactNumber, emergencyContactName, relationship,
-      bankAccountNumber, qualification
+      bankAccountNumber, qualification, leaveOverrides
     } = req.body;
 
     const updateData = {};
+
+    let parsedFaceEmbeddings = faceEmbeddings;
+    if (typeof faceEmbeddings === 'string') {
+      try {
+        parsedFaceEmbeddings = JSON.parse(faceEmbeddings);
+      } catch (e) {
+        console.error('Error parsing faceEmbeddings:', e);
+      }
+    }
 
     // Validate department if provided
     if (department) {
@@ -377,7 +447,7 @@ const updateWorker = asyncHandler(async (req, res) => {
 
     if (photo) updateData.photo = photo;
     if (batch) updateData.batch = batch;
-    if (faceEmbeddings) updateData.faceEmbeddings = faceEmbeddings;
+    if (parsedFaceEmbeddings) updateData.faceEmbeddings = parsedFaceEmbeddings;
 
     // New fields
     if (pinNumber !== undefined) updateData.pinNumber = pinNumber;
@@ -398,6 +468,58 @@ const updateWorker = asyncHandler(async (req, res) => {
     if (relationship !== undefined) updateData.relationship = relationship;
     if (bankAccountNumber !== undefined) updateData.bankAccountNumber = bankAccountNumber;
     if (qualification !== undefined) updateData.qualification = qualification;
+
+    if (leaveOverrides !== undefined) {
+        if (typeof leaveOverrides === 'string') {
+            try { updateData.leaveOverrides = JSON.parse(leaveOverrides); } catch(e){}
+        } else {
+            updateData.leaveOverrides = leaveOverrides;
+        }
+    }
+
+    // Handle exit workflow fields
+    if (resignationStatus !== undefined) {
+      updateData.resignationStatus = resignationStatus;
+      if (resignationStatus === 'Resigned') {
+        // Validate exit fields server-side
+        if (!exitReasonType) {
+          res.status(400);
+          throw new Error('Exit Reason Type is required when status is Resigned');
+        }
+        if (!exitReasonDescription || !exitReasonDescription.trim()) {
+          res.status(400);
+          throw new Error('Exit Reason Description is required when status is Resigned');
+        }
+        if (!dateOfExit) {
+          res.status(400);
+          throw new Error('Date of Exit is required when status is Resigned');
+        }
+        updateData.exitReasonType = exitReasonType;
+        updateData.exitReasonDescription = exitReasonDescription;
+        updateData.dateOfExit = dateOfExit;
+      } else {
+        // Clear exit fields when returning to Active
+        updateData.exitReasonType = undefined;
+        updateData.exitReasonDescription = '';
+        updateData.dateOfExit = undefined;
+      }
+    } else {
+      // resignationStatus not in payload — still update individual exit fields if provided
+      if (exitReasonType !== undefined) updateData.exitReasonType = exitReasonType;
+      if (exitReasonDescription !== undefined) updateData.exitReasonDescription = exitReasonDescription;
+    }
+
+    // Handle ID proof upload
+    if (req.file) {
+      // Delete old ID proof if it exists
+      if (worker.idProofUrl) {
+        const oldPath = path.join(__dirname, '..', worker.idProofUrl);
+        if (fs.existsSync(oldPath)) {
+          fs.unlinkSync(oldPath);
+        }
+      }
+      updateData.idProofUrl = `/uploads/id-proofs/${req.file.filename}`;
+    }
 
     if (password) {
       const salt = await bcrypt.genSalt(10);
@@ -565,6 +687,41 @@ const getWorkerByRfid = asyncHandler(async (req, res) => {
   }
 });
 
+// @desc    Download worker ID proof
+// @route   GET /api/workers/:id/download-proof
+// @access  Private
+const downloadIdProof = asyncHandler(async (req, res) => {
+  try {
+    const worker = await Worker.findById(req.params.id);
+    if (!worker || !worker.idProofUrl) {
+      res.status(404);
+      throw new Error('File not found');
+    }
+
+    // Resolve absolute path from project root (assuming backend runs from backend dir)
+    // idProofUrl usually looks like /uploads/id-proofs/filename.pdf
+    const relativePath = worker.idProofUrl.startsWith('/') ? worker.idProofUrl.slice(1) : worker.idProofUrl;
+    const filePath = path.join(__dirname, '..', relativePath);
+
+    if (!fs.existsSync(filePath)) {
+      res.status(404);
+      throw new Error('File not physically found on server');
+    }
+
+    const fileName = worker.idProofUrl.split('/').pop();
+
+    res.download(filePath, fileName, (err) => {
+      if (err) {
+        console.error('Error downloading file:', err);
+        // Do not send another res.status if headers are already sent by Express
+      }
+    });
+  } catch (error) {
+    console.error('Download id proof error:', error);
+    res.status(500).json({ message: 'Server error downloading file' });
+  }
+});
+
 module.exports = {
   getWorkers,
   createWorker,
@@ -576,5 +733,6 @@ module.exports = {
   getWorkersByDepartment,
   getPublicWorkers,
   generateId,
-  getWorkerByRfid
+  getWorkerByRfid,
+  downloadIdProof
 };

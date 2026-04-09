@@ -1,17 +1,20 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useContext } from 'react';
+import appContext from '../../context/AppContext';
+import { formatCurrency } from '../../utils/formatUtils';
 
 const categories = [
-  { label: '₹40,000', tag: 'Enterprise', color: '#111111', glow: 'rgba(0,0,0,0.05)' },
-  { label: '₹30,000', tag: 'Advanced', color: '#333333', glow: 'rgba(0,0,0,0.05)' },
-  { label: '₹20,000', tag: 'Standard', color: '#555555', glow: 'rgba(0,0,0,0.05)' },
-  { label: '₹10,000', tag: 'Starter', color: '#777777', glow: 'rgba(0,0,0,0.05)' },
+  { label: 40000, tag: 'Enterprise', color: '#111111', glow: 'rgba(0,0,0,0.05)' },
+  { label: 30000, tag: 'Advanced', color: '#333333', glow: 'rgba(0,0,0,0.05)' },
+  { label: 20000, tag: 'Standard', color: '#555555', glow: 'rgba(0,0,0,0.05)' },
+  { label: 10000, tag: 'Starter', color: '#777777', glow: 'rgba(0,0,0,0.05)' },
 ];
 
 const websites = [
-  { id: 1, name: 'Sweet Hub', url: '#', category: '₹40,000', description: 'E-commerce bakery with catalog & ordering', image: '/basic-package.png' },
-  { id: 3, name: 'Sharurecreationclub', url: '#', category: '₹40,000', description: 'Club hub with events & membership', image: '/Premium-Package.png' },
-  { id: 2, name: 'Ashurastribe', url: '#', category: '₹30,000', description: 'Community portal with dynamic content', image: '/Standard-Package.png' },
+  { id: 1, name: 'Sweet Hub', url: '#', category: 40000, description: 'E-commerce bakery with catalog & ordering', image: '/basic-package.png' },
+  { id: 3, name: 'Sharurecreationclub', url: '#', category: 40000, description: 'Club hub with events & membership', image: '/Premium-Package.png' },
+  { id: 2, name: 'Ashurastribe', url: '#', category: 30000, description: 'Community portal with dynamic content', image: '/Standard-Package.png' },
 ];
 
 const cardVariants = {
@@ -22,6 +25,7 @@ const cardVariants = {
 
 const Features = () => {
   const [activeIdx, setActiveIdx] = useState(0);
+  const { settings } = useContext(appContext);
   const activeCat = categories[activeIdx];
   const filtered = websites.filter((w) => w.category === activeCat.label);
 
@@ -60,7 +64,7 @@ const Features = () => {
                 className={`flex items-center justify-between md:justify-start gap-2 md:gap-3 px-3 md:px-6 py-2.5 md:py-3.5 cursor-pointer text-[9px] md:text-xs tracking-[0.1em] uppercase transition-all duration-400 border ${isActive ? 'bg-[#111] text-white border-[#111]' : 'bg-white text-gray-500 border-gray-200 hover:border-gray-900'
                   }`}
               >
-                <span>{cat.label}</span>
+                <span>{formatCurrency(cat.label, settings)}</span>
                 <span className={`px-1.5 py-0.5 text-[8px] md:text-[9px] tracking-normal ${isActive ? 'bg-[#333] text-white' : 'bg-gray-100 text-gray-400'
                   }`}>
                   {cat.tag}
@@ -81,7 +85,7 @@ const Features = () => {
               className="grid grid-cols-2 lg:grid-cols-3 gap-px bg-gray-100 border border-gray-100"
             >
               {filtered.map((site, i) => (
-                <WebsiteCard key={site.id} site={site} index={i} cat={activeCat} />
+                <WebsiteCard key={site.id} site={site} index={i} cat={activeCat} settings={settings} />
               ))}
             </motion.div>
           ) : (
@@ -114,7 +118,7 @@ const Features = () => {
   );
 };
 
-const WebsiteCard = ({ site, index, cat }) => {
+const WebsiteCard = ({ site, index, cat, settings }) => {
   const [hovered, setHovered] = useState(false);
 
   return (
@@ -138,7 +142,7 @@ const WebsiteCard = ({ site, index, cat }) => {
 
         {/* Price badge */}
         <div className="absolute top-3 right-3 bg-white px-2 py-1 text-[9px] font-medium text-gray-900 tracking-widest border border-gray-100">
-          {cat.label}
+          {formatCurrency(cat.label, settings)}
         </div>
       </div>
 

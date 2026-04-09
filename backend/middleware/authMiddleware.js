@@ -52,14 +52,12 @@ const protect = asyncHandler(async (req, res, next) => {
         req.user.role = 'worker';
       }
     }
-
     next();
   } catch (error) {
     console.error('Token verification error:', error);
     return res.status(401).json({ message: 'Not authorized, token failed', error: error.message });
   }
 });
-
 const roleCheck = (roles) => {
   return (req, res, next) => {
     if (!req.user) {
@@ -73,11 +71,9 @@ const roleCheck = (roles) => {
     next();
   };
 };
-
 const adminOnly = roleCheck(['admin']);
 const workerOnly = roleCheck(['worker']);
 const clientOnly = roleCheck(['client']);
 const adminOrWorker = roleCheck(['admin', 'worker']);
 const adminOrClient = roleCheck(['admin', 'client']);
-
 module.exports = { protect, adminOnly, workerOnly, clientOnly, adminOrWorker, adminOrClient };

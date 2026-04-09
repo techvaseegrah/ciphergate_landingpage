@@ -12,13 +12,14 @@ import { motion } from 'framer-motion';
 import CountUp from 'react-countup';
 import { FaChevronDown, FaChevronUp } from 'react-icons/fa';
 // Removed Link import since we won't be using it for navigation
+import { formatCurrency } from '../../utils/formatUtils';
 import api from '../../services/api';
 // Import the attendance components
 import FaceAttendance from '../admin/FaceAttendance';
 import RFIDAttendancePopup from './RFIDAttendancePopup'; // We'll create this component
 
 const Dashboard = () => {
-  const { subdomain } = useContext(appContext);
+  const { subdomain, settings } = useContext(appContext);
   const [notifications, setNotifications] = useState([]);
   const { user } = useAuth();
   console.log(user);
@@ -169,7 +170,7 @@ const Dashboard = () => {
                       start={0}
                       end={baseSalary}
                       duration={1}
-                      prefix="₹"
+                      prefix={settings.localization?.currencySymbol || '$'}
                       decimals={2}
                       className="text-xl font-bold text-gray-800 truncate"
                     />
@@ -191,16 +192,16 @@ const Dashboard = () => {
                   {finalSalary > 0 ? (
                     <div
                       title={
-                        `Base: ₹${baseSalary.toFixed(2)} | ` +
-                        `Allowances: ₹${allowances.toFixed(2)} | ` +
-                        `Deductions: ₹${deductions.toFixed(2)}`
+                        `Base: ${formatCurrency(baseSalary, settings)} | ` +
+                        `Allowances: ${formatCurrency(allowances, settings)} | ` +
+                        `Deductions: ${formatCurrency(deductions, settings)}`
                       }
                     >
                       <CountUp
                         start={0}
                         end={finalSalary}
                         duration={1}
-                        prefix="₹"
+                        prefix={settings.localization?.currencySymbol || '$'}
                         decimals={2}
                         className="text-xl font-bold text-gray-800 truncate"
                       />

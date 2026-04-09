@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import Modal from './Modal';
 import { usePayment } from '../../hooks/usePayment';
+import appContext from '../../context/AppContext';
+import { formatCurrency } from '../../utils/formatUtils';
+import { useContext } from 'react';
 
 const CheckIcon = ({ color = "#111" }) => (
     <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 16 16" fill="none">
@@ -17,6 +20,7 @@ const CrossIcon = ({ color = "#ccc" }) => (
 const PricingModal = ({ isOpen, onClose }) => {
     const [isYearly, setIsYearly] = useState(false);
     const { handlePremiumSubscribe, isProcessing } = usePayment();
+    const { settings } = useContext(appContext);
 
     const freeFeatures = [
         { text: 'Up to 5 workers', enabled: true },
@@ -87,7 +91,9 @@ const PricingModal = ({ isOpen, onClose }) => {
                         <p className="text-[10px] md:text-sm text-gray-500 font-light mb-4 md:mb-6 hidden sm:block">Perfect for small businesses exploring smart attendance.</p>
 
                         <div className="mb-4 md:mb-10">
-                            <span className="text-xl md:text-5xl font-light text-gray-900 leading-none mr-1">₹0</span>
+                            <span className="text-xl md:text-5xl font-light text-gray-900 leading-none mr-1">
+                                {formatCurrency(0, settings)}
+                            </span>
                             <span className="text-[8px] md:text-xs text-gray-500 uppercase tracking-widest">/mo</span>
                         </div>
 
@@ -122,10 +128,10 @@ const PricingModal = ({ isOpen, onClose }) => {
                             <div className="text-xl md:text-5xl font-light text-white leading-none mr-1">
                                 {isYearly ? (
                                     <>
-                                        <span className="sm:hidden">₹1.1k</span>
-                                        <span className="hidden sm:inline">₹1,100</span>
+                                        <span className="sm:hidden">{formatCurrency(1100, settings)}</span>
+                                        <span className="hidden sm:inline">{formatCurrency(1100, settings)}</span>
                                     </>
-                                ) : '₹99'}
+                                ) : formatCurrency(99, settings)}
                             </div>
                             <span className="text-[8px] md:text-xs text-gray-500 uppercase tracking-widest mb-0.5 md:mb-1.5">{isYearly ? '/yr' : '/mo'}</span>
                         </div>

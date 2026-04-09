@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useLocation } from 'react-router-dom'; // Added useLocation import
 import { toast } from 'react-toastify';
-import { FaPlus, FaEdit, FaTrash, FaCamera } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash, FaCamera, FaEye, FaEyeSlash, FaDownload } from 'react-icons/fa';
 import { getWorkers, createWorker, updateWorker, deleteWorker, getUniqueId } from '../../services/workerService';
 import { getDepartments } from '../../services/departmentService';
 import { getSettings } from '../../services/settingsService';
@@ -12,10 +12,10 @@ import Table from '../common/Table';
 import Modal from '../common/Modal';
 import Spinner from '../common/Spinner';
 import appContext from '../../context/AppContext';
-
-import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import { formatCurrency } from '../../utils/formatUtils';
 import FaceCapture from './FaceCapture'; // Import FaceCapture component
 import PremiumUpgradeModal from '../common/PremiumUpgradeModal'; // Import the premium upgrade modal
+import DocumentViewerModal from './DocumentViewerModal';
 
 const WorkerManagement = () => {
   const location = useLocation(); // Added useLocation hook
@@ -23,6 +23,13 @@ const WorkerManagement = () => {
   const [workers, setWorkers] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [batches, setBatches] = useState([]); // <-- This line was missing
+  const [globalLeavePolicy, setGlobalLeavePolicy] = useState([
+    { type: 'annual', label: 'Annual' }, { type: 'sick', label: 'Sick' },
+    { type: 'hospital', label: 'Hospital' }, { type: 'urgent', label: 'Urgent' },
+    { type: 'marriage', label: 'Marriage' }, { type: 'paternity', label: 'Paternity' },
+    { type: 'compassion', label: 'Compassion' }, { type: 'personal', label: 'Personal' },
+    { type: 'unpaid', label: 'Unpaid' }, { type: 'homeCountry', label: 'Home Country' }
+  ]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [passTypeFilter, setPassTypeFilter] = useState('');
@@ -49,7 +56,36 @@ const WorkerManagement = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isDocumentViewerOpen, setIsDocumentViewerOpen] = useState(false);
   const [selectedWorker, setSelectedWorker] = useState(null);
+  const [activeDocument, setActiveDocument] = useState(null);
+
+  // Helper to resolve backend file URL correctly
+  const getFullFileUrl = (path) => {
+    if (!path) return '';
+    if (path.startsWith('http')) return path;
+    const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+    const serverUrl = apiBase.replace('/api', '');
+    const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+    return `${serverUrl}${normalizedPath}`;
+  };
+
+  const handleViewDocument = (worker) => {
+    if (!worker?.idProofUrl) return;
+    
+    const url = worker.idProofUrl;
+    let type = 'unknown';
+    const lowerUrl = url.toLowerCase();
+    if (lowerUrl.endsWith('.pdf')) type = 'pdf';
+    else if (lowerUrl.endsWith('.jpg') || lowerUrl.endsWith('.jpeg') || lowerUrl.endsWith('.png')) type = 'image';
+    else if (lowerUrl.endsWith('.xls') || lowerUrl.endsWith('.xlsx')) type = 'excel';
+    
+    // Extract a readable name
+    const name = url.split('/').pop() || 'ID Document';
+
+    setActiveDocument({ url, name, type, workerId: worker._id });
+    setIsDocumentViewerOpen(true);
+  };
 
   // Form states
   const [formData, setFormData] = useState({
@@ -73,6 +109,8 @@ const WorkerManagement = () => {
     dateOfJoining: new Date().toISOString().split('T')[0],
     dateOfExit: '',
     resignationStatus: 'Active',
+    exitReasonType: '',
+    exitReasonDescription: '',
     workPassType: '',
     passportNumber: '',
     nationality: '',
@@ -82,11 +120,16 @@ const WorkerManagement = () => {
     emergencyContactName: '',
     relationship: '',
     bankAccountNumber: '',
-    qualification: ''
+    qualification: '',
+    idProofFile: null,
+    leaveOverrides: {
+      annual: '', sick: '', hospital: '', urgent: '', marriage: '', 
+      paternity: '', compassion: '', personal: '', unpaid: '', homeCountry: ''
+    }
   });
 
   // Subdomain
-  const { subdomain } = useContext(appContext);
+  const { subdomain, settings } = useContext(appContext);
 
   // Load workers, departments and user account info
   const loadData = async () => {
@@ -108,6 +151,9 @@ const WorkerManagement = () => {
       setWorkers(safeWorkersData);
       setDepartments(safeDepartmentsData);
       setBatches(safeSettingsData.batches || []);
+      if (Array.isArray(safeSettingsData.leavePolicy)) {
+        setGlobalLeavePolicy(safeSettingsData.leavePolicy);
+      }
 
       // Set account type and current user
       setAccountType(userData?.accountType || 'free');
@@ -145,7 +191,58 @@ const WorkerManagement = () => {
   // Handle form input change
   const handleChange = (e) => {
     const { name, value } = e.target;
+    // When status goes back to Active, clear exit fields
+    if (name === 'resignationStatus' && value === 'Active') {
+      setFormData(prev => ({
+        ...prev,
+        resignationStatus: 'Active',
+        exitReasonType: '',
+        exitReasonDescription: '',
+        dateOfExit: ''
+      }));
+      return;
+    }
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleLeaveOverrideChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      leaveOverrides: {
+        ...prev.leaveOverrides,
+        [name]: value === '' ? '' : Number(value)
+      }
+    }));
+  };
+
+  // Handle ID proof file upload
+  const handleIdProofUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const allowedTypes = [
+      'application/pdf',
+      'image/jpeg',
+      'image/jpg',
+      'image/png',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    ];
+    const maxSize = 5 * 1024 * 1024; // 5MB
+
+    if (!allowedTypes.includes(file.type)) {
+      toast.error('Invalid file type. Only PDF, JPEG, PNG, and Excel files are allowed.');
+      e.target.value = '';
+      return;
+    }
+    if (file.size > maxSize) {
+      toast.error('File size must not exceed 5MB.');
+      e.target.value = '';
+      return;
+    }
+
+    setFormData(prev => ({ ...prev, idProofFile: file }));
   };
 
   const filteredWorkers = Array.isArray(workers)
@@ -221,6 +318,8 @@ const WorkerManagement = () => {
       dateOfJoining: new Date().toISOString().split('T')[0],
       dateOfExit: '',
       resignationStatus: 'Active',
+      exitReasonType: '',
+      exitReasonDescription: '',
       workPassType: '',
       passportNumber: '',
       nationality: '',
@@ -230,7 +329,12 @@ const WorkerManagement = () => {
       emergencyContactName: '',
       relationship: '',
       bankAccountNumber: '',
-      qualification: ''
+      qualification: '',
+      idProofFile: null,
+      leaveOverrides: {
+        annual: '', sick: '', hospital: '', urgent: '', marriage: '', 
+        paternity: '', compassion: '', personal: '', unpaid: '', homeCountry: ''
+      }
     }));
     getWorkerId();
     setIsAddModalOpen(true);
@@ -263,6 +367,8 @@ const WorkerManagement = () => {
       dateOfJoining: worker.dateOfJoining ? new Date(worker.dateOfJoining).toISOString().split('T')[0] : '',
       dateOfExit: worker.dateOfExit ? new Date(worker.dateOfExit).toISOString().split('T')[0] : '',
       resignationStatus: worker.resignationStatus || 'Active',
+      exitReasonType: worker.exitReasonType || '',
+      exitReasonDescription: worker.exitReasonDescription || '',
       workPassType: worker.workPassType || '',
       passportNumber: worker.passportNumber || '',
       nationality: worker.nationality || '',
@@ -273,7 +379,20 @@ const WorkerManagement = () => {
       relationship: worker.relationship || '',
       bankAccountNumber: worker.bankAccountNumber || '',
       qualification: worker.qualification || '',
-      rfid: worker.rfid || ''
+      rfid: worker.rfid || '',
+      idProofFile: null,
+      leaveOverrides: {
+        annual: worker.leaveOverrides?.annual ?? '',
+        sick: worker.leaveOverrides?.sick ?? '',
+        hospital: worker.leaveOverrides?.hospital ?? '',
+        urgent: worker.leaveOverrides?.urgent ?? '',
+        marriage: worker.leaveOverrides?.marriage ?? '',
+        paternity: worker.leaveOverrides?.paternity ?? '',
+        compassion: worker.leaveOverrides?.compassion ?? '',
+        personal: worker.leaveOverrides?.personal ?? '',
+        unpaid: worker.leaveOverrides?.unpaid ?? '',
+        homeCountry: worker.leaveOverrides?.homeCountry ?? ''
+      }
     });
     setIsEditModalOpen(true);
   };
@@ -419,6 +538,28 @@ const WorkerManagement = () => {
       return;
     }
 
+    // Exit workflow validation
+    if (formData.resignationStatus === 'Resigned') {
+      if (!formData.exitReasonType) {
+        toast.error('Exit Reason Type is required when status is Resigned');
+        return;
+      }
+      if (!formData.exitReasonDescription?.trim()) {
+        toast.error('Exit Reason Description is required when status is Resigned');
+        return;
+      }
+      if (!formData.dateOfExit) {
+        toast.error('Date of Exit is required when status is Resigned');
+        return;
+      }
+    }
+
+    // ID Proof validation
+    if (!formData.idProofFile) {
+      toast.error('ID Proof document is required');
+      return;
+    }
+
     try {
       const newWorker = await createWorker({
         ...formData,
@@ -475,6 +616,22 @@ const WorkerManagement = () => {
       }
       if (formData.password.length < 6) {
         toast.error('Password must be at least 6 characters long');
+        return;
+      }
+    }
+
+    // Exit workflow validation
+    if (formData.resignationStatus === 'Resigned') {
+      if (!formData.exitReasonType) {
+        toast.error('Exit Reason Type is required when status is Resigned');
+        return;
+      }
+      if (!formData.exitReasonDescription?.trim()) {
+        toast.error('Exit Reason Description is required when status is Resigned');
+        return;
+      }
+      if (!formData.dateOfExit) {
+        toast.error('Date of Exit is required when status is Resigned');
         return;
       }
     }
@@ -687,7 +844,7 @@ const WorkerManagement = () => {
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     try {
-      return new Date(dateString).toLocaleDateString('en-GB', {
+      return new Date(dateString).toLocaleDateString(settings.localization?.locale || 'en-GB', {
         day: '2-digit',
         month: 'short',
         year: 'numeric'
@@ -1013,16 +1170,53 @@ const WorkerManagement = () => {
                 </select>
               </div>
 
-              <div className="form-group">
-                <label className="form-label">Date of Exit (Optional)</label>
-                <input
-                  type="date"
-                  name="dateOfExit"
-                  className="form-input"
-                  value={formData.dateOfExit}
-                  onChange={handleChange}
-                />
-              </div>
+              {/* ─── Exit Workflow: shown only when Resigned ─── */}
+              {formData.resignationStatus === 'Resigned' && (
+                <>
+                  <div className="form-group">
+                    <label className="form-label">Exit Reason Type <span className="text-red-500">*</span></label>
+                    <select
+                      name="exitReasonType"
+                      className="form-input"
+                      value={formData.exitReasonType}
+                      onChange={handleChange}
+                      required
+                    >
+                      <option value="">Select Reason Type</option>
+                      <option value="Company Termination">Company Termination</option>
+                      <option value="Employee Resignation">Employee Resignation</option>
+                    </select>
+                  </div>
+
+                  <div className="form-group md:col-span-3">
+                    <label className="form-label">Exit Reason Description <span className="text-red-500">*</span></label>
+                    <textarea
+                      name="exitReasonDescription"
+                      className="form-input min-h-[80px]"
+                      value={formData.exitReasonDescription}
+                      onChange={handleChange}
+                      placeholder="Describe the reason for exit in detail..."
+                      required
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Date of Exit <span className="text-red-500">*</span></label>
+                    <input
+                      type="date"
+                      name="dateOfExit"
+                      className={`form-input ${!formData.exitReasonType ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      value={formData.dateOfExit}
+                      onChange={handleChange}
+                      disabled={!formData.exitReasonType}
+                      required
+                    />
+                    {!formData.exitReasonType && (
+                      <p className="text-xs text-amber-600 mt-1">Select Exit Reason Type first</p>
+                    )}
+                  </div>
+                </>
+              )}
 
               <div className="form-group">
                 <label className="form-label">Department *</label>
@@ -1272,6 +1466,65 @@ const WorkerManagement = () => {
             </div>
           </section>
 
+          {/* ID Proof Upload - REQUIRED */}
+          <section>
+            <h3 className="text-lg font-semibold border-b pb-2 mb-4 text-[#111111] flex items-center gap-2">
+              ID Proof
+              <span className="text-xs font-normal text-red-500 bg-red-50 px-2 py-0.5 rounded-full border border-red-100">Required</span>
+            </h3>
+            <div className="form-group">
+              <label className="form-label">Upload ID Document <span className="text-red-500">*</span></label>
+              <div className="border-2 border-dashed border-gray-200 rounded-xl p-4 hover:border-blue-300 transition-colors bg-gray-50">
+                <input
+                  type="file"
+                  id="idProof-add"
+                  accept=".pdf,.jpg,.jpeg,.png,.xls,.xlsx"
+                  className="hidden"
+                  onChange={handleIdProofUpload}
+                />
+                {!formData.idProofFile ? (
+                  <label
+                    htmlFor="idProof-add"
+                    className="flex flex-col items-center justify-center py-4 cursor-pointer"
+                  >
+                    <svg className="w-10 h-10 text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <span className="text-sm font-medium text-blue-600">Click to upload ID proof</span>
+                    <span className="text-xs text-gray-400 mt-1">PDF, JPEG, PNG, Excel — Max 5MB</span>
+                  </label>
+                ) : (
+                  <div className="flex items-center gap-4">
+                    {formData.idProofFile.type.startsWith('image/') && (
+                      <img
+                        src={URL.createObjectURL(formData.idProofFile)}
+                        alt="ID Preview"
+                        className="w-16 h-16 object-cover rounded-lg border border-gray-200 shadow-sm"
+                      />
+                    )}
+                    {!formData.idProofFile.type.startsWith('image/') && (
+                      <div className="w-16 h-16 flex items-center justify-center bg-blue-50 rounded-lg border border-blue-100">
+                        <svg className="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-gray-800 truncate">{formData.idProofFile.name}</p>
+                      <p className="text-xs text-gray-400">{(formData.idProofFile.size / 1024).toFixed(1)} KB</p>
+                    </div>
+                    <label
+                      htmlFor="idProof-add"
+                      className="text-xs text-blue-600 font-semibold cursor-pointer hover:underline flex-shrink-0"
+                    >
+                      Replace
+                    </label>
+                  </div>
+                )}
+              </div>
+            </div>
+          </section>
+
           <div className="flex justify-end mt-6 space-x-2 pb-6">
             <Button variant="outline" onClick={() => setIsAddModalOpen(false)}>
               Cancel
@@ -1446,16 +1699,53 @@ const WorkerManagement = () => {
                 </select>
               </div>
 
-              <div className="form-group">
-                <label className="form-label">Date of Exit</label>
-                <input
-                  type="date"
-                  name="dateOfExit"
-                  className="form-input"
-                  value={formData.dateOfExit}
-                  onChange={handleChange}
-                />
-              </div>
+              {/* ─── Exit Workflow: shown only when Resigned ─── */}
+              {formData.resignationStatus === 'Resigned' && (
+                <>
+                  <div className="form-group">
+                    <label className="form-label">Exit Reason Type <span className="text-red-500">*</span></label>
+                    <select
+                      name="exitReasonType"
+                      className="form-input"
+                      value={formData.exitReasonType}
+                      onChange={handleChange}
+                      required
+                    >
+                      <option value="">Select Reason Type</option>
+                      <option value="Company Termination">Company Termination</option>
+                      <option value="Employee Resignation">Employee Resignation</option>
+                    </select>
+                  </div>
+
+                  <div className="form-group md:col-span-3">
+                    <label className="form-label">Exit Reason Description <span className="text-red-500">*</span></label>
+                    <textarea
+                      name="exitReasonDescription"
+                      className="form-input min-h-[80px]"
+                      value={formData.exitReasonDescription}
+                      onChange={handleChange}
+                      placeholder="Describe the reason for exit in detail..."
+                      required
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Date of Exit <span className="text-red-500">*</span></label>
+                    <input
+                      type="date"
+                      name="dateOfExit"
+                      className={`form-input ${!formData.exitReasonType ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      value={formData.dateOfExit}
+                      onChange={handleChange}
+                      disabled={!formData.exitReasonType}
+                      required
+                    />
+                    {!formData.exitReasonType && (
+                      <p className="text-xs text-amber-600 mt-1">Select Exit Reason Type first</p>
+                    )}
+                  </div>
+                </>
+              )}
 
               <div className="form-group">
                 <label className="form-label">Department *</label>
@@ -1683,6 +1973,86 @@ const WorkerManagement = () => {
             </div>
           </section>
 
+          {/* Custom Leave Allocation */}
+          {/* <section>
+            <h3 className="text-lg font-semibold border-b pb-2 mb-4 text-[#111111]">Custom Leave Allocation (Optional)</h3>
+            <p className="text-xs text-gray-500 mb-4">Leave fields blank to use the global policy default limits.</p>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+              {globalLeavePolicy.map((leave) => (
+                <div key={leave.type} className="form-group">
+                  <label className="form-label text-xs">{leave.label}</label>
+                  <input
+                    type="number"
+                    name={leave.type}
+                    className="form-input"
+                    value={formData.leaveOverrides?.[leave.type] ?? ''}
+                    onChange={handleLeaveOverrideChange}
+                    min="0"
+                    placeholder={leave.defaultDays !== undefined ? `Default: ${leave.defaultDays}` : "Auto"}
+                  />
+                </div>
+              ))}
+            </div>
+          </section> */}
+
+          {/* ID Proof Upload */}
+          <section>
+            <h3 className="text-lg font-semibold border-b pb-2 mb-4 text-[#111111] flex items-center gap-2">
+              ID Proof
+              <span className="text-xs font-normal text-gray-500 bg-gray-50 px-2 py-0.5 rounded-full border border-gray-200">Optional — only upload to replace existing</span>
+            </h3>
+            <div className="form-group">
+              {selectedWorker?.idProofUrl && !formData.idProofFile && (
+                <div className="mb-3 flex items-center gap-3 p-3 bg-green-50 border border-green-100 rounded-xl">
+                  <svg className="w-5 h-5 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span className="text-xs text-green-700 font-medium flex-1">ID Proof already uploaded</span>
+                  {selectedWorker?.idProofUrl && (
+                    <button
+                      type="button"
+                      onClick={() => handleViewDocument(selectedWorker)}
+                      className="text-xs text-blue-600 font-semibold hover:underline flex-shrink-0"
+                    >
+                      View Document
+                    </button>
+                  )}
+                </div>
+              )}
+              <label className="form-label">{selectedWorker?.idProofUrl ? 'Replace ID Document' : 'Upload ID Document'}</label>
+              <div className="border-2 border-dashed border-gray-200 rounded-xl p-4 hover:border-blue-300 transition-colors bg-gray-50">
+                <input type="file" id="idProof-edit" accept=".pdf,.jpg,.jpeg,.png,.xls,.xlsx" className="hidden" onChange={handleIdProofUpload} />
+                {!formData.idProofFile ? (
+                  <label htmlFor="idProof-edit" className="flex flex-col items-center justify-center py-4 cursor-pointer">
+                    <svg className="w-10 h-10 text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                    </svg>
+                    <span className="text-sm font-medium text-blue-600">Click to upload new ID proof</span>
+                    <span className="text-xs text-gray-400 mt-1">PDF, JPEG, PNG, Excel — Max 5MB</span>
+                  </label>
+                ) : (
+                  <div className="flex items-center gap-4">
+                    {formData.idProofFile.type.startsWith('image/') && (
+                      <img src={URL.createObjectURL(formData.idProofFile)} alt="ID Preview" className="w-16 h-16 object-cover rounded-lg border border-gray-200 shadow-sm" />
+                    )}
+                    {!formData.idProofFile.type.startsWith('image/') && (
+                      <div className="w-16 h-16 flex items-center justify-center bg-blue-50 rounded-lg border border-blue-100">
+                        <svg className="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-gray-800 truncate">{formData.idProofFile.name}</p>
+                      <p className="text-xs text-gray-400">{(formData.idProofFile.size / 1024).toFixed(1)} KB</p>
+                    </div>
+                    <label htmlFor="idProof-edit" className="text-xs text-blue-600 font-semibold cursor-pointer hover:underline flex-shrink-0">Replace</label>
+                  </div>
+                )}
+              </div>
+            </div>
+          </section>
+
           <div className="flex justify-end mt-6 space-x-2 pb-6">
             <Button variant="outline" onClick={() => setIsEditModalOpen(false)}>
               Cancel
@@ -1796,11 +2166,62 @@ const WorkerManagement = () => {
                     <DetailItem label="Pass Expiry" value={formatDate(selectedWorker.passExpiryDate)} isBadge badgeColor={getExpiryStatus(selectedWorker.passExpiryDate).color} />
                     <DetailItem label="Department" value={typeof selectedWorker.department === 'object' ? selectedWorker.department.name : selectedWorker.department} />
                     <DetailItem label="Batch/Shift" value={selectedWorker.batch} />
-                    <DetailItem label="Monthly Salary" value={`₹${selectedWorker.salary?.toLocaleString()}`} isBadge badgeColor="green" />
+                    <DetailItem label="Monthly Salary" value={formatCurrency(selectedWorker.salary, settings)} isBadge badgeColor="green" />
                     <DetailItem label="RFID Tag ID" value={selectedWorker.rfid} />
                     <DetailItem label="Qualification" value={selectedWorker.qualification} />
                     {selectedWorker.resignationStatus === 'Resigned' && (
-                      <DetailItem label="Exit Date" value={formatDate(selectedWorker.dateOfExit)} isBadge badgeColor="red" />
+                      <>
+                        <DetailItem label="Exit Date" value={formatDate(selectedWorker.dateOfExit)} isBadge badgeColor="red" />
+                        <DetailItem label="Exit Reason Type" value={selectedWorker.exitReasonType} isBadge badgeColor="red" />
+                        {selectedWorker.exitReasonDescription && (
+                          <div className="py-2 border-b border-gray-100">
+                            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-1">Exit Description</span>
+                            <p className="text-sm text-gray-700 bg-red-50/40 p-2 rounded-lg border border-red-50 italic leading-relaxed">
+                              {selectedWorker.exitReasonDescription}
+                            </p>
+                          </div>
+                        )}
+                      </>
+                    )}
+                    {/* ID Proof Viewer Trigger */}
+                    {selectedWorker.idProofUrl && (
+                      <div className="mt-4 pt-4 border-t border-gray-100">
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gray-50/50 p-3 rounded-xl border border-gray-100">
+                          <div>
+                            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-1">ID Proof Document</span>
+                            <div className="flex items-center gap-2">
+                              <div className="p-1.5 bg-blue-100 rounded-lg text-blue-600">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                              </div>
+                              <span className="text-sm font-medium text-gray-700 truncate max-w-[150px] sm:max-w-[200px]" title={selectedWorker.idProofUrl.split('/').pop()}>
+                                {selectedWorker.idProofUrl.split('/').pop()}
+                              </span>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center gap-2 w-full sm:w-auto">
+                            <button
+                              onClick={() => handleViewDocument(selectedWorker)}
+                              className="flex items-center justify-center gap-2 px-4 py-2 text-xs font-semibold text-white bg-gray-800 rounded-lg hover:bg-gray-900 transition-colors shadow-sm flex-1 sm:flex-none w-full sm:w-auto"
+                            >
+                              <FaEye className="w-3.5 h-3.5" />
+                              View
+                            </button>
+                            <a
+                              href={getFullFileUrl(selectedWorker.idProofUrl)}
+                              download
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center justify-center gap-2 px-4 py-2 text-xs font-semibold text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors shadow-sm flex-1 sm:flex-none w-full sm:w-auto"
+                            >
+                              <FaDownload className="w-3.5 h-3.5" />
+                              Download
+                            </a>
+                          </div>
+                        </div>
+                      </div>
                     )}
                   </div>
                 </section>
@@ -1876,6 +2297,15 @@ const WorkerManagement = () => {
         isOpen={showPremiumUpgrade}
         onClose={() => setShowPremiumUpgrade(false)}
       />
+
+      {/* Embedded Document Viewer Modal */}
+      <DocumentViewerModal 
+        isOpen={isDocumentViewerOpen} 
+        onClose={() => setIsDocumentViewerOpen(false)} 
+        document={activeDocument} 
+        getFullFileUrl={getFullFileUrl}
+      />
+
     </div>
   );
 };

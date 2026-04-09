@@ -12,6 +12,7 @@ import Spinner from '../common/Spinner';
 import Card from '../common/Card';
 import Modal from '../common/Modal';
 import Button from '../common/Button';
+import AttachmentViewerModal from '../common/AttachmentViewerModal';
 
 const LEAVE_TYPE_LABELS = {
   'Annual Leave': 'Annual Leave',
@@ -54,6 +55,11 @@ const LeaveManagement = () => {
   const [editableBalance, setEditableBalance] = useState({});
   const [savingBalance, setSavingBalance] = useState(false);
   const [currentSummaryWorkerId, setCurrentSummaryWorkerId] = useState(null);
+  
+  // Attachment viewer modal
+  const [isViewerOpen, setIsViewerOpen] = useState(false);
+  const [viewerUrl, setViewerUrl] = useState('');
+  const [viewerFileName, setViewerFileName] = useState('');
 
   useEffect(() => {
     fetchLeaves();
@@ -278,16 +284,19 @@ const LeaveManagement = () => {
 
       {leave.document && (
         <div className="mt-3">
-          <a
-            href={`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001'}/uploads/${leave.document}`}
-            target="_blank"
-            rel="noopener noreferrer"
+          <button
+            onClick={() => {
+                const baseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').split('/api')[0];
+                setViewerUrl(`${baseUrl}/uploads/${leave.document}`);
+                setViewerFileName(leave.document);
+                setIsViewerOpen(true);
+            }}
             className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-lg border border-emerald-200 hover:bg-emerald-100 transition-all text-xs font-semibold shadow-sm"
           >
             <FaFileAlt />
             <span>View Attachment</span>
             <FaEye className="ml-1 opacity-70" />
-          </a>
+          </button>
         </div>
       )}
 
@@ -554,6 +563,14 @@ const LeaveManagement = () => {
           <p className="text-center text-gray-500 py-6">No summary available</p>
         )}
       </Modal>
+
+      {/* Attachment Viewer Modal */}
+      <AttachmentViewerModal
+        isOpen={isViewerOpen}
+        onClose={() => setIsViewerOpen(false)}
+        fileUrl={viewerUrl}
+        fileName={viewerFileName}
+      />
     </div>
   );
 };

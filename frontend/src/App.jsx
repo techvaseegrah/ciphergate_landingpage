@@ -53,7 +53,6 @@ import HolidayManagement from './components/admin/HolidayManagement';
 import InstallPWA from './components/common/InstallPWA';
 
 function App() {
-  // Initialize subdomain with the actual value from localStorage immediately
   const [subdomain, setSubdomain] = useState(() => {
     const stored = localStorage.getItem('tasktracker-subdomain');
     if (stored) return stored;
@@ -69,6 +68,38 @@ function App() {
 
     return 'main';
   });
+
+  const [settings, setSettings] = useState({
+    localization: {
+      country: 'USA',
+      currency: 'USD',
+      currencySymbol: '$',
+      locale: 'en-US'
+    }
+  });
+
+  const fetchGlobalSettings = async (sub) => {
+    if (!sub || sub === 'main') return;
+    try {
+      const { default: api } = await import('./services/api');
+      const response = await api.get(`/settings/${sub}`);
+      if (response.data) {
+        setSettings(prev => ({
+          ...prev,
+          ...response.data,
+          localization: response.data.localization || prev.localization
+        }));
+      }
+    } catch (error) {
+      console.error("Error fetching global settings:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (subdomain && subdomain !== 'main') {
+      fetchGlobalSettings(subdomain);
+    }
+  }, [subdomain]);
 
   const getSubdomain = () => {
     return localStorage.getItem('tasktracker-subdomain') || 'main';
@@ -127,7 +158,9 @@ function App() {
 
   const contextValue = {
     subdomain,
-    setSubdomain: updateSubdomain // Use our custom function
+    setSubdomain: updateSubdomain, // Use our custom function
+    settings,
+    refreshSettings: () => fetchGlobalSettings(subdomain)
   };
 
   return (

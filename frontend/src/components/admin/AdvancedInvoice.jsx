@@ -3,11 +3,15 @@ import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import autoTable from 'jspdf-autotable';
 import { toast } from 'react-toastify';
+import { useContext } from 'react';
+import appContext from '../../context/AppContext';
+import { formatCurrency } from '../../utils/formatUtils';
 
 const AdvancedInvoice = ({ onInvoiceSave, initialData }) => {
+  const { settings } = useContext(appContext);
   // Auto-generate invoice number and date
   const today = new Date();
-  const formattedDate = today.toLocaleDateString('en-IN', {
+  const formattedDate = today.toLocaleDateString(settings.localization?.locale || 'en-US', {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric'
@@ -154,7 +158,7 @@ const AdvancedInvoice = ({ onInvoiceSave, initialData }) => {
       cgstTotal,
       sgstTotal,
       igstTotal,
-      totalInWords: `Indian Rupee: ${numberToWords(Math.round(grandTotal))} Only`,
+      totalInWords: `${settings.localization?.currencySymbol || ''} ${numberToWords(Math.round(grandTotal))} Only`,
       grandTotal
     };
   };
@@ -527,7 +531,7 @@ const AdvancedInvoice = ({ onInvoiceSave, initialData }) => {
       pdf.setFontSize(11);
 
       const printRow = (label, value, background = null, bold = false) => {
-        const formattedValue = "Rs. " + Number(value).toLocaleString("en-IN", { minimumFractionDigits: 2 }) + " /-";
+        const formattedValue = formatCurrency(value, settings) + " /-";
         const fullText = `${label} ${formattedValue}`;
         
         pdf.setFont("helvetica", bold ? "bold" : "normal");
@@ -1216,25 +1220,25 @@ temporarily interrupt app availability. We will provide advance notice when poss
                             <table class="totals-table">
                             <tr>
                                 <td style="text-align: right;">Sub Total :</td>
-                                <td style="text-align: right; font-weight: 500;">₹${totals.subtotal.toFixed(2)}</td>
+                                <td style="text-align: right; font-weight: 500;">${formatCurrency(totals.subtotal, settings)}</td>
                             </tr>
                             ${invoiceData.gstEnabled && invoiceData.saleType === 'Intrastate' ? 
                                 `<tr>
                                 <td style="text-align: right;">CGST Total :</td>
-                                <td style="text-align: right; font-weight: 500;">₹${totals.cgstTotal.toFixed(2)}</td>
+                                <td style="text-align: right; font-weight: 500;">${formatCurrency(totals.cgstTotal, settings)}</td>
                                 </tr>
                                 <tr>
                                 <td style="text-align: right;">SGST Total :</td>
-                                <td style="text-align: right; font-weight: 500;">₹${totals.sgstTotal.toFixed(2)}</td>
+                                <td style="text-align: right; font-weight: 500;">${formatCurrency(totals.sgstTotal, settings)}</td>
                                 </tr>` : ''}
                             ${invoiceData.gstEnabled && invoiceData.saleType === 'Interstate' ? 
                                 `<tr>
                                 <td style="text-align: right;">IGST Total :</td>
-                                <td style="text-align: right; font-weight: 500;">₹${totals.igstTotal.toFixed(2)}</td>
+                                <td style="text-align: right; font-weight: 500;">${formatCurrency(totals.igstTotal, settings)}</td>
                                 </tr>` : ''}
                             <tr class="grand-total">
                                 <td style="text-align: right; text-transform: uppercase;">Grand Total :</td>
-                                <td style="text-align: right;">₹${totals.grandTotal.toFixed(2)}</td>
+                                <td style="text-align: right;">${formatCurrency(totals.grandTotal, settings)}</td>
                             </tr>
                             </table>
                         </div>
@@ -1710,31 +1714,31 @@ temporarily interrupt app availability. We will provide advance notice when poss
                 <tbody>
                   <tr className="border-b border-gray-300">
                     <td className="py-2 px-3 text-sm text-right text-gray-700">Sub Total :</td>
-                    <td className="py-2 px-3 text-sm font-medium text-right text-gray-800">₹{totals.subtotal.toFixed(2)}</td>
+                    <td className="py-2 px-3 text-sm font-medium text-right text-gray-800">{formatCurrency(totals.subtotal, settings)}</td>
                   </tr>
 
                   {invoiceData.gstEnabled && invoiceData.saleType === 'Intrastate' && (
                     <>
                       <tr className="border-b border-gray-300">
                         <td className="py-2 px-3 text-sm text-right text-gray-700">CGST Total :</td>
-                        <td className="py-2 px-3 text-sm font-medium text-right text-gray-800">₹{totals.cgstTotal.toFixed(2)}</td>
+                        <td className="py-2 px-3 text-sm font-medium text-right text-gray-800">{formatCurrency(totals.cgstTotal, settings)}</td>
                       </tr>
                       <tr className="border-b border-gray-300">
                         <td className="py-2 px-3 text-sm text-right text-gray-700">SGST Total :</td>
-                        <td className="py-2 px-3 text-sm font-medium text-right text-gray-800">₹{totals.sgstTotal.toFixed(2)}</td>
+                        <td className="py-2 px-3 text-sm font-medium text-right text-gray-800">{formatCurrency(totals.sgstTotal, settings)}</td>
                       </tr>
                     </>
                   )}
                   {invoiceData.gstEnabled && invoiceData.saleType === 'Interstate' && (
                     <tr className="border-b border-gray-300">
                       <td className="py-2 px-3 text-sm text-right text-gray-700">IGST Total :</td>
-                      <td className="py-2 px-3 text-sm font-medium text-right text-gray-800">₹{totals.igstTotal.toFixed(2)}</td>
+                      <td className="py-2 px-3 text-sm font-medium text-right text-gray-800">{formatCurrency(totals.igstTotal, settings)}</td>
                     </tr>
                   )}
 
                   <tr style={{ backgroundColor: '#00843d' }}>
                     <td className="py-2 px-3 font-bold text-sm text-right text-white uppercase">Grand Total :</td>
-                    <td className="py-2 px-3 font-bold text-sm text-right text-white">₹{totals.grandTotal.toFixed(2)}</td>
+                    <td className="py-2 px-3 font-bold text-sm text-right text-white">{formatCurrency(totals.grandTotal, settings)}</td>
                   </tr>
                 </tbody>
               </table>

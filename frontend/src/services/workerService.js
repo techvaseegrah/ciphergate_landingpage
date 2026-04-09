@@ -30,30 +30,43 @@ export const createWorker = async (workerData) => {
     if (!workerData.password || workerData.password.trim() === '') {
       throw new Error('Password is required and cannot be empty');
     }
-    // FIX: Convert salary to string before calling trim()
     if (!workerData.salary || String(workerData.salary).trim() === '') {
       throw new Error('Salary is required and cannot be empty');
     }
     if (!workerData.department) {
       throw new Error('Department is required');
     }
-    if (!workerData.batch) { // ADDED THIS
+    if (!workerData.batch) {
       throw new Error('Batch is required');
     }
 
-    // Handle photo upload if it's a file
+    // Handle photo upload if it's a file (external upload for photo)
     if (workerData.photo && workerData.photo instanceof File) {
       const urlResponse = await uploadUtils(workerData.photo);
-      // Only update the photo field if upload was successful
       if (urlResponse) {
         workerData.photo = urlResponse;
       } else {
-        // If upload failed, remove the photo field or keep the existing one
         delete workerData.photo;
       }
     }
 
-    const response = await api.post('workers', workerData);
+    // Build FormData to support idProofFile (multipart)
+    const formData = new FormData();
+    Object.entries(workerData).forEach(([key, value]) => {
+      if (key === 'idProofFile' && value instanceof File) {
+        formData.append('idProofFile', value);
+      } else if (key === 'faceEmbeddings' && Array.isArray(value)) {
+        formData.append('faceEmbeddings', JSON.stringify(value));
+      } else if (key === 'leaveOverrides' && typeof value === 'object' && value !== null) {
+        formData.append('leaveOverrides', JSON.stringify(value));
+      } else if (value !== null && value !== undefined) {
+        formData.append(key, value);
+      }
+    });
+
+    const response = await api.post('workers', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
     return response.data;
   } catch (error) {
     console.error('Worker creation error:', error.response?.data || error);
@@ -124,19 +137,33 @@ export const getPublicWorkers = async (subdomainObj) => {
 
 export const updateWorker = async (id, workerData) => {
   try {
-    // Handle photo upload if it's a file
+    // Handle photo upload if it's a file (external upload for photo)
     if (workerData.photo && workerData.photo instanceof File) {
       const urlResponse = await uploadUtils(workerData.photo);
-      // Only update the photo field if upload was successful
       if (urlResponse) {
         workerData.photo = urlResponse;
       } else {
-        // If upload failed, remove the photo field to keep the existing one
         delete workerData.photo;
       }
     }
 
-    const response = await api.put(`workers/${id}`, workerData);
+    // Build FormData to support idProofFile (multipart)
+    const formData = new FormData();
+    Object.entries(workerData).forEach(([key, value]) => {
+      if (key === 'idProofFile' && value instanceof File) {
+        formData.append('idProofFile', value);
+      } else if (key === 'faceEmbeddings' && Array.isArray(value)) {
+        formData.append('faceEmbeddings', JSON.stringify(value));
+      } else if (key === 'leaveOverrides' && typeof value === 'object' && value !== null) {
+        formData.append('leaveOverrides', JSON.stringify(value));
+      } else if (value !== null && value !== undefined) {
+        formData.append(key, value);
+      }
+    });
+
+    const response = await api.put(`workers/${id}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
     return response.data;
   } catch (error) {
     console.error('Update Worker Error:', {

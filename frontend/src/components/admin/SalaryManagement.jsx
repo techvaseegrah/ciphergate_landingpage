@@ -14,6 +14,7 @@ import appContext from '../../context/AppContext';
 import { giveBonusAmount, removeBonusAmount, resetSalaryAmount, getSalaryReport, addDeduction, deleteDeduction, giveIncrement } from '../../services/salaryService';
 import { addFine, deleteFine } from '../../services/fineService';
 import { getAllHolidays } from '../../services/holidayService'; // Add this import
+import { formatCurrency } from '../../utils/formatUtils';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -91,7 +92,7 @@ const SalaryManagement = () => {
     });
     const [selectedIncrementWorker, setSelectedIncrementWorker] = useState(null);
 
-    const { subdomain } = useContext(appContext);
+    const { subdomain, settings } = useContext(appContext);
 
     const loadData = async () => {
         setIsLoading(true);
@@ -489,20 +490,8 @@ const SalaryManagement = () => {
 
         // Prepare summary data including bonus and fine information
         // Fix currency formatting to ensure clean, professional appearance
-        // Updated to use "Rs." instead of "₹" symbol as per requirements
-        const formatCurrencyForPDF = (amount) => {
-            // Handle different input types
-            if (typeof amount === 'string') {
-                // If it's already a formatted string, extract the numeric value and reformat it properly
-                const numericValue = parseFloat(amount.replace(/[₹Rs.,\s]/g, ''));
-                if (isNaN(numericValue)) {
-                    return 'Rs. 0.00';
-                }
-                return `Rs. ${numericValue.toFixed(2)}`;
-            }
-            // If it's a number, format it properly
-            return `Rs. ${Number(amount).toFixed(2)}`;
-        };
+        // Use localized formatCurrency utility for PDF
+        const formatCurrencyForPDF = (amount) => formatCurrency(amount, settings);
 
         const summaryData = [
             ['Employee Name', selectedWorker?.name], // Added Employee Name to match UI
@@ -530,7 +519,7 @@ const SalaryManagement = () => {
             ['Permission Deduction', formatCurrencyForPDF(reportData.report.summary?.permissionDeduction || 0)],
             ['Total Deductions', formatCurrencyForPDF(reportData.report.totalSalaryDeduction || 0)],
             ['Attendance Rate', `${Number(reportData.report.summary?.attendanceRate || 0).toFixed(2)}%`],
-            ['Per Minute Salary', `Rs. ${Number(reportData.report.summary?.perMinuteSalary || 0).toFixed(4)}`],
+            ['Per Minute Salary', formatCurrency(reportData.report.summary?.perMinuteSalary || 0, settings)],
         ];
 
         // Add bonus information if available
@@ -639,15 +628,15 @@ const SalaryManagement = () => {
         ];
 
         // Fix formatting for daily breakdown table
-        // Format Delay Deduction and Total Salary with "Rs" instead of "₹" for PDF
+        // Format Delay Deduction and Total Salary using localized utility for PDF
         const tableRows = reportData.report.report.map(row => [
             row.date,
             row.status,
             row.inTime,
             row.outTime,
             row.delayTime,
-            row.deductionAmount.replace('₹', 'Rs '), // Replace ₹ with Rs for Delay Deduction
-            row.totalSalary.replace('₹', 'Rs ') // Replace ₹ with Rs for Total Salary
+            formatCurrencyForPDF(row.deductionAmount.replace(/[^0-9.-]+/g, "")),
+            formatCurrencyForPDF(row.totalSalary.replace(/[^0-9.-]+/g, ""))
         ]);
 
         // Set font properties for daily breakdown table
@@ -759,12 +748,12 @@ const SalaryManagement = () => {
         {
             header: 'Salary',
             accessor: 'salary',
-            render: (record) => record?.salary?.toFixed(2)
+            render: (record) => formatCurrency(record?.salary, settings)
         },
         {
             header: 'Salary (this month)',
             accessor: 'finalSalary',
-            render: (record) => record?.finalSalary?.toFixed(2)
+            render: (record) => formatCurrency(record?.finalSalary, settings)
         },
         // ADD NEW COLUMN FOR FINE AMOUNT
         {
@@ -775,9 +764,9 @@ const SalaryManagement = () => {
                 const currentYear = new Date().getFullYear();
                 const fineAmount = calculateMonthlyFines(record, currentMonth, currentYear);
                 return fineAmount > 0 ? (
-                    <span className="text-red-600 font-medium">Rs.{fineAmount.toFixed(2)}</span>
+                    <span className="text-red-600 font-medium">{formatCurrency(fineAmount, settings)}</span>
                 ) : (
-                    <span className="text-gray-400">Rs.0.00</span>
+                    <span className="text-gray-400">{formatCurrency(0, settings)}</span>
                 );
             }
         },
@@ -790,9 +779,9 @@ const SalaryManagement = () => {
                 const currentYear = new Date().getFullYear();
                 const deductionAmount = calculateMonthlyDeductions(record, currentMonth, currentYear);
                 return deductionAmount > 0 ? (
-                    <span className="text-orange-600 font-medium">Rs.{deductionAmount.toFixed(2)}</span>
+                    <span className="text-orange-600 font-medium">{formatCurrency(deductionAmount, settings)}</span>
                 ) : (
-                    <span className="text-gray-400">Rs.0.00</span>
+                    <span className="text-gray-400">{formatCurrency(0, settings)}</span>
                 );
             }
         },
@@ -992,18 +981,18 @@ const SalaryManagement = () => {
                         <div className="bg-blue-50 p-4 rounded-lg border border-blue-100 shadow-sm">
                             <p className="text-sm font-medium text-blue-800 mb-1">Total Fines</p>
                             <p className="text-2xl font-bold text-blue-900">{filteredFinesList.length}</p>
-                            <p className="text-sm text-blue-700 mt-1">₹{filteredFinesList.reduce((sum, f) => sum + (f.amount || 0), 0).toFixed(2)}</p>
+                            <p className="text-sm text-blue-700 mt-1">{formatCurrency(filteredFinesList.reduce((sum, f) => sum + (f.amount || 0), 0), settings)}</p>
                         </div>
                         <div className="bg-orange-50 p-4 rounded-lg border border-orange-100 shadow-sm">
                             <p className="text-sm font-medium text-orange-800 mb-1">Total Deductions</p>
                             <p className="text-2xl font-bold text-orange-900">{filteredDeductionsList.length}</p>
-                            <p className="text-sm text-orange-700 mt-1">₹{filteredDeductionsList.reduce((sum, f) => sum + (f.amount || 0), 0).toFixed(2)}</p>
+                            <p className="text-sm text-orange-700 mt-1">{formatCurrency(filteredDeductionsList.reduce((sum, f) => sum + (f.amount || 0), 0), settings)}</p>
                         </div>
                         <div className="bg-red-50 p-4 rounded-lg border border-red-100 shadow-sm">
                             <p className="text-sm font-medium text-red-800 mb-1">Grand Total</p>
                             <p className="text-2xl font-bold text-red-900">
-                                ₹{(filteredFinesList.reduce((sum, f) => sum + (f.amount || 0), 0) +
-                                    filteredDeductionsList.reduce((sum, f) => sum + (f.amount || 0), 0)).toFixed(2)}
+                                {formatCurrency(filteredFinesList.reduce((sum, f) => sum + (f.amount || 0), 0) +
+                                    filteredDeductionsList.reduce((sum, f) => sum + (f.amount || 0), 0), settings)}
                             </p>
                         </div>
                         <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-100 shadow-sm">
@@ -1058,7 +1047,7 @@ const SalaryManagement = () => {
                                             {new Date(item.date).toLocaleDateString()}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-red-600">
-                                            ₹{item.amount.toFixed(2)}
+                                            {formatCurrency(item.amount, settings)}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                                             {item.reason}
@@ -1132,7 +1121,7 @@ const SalaryManagement = () => {
             >
                 <form onSubmit={handleEditWorker}>
                     <div className="form-group">
-                        <label htmlFor="bonus" className="form-label">Bonus Amount</label>
+                        <label htmlFor="bonus" className="form-label">Bonus Amount ({settings.localization?.currencySymbol || '$'})</label>
                         <input
                             type="text"
                             id="bonus"
@@ -1260,7 +1249,7 @@ const SalaryManagement = () => {
                         </div>
 
                         <div className="form-group">
-                            <label htmlFor="amount" className="form-label">Fine Amount</label>
+                            <label htmlFor="amount" className="form-label">Fine Amount ({settings.localization?.currencySymbol || '$'})</label>
                             <input
                                 type="text"
                                 id="amount"
@@ -1400,19 +1389,19 @@ const SalaryManagement = () => {
                                         <p><strong>Employee ID:</strong> {selectedWorker?.rfid}</p>
                                     </div>
                                     <div>
-                                        <p><strong>Original Salary:</strong> ₹{reportData.report.summary.originalSalary?.toFixed(2) || '0.00'}</p>
-                                        <p><strong>Actual Earned Salary:</strong> ₹{reportData.report.summary.finalSalary?.toFixed(2) || '0.00'}</p>
+                                        <p><strong>Original Salary:</strong> {formatCurrency(reportData.report.summary.originalSalary, settings)}</p>
+                                        <p><strong>Actual Earned Salary:</strong> {formatCurrency(reportData.report.summary.finalSalary, settings)}</p>
                                         {/* ADD FINE INFORMATION TO THE SUMMARY */}
                                         {reportData.totalFinesAmount > 0 && (
-                                            <p><strong>Total Fines:</strong> <span className="text-red-600">₹{reportData.totalFinesAmount.toFixed(2)}</span></p>
+                                            <p><strong>Total Fines:</strong> <span className="text-red-600">{formatCurrency(reportData.totalFinesAmount, settings)}</span></p>
                                         )}
                                         {reportData.totalDeductionsAmount > 0 && (
-                                            <p><strong>Other Deductions:</strong> <span className="text-orange-600">₹{reportData.totalDeductionsAmount.toFixed(2)}</span></p>
+                                            <p><strong>Other Deductions:</strong> <span className="text-orange-600">{formatCurrency(reportData.totalDeductionsAmount, settings)}</span></p>
                                         )}
                                         {reportData.totalBonusAmount > 0 && (
-                                            <p><strong>Bonus Amount Applied:</strong> <span className="text-green-600">₹{reportData.totalBonusAmount.toFixed(2)}</span></p>
+                                            <p><strong>Bonus Amount Applied:</strong> <span className="text-green-600">{formatCurrency(reportData.totalBonusAmount, settings)}</span></p>
                                         )}
-                                        <p><strong>Total Final Salary:</strong> <span className="font-bold">₹{reportData.finalSalaryWithFines?.toFixed(2) || '0.00'}</span></p>
+                                        <p><strong>Total Final Salary:</strong> <span className="font-bold">{formatCurrency(reportData.finalSalaryWithFines, settings)}</span></p>
                                     </div>
                                 </div>
                                 <hr className="my-4" />
@@ -1451,15 +1440,15 @@ const SalaryManagement = () => {
                                     </div>
                                     <div>
                                         <p><strong>Absent Deduction:</strong></p>
-                                        <span className="font-bold">₹{reportData.report.summary.absentDeduction?.toFixed(2) || '0.00'}</span>
+                                        <span className="font-bold">{formatCurrency(reportData.report.summary.absentDeduction, settings)}</span>
                                     </div>
                                     <div>
                                         <p><strong>Permission Deduction:</strong></p>
-                                        <span className="font-bold">₹{reportData.report.summary.permissionDeduction?.toFixed(2) || '0.00'}</span>
+                                        <span className="font-bold">{formatCurrency(reportData.report.summary.permissionDeduction, settings)}</span>
                                     </div>
                                     <div>
                                         <p><strong>Total Deductions:</strong></p>
-                                        <span className="font-bold">₹{reportData.report.totalSalaryDeduction?.toFixed(2) || '0.00'}</span>
+                                        <span className="font-bold">{formatCurrency(reportData.report.totalSalaryDeduction, settings)}</span>
                                     </div>
                                     <div>
                                         <p><strong>Attendance Rate:</strong></p>
@@ -1467,14 +1456,14 @@ const SalaryManagement = () => {
                                     </div>
                                     <div>
                                         <p><strong>Per Minute Salary:</strong></p>
-                                        <span className="font-bold">₹{reportData.report.summary.perMinuteSalary?.toFixed(4) || '0.0000'}</span>
+                                        <span className="font-bold">{formatCurrency(reportData.report.summary.perMinuteSalary || 0, settings)}</span>
                                     </div>
                                     {/* Display bonus information */}
                                     {reportData.totalBonusAmount > 0 && (
                                         <>
                                             <div>
                                                 <p><strong>Bonus Amount Applied:</strong></p>
-                                                <span className="font-bold text-green-600">₹{reportData.totalBonusAmount.toFixed(2)}</span>
+                                                <span className="font-bold text-green-600">{formatCurrency(reportData.totalBonusAmount, settings)}</span>
                                             </div>
                                             {reportData.bonuses.map((bonus, index) => (
                                                 <div key={index}>
@@ -1488,14 +1477,14 @@ const SalaryManagement = () => {
                                     {reportData.totalFinesAmount > 0 && (
                                         <div>
                                             <p><strong>Total Fines:</strong></p>
-                                            <span className="font-bold text-red-600">₹{reportData.totalFinesAmount.toFixed(2)}</span>
+                                            <span className="font-bold text-red-600">{formatCurrency(reportData.totalFinesAmount, settings)}</span>
                                         </div>
                                     )}
                                     {/* Display manual deduction information */}
                                     {reportData.totalDeductionsAmount > 0 && (
                                         <div>
                                             <p><strong>Other Deductions:</strong></p>
-                                            <span className="font-bold text-orange-600">₹{reportData.totalDeductionsAmount.toFixed(2)}</span>
+                                            <span className="font-bold text-orange-600">{formatCurrency(reportData.totalDeductionsAmount, settings)}</span>
                                         </div>
                                     )}
                                     {/* Overtime summary */}
@@ -1507,7 +1496,7 @@ const SalaryManagement = () => {
                                             </div>
                                             <div>
                                                 <p><strong>Overtime Pay (1.5x):</strong></p>
-                                                <span className="font-bold text-purple-600">₹{reportData.overtime.totalOvertimePay.toFixed(2)}</span>
+                                                <span className="font-bold text-purple-600">{formatCurrency(reportData.overtime.totalOvertimePay, settings)}</span>
                                             </div>
                                         </>
                                     )}
@@ -1515,7 +1504,7 @@ const SalaryManagement = () => {
                                     {reportData.finalSalaryWithOvertime !== undefined && (
                                         <div className="col-span-2">
                                             <p><strong>🏆 Final Salary (incl. Overtime):</strong></p>
-                                            <span className="font-bold text-lg text-blue-700">₹{reportData.finalSalaryWithOvertime.toFixed(2)}</span>
+                                            <span className="font-bold text-lg text-blue-700">{formatCurrency(reportData.finalSalaryWithOvertime, settings)}</span>
                                         </div>
                                     )}
                                 </div>
@@ -1548,7 +1537,7 @@ const SalaryManagement = () => {
                                                                 {new Date(fine.date).toLocaleDateString()}
                                                             </td>
                                                             <td className="px-6 py-4 whitespace-nowrap">
-                                                                <span className="text-red-600 font-medium">₹{fine.amount.toFixed(2)}</span>
+                                                                <span className="text-red-600 font-medium">{formatCurrency(fine.amount, settings)}</span>
                                                             </td>
                                                             <td className="px-6 py-4 whitespace-nowrap">
                                                                 {fine.reason}
@@ -1601,7 +1590,7 @@ const SalaryManagement = () => {
                                                                 {d.deductionType}
                                                             </td>
                                                             <td className="px-6 py-4 whitespace-nowrap">
-                                                                <span className="text-orange-600 font-medium">₹{d.amount.toFixed(2)}</span>
+                                                                <span className="text-orange-600 font-medium">{formatCurrency(d.amount, settings)}</span>
                                                             </td>
                                                             <td className="px-6 py-4 whitespace-nowrap">
                                                                 {d.reason}
@@ -1642,8 +1631,16 @@ const SalaryManagement = () => {
                                         { header: 'In Time', accessor: 'inTime' },
                                         { header: 'Out Time', accessor: 'outTime' },
                                         { header: 'Delay Time', accessor: 'delayTime' },
-                                        { header: 'Delay Deduction', accessor: 'deductionAmount' },
-                                        { header: 'Total Salary', accessor: 'totalSalary' }
+                                        { 
+                                            header: 'Delay Deduction', 
+                                            accessor: 'deductionAmount',
+                                            render: (row) => formatCurrency(row.deductionAmount, settings)
+                                        },
+                                        { 
+                                            header: 'Total Salary', 
+                                            accessor: 'totalSalary',
+                                            render: (row) => formatCurrency(row.totalSalary, settings)
+                                        }
                                     ]}
                                     data={reportData.report.report}
                                     noDataMessage="No daily records found for this period."
@@ -1689,7 +1686,7 @@ const SalaryManagement = () => {
                                     >
                                         <div className="font-medium">{worker.name}</div>
                                         <div className="text-sm text-gray-500">{worker.department?.name || worker.department}</div>
-                                        <div className="text-sm text-gray-500 ml-auto">Salary: ₹{(worker.salary || 0).toFixed(2)}</div>
+                                        <div className="text-sm font-medium text-green-600 ml-auto">Current: {formatCurrency(worker.salary, settings)}</div>
                                     </div>
                                 ))
                             }
@@ -1710,7 +1707,7 @@ const SalaryManagement = () => {
                     }}>
                         <div className="mb-4 p-3 bg-orange-50 rounded-lg">
                             <div className="font-medium">{selectedDeductionWorker.name}</div>
-                            <div className="text-sm text-gray-500">Max deduction: ₹{((selectedDeductionWorker.salary || 0) * 0.5).toFixed(2)} (50%)</div>
+                            <div className="text-sm text-gray-500">Max deduction: {formatCurrency((selectedDeductionWorker.salary || 0) * 0.5, settings)} (50%)</div>
                         </div>
                         <div className="form-group">
                             <label className="form-label">Deduction Type</label>
@@ -1731,7 +1728,7 @@ const SalaryManagement = () => {
                                 onChange={(e) => setDeductionFormData(p => ({ ...p, date: e.target.value }))} required />
                         </div>
                         <div className="form-group">
-                            <label className="form-label">Amount (₹)</label>
+                            <label className="form-label">Amount ({settings.localization?.currencySymbol || '$'})</label>
                             <input type="text" className="form-input" value={deductionFormData.amount}
                                 onChange={(e) => { if (e.target.value === '' || /^\d*\.?\d*$/.test(e.target.value)) setDeductionFormData(p => ({ ...p, amount: e.target.value })); }} required />
                         </div>
@@ -1767,7 +1764,7 @@ const SalaryManagement = () => {
                                 >
                                     <div className="font-medium">{worker.name}</div>
                                     <div className="text-sm text-gray-500">{worker.department?.name || worker.department}</div>
-                                    <div className="text-sm font-medium text-green-600 ml-auto">Current: ₹{(worker.salary || 0).toFixed(2)}</div>
+                                    <div className="text-sm font-medium text-green-600 ml-auto">Current: {formatCurrency(worker.salary, settings)}</div>
                                 </div>
                             ))}
                         </div>
@@ -1791,14 +1788,14 @@ const SalaryManagement = () => {
                     }}>
                         <div className="mb-4 p-3 bg-green-50 rounded-lg">
                             <div className="font-medium">{selectedIncrementWorker.name}</div>
-                            <div className="text-sm text-gray-500">Current Salary: ₹{(selectedIncrementWorker.salary || 0).toFixed(2)}</div>
+                            <div className="text-sm text-gray-500">Current Salary: {formatCurrency(selectedIncrementWorker.salary, settings)}</div>
                         </div>
                         <div className="form-group">
-                            <label className="form-label">Increment Amount (₹)</label>
+                            <label className="form-label">Increment Amount ({settings.localization?.currencySymbol || '$'})</label>
                             <input type="text" className="form-input" value={incrementFormData.incrementAmount}
                                 onChange={(e) => { if (e.target.value === '' || /^\d*\.?\d*$/.test(e.target.value)) setIncrementFormData(p => ({ ...p, incrementAmount: e.target.value })); }} required />
                             {incrementFormData.incrementAmount && !isNaN(parseFloat(incrementFormData.incrementAmount)) && (
-                                <p className="text-xs text-green-600 mt-1">New salary: ₹{((selectedIncrementWorker.salary || 0) + parseFloat(incrementFormData.incrementAmount)).toFixed(2)}</p>
+                                <p className="text-xs text-green-600 mt-1">New salary: {formatCurrency((selectedIncrementWorker.salary || 0) + parseFloat(incrementFormData.incrementAmount), settings)}</p>
                             )}
                         </div>
                         <div className="form-group">

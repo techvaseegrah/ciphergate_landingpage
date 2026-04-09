@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { motion, useTransform, AnimatePresence } from 'framer-motion';
+import appContext from '../../context/AppContext';
+import { formatCurrency } from '../../utils/formatUtils';
 
 const timezones = [
   { label: 'India Office', timeZone: 'Asia/Kolkata' },
@@ -9,6 +11,7 @@ const timezones = [
 ];
 
 const ParallaxImage = ({ scrollYProgress }) => {
+  const { settings } = useContext(appContext);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [currentTimezoneIndex, setCurrentTimezoneIndex] = useState(0);
   const [isHoveringTask, setIsHoveringTask] = useState(false);
@@ -48,7 +51,7 @@ const ParallaxImage = ({ scrollYProgress }) => {
     { name: 'Santhosh', id: 'MU6946', dept: 'Billzzy', date: '2025-12-22', in: '09:01:14 AM', out: '-', hours: '00:00:00', img: 'https://i.pravatar.cc/150?u=1' },
     { name: 'Parthiban', id: 'PJ6855', dept: 'F3 Engine', date: '2025-12-22', in: '09:01:07 AM', out: '-', hours: '00:00:00', img: 'https://i.pravatar.cc/150?u=2' },
     { name: 'Sudharsan', id: 'OQ1245', dept: 'Finovo', date: '2025-12-20', in: '09:43:45 AM', out: '07:21:10 PM', hours: '09:37:25', img: 'https://i.pravatar.cc/150?u=3' },
-    { name: 'Infant Ansker', id: 'OD8631', dept: 'Finovo', date: '2025-12-20', in: '02:47:16 PM', out: '07:20:32 PM', hours: '04:33:16', img: 'https://i.pravatar.cc/150?u=4' },
+    { name: 'Arun ', id: 'OD8631', dept: 'Finovo', date: '2025-12-20', in: '02:47:16 PM', out: '07:20:32 PM', hours: '04:33:16', img: 'https://i.pravatar.cc/150?u=4' },
   ];
 
   return (
@@ -260,9 +263,9 @@ const ParallaxImage = ({ scrollYProgress }) => {
                           <p className="text-xs font-light text-[#111] tracking-wide"><span className="text-gray-400 uppercase tracking-[0.1em] text-[9px] block mb-1">ID</span> LF3643</p>
                         </div>
                         <div className="space-y-4">
-                          <p className="text-xs font-light text-[#111] tracking-wide"><span className="text-gray-400 uppercase tracking-[0.1em] text-[9px] block mb-1">Base Salary</span> ₹7,000.00</p>
-                          <p className="text-xs font-light text-[#111] tracking-wide"><span className="text-gray-400 uppercase tracking-[0.1em] text-[9px] block mb-1">Earned</span> ₹3,727.34</p>
-                          <p className="text-lg font-medium text-[#111] tracking-wide py-2 border-t border-gray-200"><span className="text-gray-400 uppercase tracking-[0.1em] text-[9px] block mb-1">Net Pay</span> ₹3,727.34</p>
+                          <p className="text-xs font-light text-[#111] tracking-wide"><span className="text-gray-400 uppercase tracking-[0.1em] text-[9px] block mb-1">Base Salary</span> {formatCurrency(7000.00, settings)}</p>
+                          <p className="text-xs font-light text-[#111] tracking-wide"><span className="text-gray-400 uppercase tracking-[0.1em] text-[9px] block mb-1">Earned</span> {formatCurrency(3727.34, settings)}</p>
+                          <p className="text-lg font-medium text-[#111] tracking-wide py-2 border-t border-gray-200"><span className="text-gray-400 uppercase tracking-[0.1em] text-[9px] block mb-1">Net Pay</span> {formatCurrency(3727.34, settings)}</p>
                         </div>
                       </div>
 

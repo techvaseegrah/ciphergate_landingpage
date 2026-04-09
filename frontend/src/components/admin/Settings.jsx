@@ -1,23 +1,8 @@
-// Settings.jsx
-import { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, Fragment } from 'react';
 import { toast } from 'react-toastify';
 import {
-    FiSun,
-    FiSunrise,
-    FiMoon,
-    FiMail,
-    FiClock,
-    FiSettings,
-    FiSave,
-    FiRefreshCw,
-    FiAlertTriangle,
-    FiDollarSign,
-    FiUser,
-    FiToggleLeft,
-    FiToggleRight,
-    FiPlus,
-    FiTrash2,
-    FiMapPin
+    FiClock, FiSettings, FiSave, FiRefreshCw, FiAlertTriangle, 
+    FiDollarSign, FiUser, FiToggleLeft, FiPlus, FiTrash2, FiMapPin, FiGlobe
 } from 'react-icons/fi';
 import Button from '../common/Button';
 import Card from '../common/Card';
@@ -25,40 +10,33 @@ import Spinner from '../common/Spinner';
 import appContext from '../../context/AppContext';
 import api from '../../services/api';
 import { getAuthToken } from '../../utils/authUtils';
+import { formatCurrency } from '../../utils/formatUtils';
+
+
+const countryCurrencyMap = {
+    India: { currency: "INR", symbol: "₹", locale: "en-IN" },
+    USA: { currency: "USD", symbol: "$", locale: "en-US" },
+    Singapore: { currency: "SGD", symbol: "S$", locale: "en-SG" },
+    Russia: { currency: "RUB", symbol: "₽", locale: "ru-RU" },
+    China: { currency: "CNY", symbol: "¥", locale: "zh-CN" }
+};
 
 const Settings = () => {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [hasChanges, setHasChanges] = useState(false);
     const [currentLocation, setCurrentLocation] = useState(null); // Add this state to track current location
+    const [workers, setWorkers] = useState([]); // Added for specific leave assignment
+    const [overrideSearch, setOverrideSearch] = useState({});
 
-    const { subdomain } = useContext(appContext);
+    const { subdomain, refreshSettings } = useContext(appContext);
 
     // Original settings (for comparison)
     const [originalSettings, setOriginalSettings] = useState({});
 
     // Current form data
     const [settings, setSettings] = useState({
-        // Breakfast settings
-        breakfastEnabled: false,
-        breakfastOpenTime: '07:00',
-        breakfastCloseTime: '09:00',
-        breakfastAutoSwitch: false,
 
-        // Lunch (food request) settings
-        foodRequestEnabled: false,
-        foodRequestOpenTime: '12:00',
-        foodRequestCloseTime: '14:00',
-        foodRequestAutoSwitch: false,
-
-        // Dinner settings
-        dinnerEnabled: false,
-        dinnerOpenTime: '18:00',
-        dinnerCloseTime: '20:00',
-        dinnerAutoSwitch: false,
-
-        // Email settings
-        emailReportsEnabled: false,
 
         // Attendance and productivity settings
         considerOvertime: false,
@@ -66,6 +44,14 @@ const Settings = () => {
         permissionTimeMinutes: 15,
         salaryDeductionPerBreak: 10,
         deductLateMinutes: true,
+
+        // Localization settings
+        localization: {
+            country: 'USA',
+            currency: 'USD',
+            currencySymbol: '$',
+            locale: 'en-US'
+        },
 
         // Batches and intervals
         batches: [
@@ -99,7 +85,23 @@ const Settings = () => {
             latitude: 0,
             longitude: 0,
             radius: 100
-        }
+        },
+
+        // Leave Settings
+        leaveEligibilityValue: 3,
+        leaveEligibilityUnit: 'months',
+        leavePolicy: [
+            { type: 'annual', label: 'Annual Leave', defaultDays: 7, scope: 'all', assignedEmployees: [] },
+            { type: 'sick', label: 'Sick Leave', defaultDays: 14, scope: 'all', assignedEmployees: [] },
+            { type: 'hospital', label: 'Hospitalization Leave', defaultDays: 60, scope: 'all', assignedEmployees: [] },
+            { type: 'urgent', label: 'Urgent Leave', defaultDays: 3, scope: 'all', assignedEmployees: [] },
+            { type: 'marriage', label: 'Marriage Leave', defaultDays: 3, scope: 'all', assignedEmployees: [] },
+            { type: 'paternity', label: 'Paternity Leave', defaultDays: 3, scope: 'all', assignedEmployees: [] },
+            { type: 'compassion', label: 'Compassionate Leave', defaultDays: 3, scope: 'all', assignedEmployees: [] },
+            { type: 'personal', label: 'Personal Leave', defaultDays: 3, scope: 'all', assignedEmployees: [] },
+            { type: 'unpaid', label: 'Unpaid Leave', defaultDays: 0, scope: 'all', assignedEmployees: [] },
+            { type: 'homeCountry', label: 'Home Country Leave', defaultDays: 0, scope: 'all', assignedEmployees: [] }
+        ]
     });
 
     const formatTimeTo12Hour = (time24) => {
@@ -141,6 +143,14 @@ const Settings = () => {
         setLoading(true);
         try {
             const token = getAuthToken();
+
+            // Try fetching workers early to reduce waterfall
+            if (subdomain !== 'main') {
+                api.post('workers/all', { subdomain })
+                    .then(res => setWorkers(res.data || []))
+                    .catch(err => console.error("Error fetching workers", err));
+            }
+
             const response = await api.get(`/settings/${subdomain}`, {
                 headers: {
                     'Content-Type': 'application/json',
@@ -151,26 +161,7 @@ const Settings = () => {
             // Update state with fetched settings
             setSettings((prevSettings) => ({
                 ...prevSettings,
-                // Breakfast settings
-                breakfastEnabled: fetchedSettings.breakfastEnabled !== undefined ? fetchedSettings.breakfastEnabled : false,
-                breakfastOpenTime: fetchedSettings.breakfastOpenTime || '07:00',
-                breakfastCloseTime: fetchedSettings.breakfastCloseTime || '09:00',
-                breakfastAutoSwitch: fetchedSettings.breakfastAutoSwitch !== undefined ? fetchedSettings.breakfastAutoSwitch : false,
 
-                // Lunch (food request) settings
-                foodRequestEnabled: fetchedSettings.foodRequestEnabled !== undefined ? fetchedSettings.foodRequestEnabled : false,
-                foodRequestOpenTime: fetchedSettings.foodRequestOpenTime || '12:00',
-                foodRequestCloseTime: fetchedSettings.foodRequestCloseTime || '14:00',
-                foodRequestAutoSwitch: fetchedSettings.foodRequestAutoSwitch !== undefined ? fetchedSettings.foodRequestAutoSwitch : false,
-
-                // Dinner settings
-                dinnerEnabled: fetchedSettings.dinnerEnabled !== undefined ? fetchedSettings.dinnerEnabled : false,
-                dinnerOpenTime: fetchedSettings.dinnerOpenTime || '18:00',
-                dinnerCloseTime: fetchedSettings.dinnerCloseTime || '20:00',
-                dinnerAutoSwitch: fetchedSettings.dinnerAutoSwitch !== undefined ? fetchedSettings.dinnerAutoSwitch : false,
-
-                // Email settings
-                emailReportsEnabled: fetchedSettings.emailReportsEnabled !== undefined ? fetchedSettings.emailReportsEnabled : false,
 
                 // Attendance and productivity settings
                 considerOvertime: fetchedSettings.considerOvertime !== undefined ? fetchedSettings.considerOvertime : false,
@@ -199,6 +190,30 @@ const Settings = () => {
                     latitude: fetchedSettings.attendanceLocation?.latitude || 0,
                     longitude: fetchedSettings.attendanceLocation?.longitude || 0,
                     radius: fetchedSettings.attendanceLocation?.radius || 100
+                },
+
+                // Leave Settings
+                leaveEligibilityValue: fetchedSettings.leaveEligibilityValue !== undefined ? fetchedSettings.leaveEligibilityValue : 3,
+                leaveEligibilityUnit: fetchedSettings.leaveEligibilityUnit || 'months',
+                leavePolicy: fetchedSettings.leavePolicy || [
+                    { type: 'annual', label: 'Annual Leave', defaultDays: 7, scope: 'all', assignedEmployees: [] },
+                    { type: 'sick', label: 'Sick Leave', defaultDays: 14, scope: 'all', assignedEmployees: [] },
+                    { type: 'hospital', label: 'Hospitalization Leave', defaultDays: 60, scope: 'all', assignedEmployees: [] },
+                    { type: 'urgent', label: 'Urgent Leave', defaultDays: 3, scope: 'all', assignedEmployees: [] },
+                    { type: 'marriage', label: 'Marriage Leave', defaultDays: 3, scope: 'all', assignedEmployees: [] },
+                    { type: 'paternity', label: 'Paternity Leave', defaultDays: 3, scope: 'all', assignedEmployees: [] },
+                    { type: 'compassion', label: 'Compassionate Leave', defaultDays: 3, scope: 'all', assignedEmployees: [] },
+                    { type: 'personal', label: 'Personal Leave', defaultDays: 3, scope: 'all', assignedEmployees: [] },
+                    { type: 'unpaid', label: 'Unpaid Leave', defaultDays: 0, scope: 'all', assignedEmployees: [] },
+                    { type: 'homeCountry', label: 'Home Country Leave', defaultDays: 0, scope: 'all', assignedEmployees: [] }
+                ],
+
+                // Localization settings
+                localization: fetchedSettings.localization || {
+                    country: 'India',
+                    currency: 'INR',
+                    currencySymbol: '₹',
+                    locale: 'en-IN'
                 }
             }));
 
@@ -221,6 +236,26 @@ const Settings = () => {
                     latitude: fetchedSettings.attendanceLocation?.latitude || 0,
                     longitude: fetchedSettings.attendanceLocation?.longitude || 0,
                     radius: fetchedSettings.attendanceLocation?.radius || 100
+                },
+                leaveEligibilityValue: fetchedSettings.leaveEligibilityValue !== undefined ? fetchedSettings.leaveEligibilityValue : 3,
+                leaveEligibilityUnit: fetchedSettings.leaveEligibilityUnit || 'months',
+                leavePolicy: fetchedSettings.leavePolicy || [
+                    { type: 'annual', label: 'Annual Leave', defaultDays: 7, scope: 'all', assignedEmployees: [] },
+                    { type: 'sick', label: 'Sick Leave', defaultDays: 14, scope: 'all', assignedEmployees: [] },
+                    { type: 'hospital', label: 'Hospitalization Leave', defaultDays: 60, scope: 'all', assignedEmployees: [] },
+                    { type: 'urgent', label: 'Urgent Leave', defaultDays: 3, scope: 'all', assignedEmployees: [] },
+                    { type: 'marriage', label: 'Marriage Leave', defaultDays: 3, scope: 'all', assignedEmployees: [] },
+                    { type: 'paternity', label: 'Paternity Leave', defaultDays: 3, scope: 'all', assignedEmployees: [] },
+                    { type: 'compassion', label: 'Compassionate Leave', defaultDays: 3, scope: 'all', assignedEmployees: [] },
+                    { type: 'personal', label: 'Personal Leave', defaultDays: 3, scope: 'all', assignedEmployees: [] },
+                    { type: 'unpaid', label: 'Unpaid Leave', defaultDays: 0, scope: 'all', assignedEmployees: [] },
+                    { type: 'homeCountry', label: 'Home Country Leave', defaultDays: 0, scope: 'all', assignedEmployees: [] }
+                ],
+                localization: fetchedSettings.localization || {
+                    country: 'India',
+                    currency: 'INR',
+                    currencySymbol: '₹',
+                    locale: 'en-IN'
                 }
             });
             setHasChanges(false);
@@ -233,6 +268,23 @@ const Settings = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    const updateCountry = (country) => {
+        const map = countryCurrencyMap[country];
+        if (!map) return;
+
+        const updatedSettings = {
+            ...settings,
+            localization: {
+                country,
+                currency: map.currency,
+                currencySymbol: map.symbol,
+                locale: map.locale
+            }
+        };
+        setSettings(updatedSettings);
+        checkForChanges(updatedSettings);
     };
 
     // Handle input changes (for non-batch/interval fields)
@@ -274,6 +326,144 @@ const Settings = () => {
         const updatedSettings = {
             ...settings,
             intervals: updatedIntervals
+        };
+        setSettings(updatedSettings);
+        checkForChanges(updatedSettings);
+    };
+
+    // Handle leave policy changes
+    const handleLeavePolicyChange = (index, field, value) => {
+        const updatedPolicy = [...settings.leavePolicy];
+        updatedPolicy[index] = {
+            ...updatedPolicy[index],
+            [field]: value
+        };
+        const updatedSettings = {
+            ...settings,
+            leavePolicy: updatedPolicy
+        };
+        setSettings(updatedSettings);
+        checkForChanges(updatedSettings);
+    };
+
+    const handleAddOverride = (policyIndex) => {
+        const updatedPolicy = [...settings.leavePolicy];
+        const policy = { ...updatedPolicy[policyIndex] };
+        policy.overrides = [...(policy.overrides || []), { employeeIds: [], days: 0 }];
+        updatedPolicy[policyIndex] = policy;
+        const updatedSettings = { ...settings, leavePolicy: updatedPolicy };
+        setSettings(updatedSettings);
+        checkForChanges(updatedSettings);
+    };
+
+    const handleRemoveOverride = (policyIndex, overrideIndex) => {
+        const updatedPolicy = [...settings.leavePolicy];
+        const policy = { ...updatedPolicy[policyIndex] };
+        policy.overrides = policy.overrides.filter((_, i) => i !== overrideIndex);
+        updatedPolicy[policyIndex] = policy;
+        const updatedSettings = { ...settings, leavePolicy: updatedPolicy };
+        setSettings(updatedSettings);
+        checkForChanges(updatedSettings);
+    };
+
+    const handleOverrideChange = (policyIndex, overrideIndex, field, value) => {
+        const updatedPolicy = [...settings.leavePolicy];
+        const policy = { ...updatedPolicy[policyIndex] };
+        const updatedOverrides = [...(policy.overrides || [])];
+        updatedOverrides[overrideIndex] = {
+            ...updatedOverrides[overrideIndex],
+            [field]: value
+        };
+        policy.overrides = updatedOverrides;
+        updatedPolicy[policyIndex] = policy;
+        const updatedSettings = { ...settings, leavePolicy: updatedPolicy };
+        setSettings(updatedSettings);
+        checkForChanges(updatedSettings);
+    };
+
+    const handleOverrideEmployeesChange = (policyIndex, overrideIndex, e) => {
+        const options = e.target.options;
+        const selectedValues = [];
+        for (let i = 0; i < options.length; i++) {
+            if (options[i].selected) {
+                selectedValues.push(options[i].value);
+            }
+        }
+        handleOverrideChange(policyIndex, overrideIndex, 'employeeIds', selectedValues);
+    };
+
+    const toggleOverrideEmployee = (policyIndex, overrideIndex, employeeId) => {
+        const updatedPolicy = [...settings.leavePolicy];
+        const policy = { ...updatedPolicy[policyIndex] };
+        const updatedOverrides = [...(policy.overrides || [])];
+        const currentOverride = { ...updatedOverrides[overrideIndex] };
+
+        const currentIds = currentOverride.employeeIds || [];
+        if (currentIds.includes(employeeId)) {
+            currentOverride.employeeIds = currentIds.filter(id => id !== employeeId);
+        } else {
+            currentOverride.employeeIds = [...currentIds, employeeId];
+        }
+
+        updatedOverrides[overrideIndex] = currentOverride;
+        policy.overrides = updatedOverrides;
+        updatedPolicy[policyIndex] = policy;
+        const updatedSettings = { ...settings, leavePolicy: updatedPolicy };
+        setSettings(updatedSettings);
+        checkForChanges(updatedSettings);
+    };
+
+    const toggleAllOverrideEmployees = (policyIndex, overrideIndex, filteredWorkers) => {
+        const updatedPolicy = [...settings.leavePolicy];
+        const policy = { ...updatedPolicy[policyIndex] };
+        const updatedOverrides = [...(policy.overrides || [])];
+        const currentOverride = { ...updatedOverrides[overrideIndex] };
+
+        const currentIds = currentOverride.employeeIds || [];
+        const availableWorkerIds = filteredWorkers.filter(w => {
+            const isSelectedElsewhere = policy.overrides.some((otherOverride, otherIdx) =>
+                otherIdx !== overrideIndex && otherOverride.employeeIds && otherOverride.employeeIds.includes(w._id)
+            );
+            return !isSelectedElsewhere;
+        }).map(w => w._id);
+
+        const allSelected = availableWorkerIds.every(id => currentIds.includes(id)) && availableWorkerIds.length > 0;
+
+        if (allSelected) {
+            currentOverride.employeeIds = currentIds.filter(id => !availableWorkerIds.includes(id));
+        } else {
+            const newSelections = new Set([...currentIds, ...availableWorkerIds]);
+            currentOverride.employeeIds = Array.from(newSelections);
+        }
+
+        updatedOverrides[overrideIndex] = currentOverride;
+        policy.overrides = updatedOverrides;
+        updatedPolicy[policyIndex] = policy;
+        const updatedSettings = { ...settings, leavePolicy: updatedPolicy };
+        setSettings(updatedSettings);
+        checkForChanges(updatedSettings);
+    };
+
+    const handleAddLeave = () => {
+        const newLeave = {
+            type: `custom_${Date.now()}`,
+            label: 'New Leave Type',
+            defaultDays: 0,
+            overrides: []
+        };
+        const updatedSettings = {
+            ...settings,
+            leavePolicy: [...settings.leavePolicy, newLeave]
+        };
+        setSettings(updatedSettings);
+        checkForChanges(updatedSettings);
+    };
+
+    const handleRemoveLeave = (index) => {
+        const updatedPolicy = settings.leavePolicy.filter((_, i) => i !== index);
+        const updatedSettings = {
+            ...settings,
+            leavePolicy: updatedPolicy
         };
         setSettings(updatedSettings);
         checkForChanges(updatedSettings);
@@ -395,6 +585,7 @@ const Settings = () => {
             });
             setOriginalSettings(settings);
             setHasChanges(false);
+            refreshSettings(); // Refresh global settings in context
             toast.success('Settings updated successfully');
         } catch (error) {
             toast.error('Failed to save settings');
@@ -442,38 +633,7 @@ const Settings = () => {
         );
     }
 
-    const mealConfigs = [
-        {
-            key: 'breakfast',
-            title: 'Breakfast',
-            icon: FiSunrise,
-            color: 'yellow',
-            enabledKey: 'breakfastEnabled',
-            openTimeKey: 'breakfastOpenTime',
-            closeTimeKey: 'breakfastCloseTime',
-            autoSwitchKey: 'breakfastAutoSwitch'
-        },
-        {
-            key: 'lunch',
-            title: 'Lunch',
-            icon: FiSun,
-            color: 'blue',
-            enabledKey: 'foodRequestEnabled', // keep for meal service config only
-            openTimeKey: 'foodRequestOpenTime',
-            closeTimeKey: 'foodRequestCloseTime',
-            autoSwitchKey: 'foodRequestAutoSwitch'
-        },
-        {
-            key: 'dinner',
-            title: 'Dinner',
-            icon: FiMoon,
-            color: 'purple',
-            enabledKey: 'dinnerEnabled',
-            openTimeKey: 'dinnerOpenTime',
-            closeTimeKey: 'dinnerCloseTime',
-            autoSwitchKey: 'dinnerAutoSwitch'
-        }
-    ];
+
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -487,7 +647,7 @@ const Settings = () => {
                                 Application Settings
                             </h1>
                             <p className="mt-2 text-gray-600">
-                                Configure your application preferences and meal service settings
+                                Configure your application preferences and general settings
                             </p>
                         </div>
                         <div className="flex space-x-3">
@@ -536,157 +696,49 @@ const Settings = () => {
                     )}
                 </div>
 
-                {/* Meal Settings Grid */}
-                <div className="mb-8">
-                    <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
-                        <FiClock className="mr-2 text-gray-600" />
-                        Meal Service Configuration
-                    </h2>
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        {mealConfigs.map(({ key, title, icon: Icon, color, enabledKey, openTimeKey, closeTimeKey, autoSwitchKey }) => (
-                            <Card key={key} className="overflow-hidden hover:shadow-lg transition-shadow duration-200">
-                                <div className={`h-2 bg-gradient-to-r ${color === 'yellow' ? 'from-yellow-400 to-orange-400' :
-                                    color === 'blue' ? 'from-blue-400 to-cyan-400' :
-                                        'from-purple-400 to-pink-400'
-                                    }`} />
-                                <div className="p-6">
-                                    <div className="flex items-center justify-between mb-6">
-                                        <div className="flex items-center">
-                                            <div className={`p-3 rounded-lg ${color === 'yellow' ? 'bg-yellow-100' :
-                                                color === 'blue' ? 'bg-blue-100' :
-                                                    'bg-purple-100'
-                                                }`}>
-                                                <Icon className={`h-6 w-6 ${color === 'yellow' ? 'text-yellow-600' :
-                                                    color === 'blue' ? 'text-black' :
-                                                        'text-gray-900'
-                                                    }`} />
-                                            </div>
-                                            <h3 className="ml-3 text-lg font-semibold text-gray-900">{title}</h3>
-                                        </div>
-                                        <div className={`px-3 py-1 rounded-full text-xs font-medium ${settings[enabledKey]
-                                            ? 'bg-green-100 text-green-800'
-                                            : 'bg-red-100 text-red-800'
-                                            }`}>
-                                            {settings[enabledKey] ? 'Active' : 'Inactive'}
-                                        </div>
-                                    </div>
 
-                                    <div className="space-y-5">
-                                        {/* Enable/Disable Toggle */}
-                                        <div className="flex items-center justify-between">
-                                            <div>
-                                                <label className="text-sm font-medium text-gray-700">Enable {title}</label>
-                                                <p className="text-xs text-gray-500">Allow {title.toLowerCase()} requests</p>
-                                            </div>
-                                            <CustomToggle
-                                                checked={settings[enabledKey]}
-                                                onChange={() => handleInputChange({
-                                                    target: {
-                                                        name: enabledKey,
-                                                        type: 'checkbox',
-                                                        checked: !settings[enabledKey]
-                                                    }
-                                                })}
-                                            />
-                                        </div>
-
-                                        {/* Time Settings */}
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                    Open Time
-                                                </label>
-                                                <input
-                                                    type="time"
-                                                    name={openTimeKey}
-                                                    value={settings[openTimeKey]}
-                                                    onChange={handleInputChange}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-gray-900 focus:border-gray-900 text-sm"
-                                                />
-                                                <p className="text-xs text-gray-500 mt-1">
-                                                    {formatTimeTo12Hour(settings[openTimeKey])}
-                                                </p>
-                                            </div>
-
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                    Close Time
-                                                </label>
-                                                <input
-                                                    type="time"
-                                                    name={closeTimeKey}
-                                                    value={settings[closeTimeKey]}
-                                                    onChange={handleInputChange}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-gray-900 focus:border-gray-900 text-sm"
-                                                />
-                                                <p className="text-xs text-gray-500 mt-1">
-                                                    {formatTimeTo12Hour(settings[closeTimeKey])}
-                                                </p>
-                                            </div>
-                                        </div>
-
-                                        {/* Auto Switch */}
-                                        <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                                            <div>
-                                                <label className="text-sm font-medium text-gray-700 flex items-center">
-                                                    <FiToggleRight className="mr-2 h-4 w-4" />
-                                                    Auto Switch
-                                                </label>
-                                                <p className="text-xs text-gray-500 mt-1">
-                                                    Automatically enable/disable based on time
-                                                </p>
-                                            </div>
-                                            <CustomToggle
-                                                checked={settings[autoSwitchKey]}
-                                                onChange={() => handleInputChange({
-                                                    target: {
-                                                        name: autoSwitchKey,
-                                                        type: 'checkbox',
-                                                        checked: !settings[autoSwitchKey]
-                                                    }
-                                                })}
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-                            </Card>
-                        ))}
-                    </div>
-                </div>
 
                 {/* Additional Settings Grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                    {/* Email Settings */}
+                    {/* Localization Settings */}
                     <Card className="hover:shadow-lg transition-shadow duration-200">
-                        <div className="h-2 bg-gradient-to-r from-green-400 to-blue-400" />
+                        <div className="h-2 bg-gradient-to-r from-blue-400 to-indigo-400" />
                         <div className="p-6">
                             <h3 className="text-lg font-semibold mb-6 flex items-center text-gray-900">
-                                <div className="p-2 bg-green-100 rounded-lg mr-3">
-                                    <FiMail className="h-5 w-5 text-green-600" />
+                                <div className="p-2 bg-blue-100 rounded-lg mr-3">
+                                    <FiGlobe className="h-5 w-5 text-blue-600" />
                                 </div>
-                                Email Settings
+                                Localization Settings
                             </h3>
 
-                            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                                <div>
-                                    <label className="text-sm font-medium text-gray-700">Email Reports</label>
-                                    <p className="text-xs text-gray-500 mt-1">
-                                        Send automatic email reports when meals close
-                                    </p>
+                            <div className="space-y-4">
+                                <div className="space-y-2">
+                                    <label className="block text-sm font-medium text-gray-700">Country</label>
+                                    <select
+                                        value={settings.localization?.country}
+                                        onChange={(e) => updateCountry(e.target.value)}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-gray-900 focus:border-gray-900 bg-white"
+                                    >
+                                        {Object.keys(countryCurrencyMap).map(country => (
+                                            <option key={country} value={country}>{country}</option>
+                                        ))}
+                                    </select>
                                 </div>
-                                <CustomToggle
-                                    checked={settings.emailReportsEnabled}
-                                    onChange={() => handleInputChange({
-                                        target: {
-                                            name: 'emailReportsEnabled',
-                                            type: 'checkbox',
-                                            checked: !settings.emailReportsEnabled
-                                        }
-                                    })}
-                                />
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-1">
+                                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Currency</p>
+                                        <p className="text-sm font-semibold text-gray-900">{settings.localization?.currency}</p>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Symbol</p>
+                                        <p className="text-sm font-semibold text-gray-900">{settings.localization?.currencySymbol}</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </Card>
+
 
                     {/* Attendance Settings */}
                     <Card className="hover:shadow-lg transition-shadow duration-200">
@@ -862,6 +914,276 @@ const Settings = () => {
                     </div>
                 </Card>
 
+                {/* Leave Configuration */}
+                <Card className="mb-8 hover:shadow-lg transition-shadow duration-200">
+                    <div className="h-2 bg-gradient-to-r from-orange-400 to-red-400" />
+                    <div className="p-6">
+                        <h3 className="text-lg font-semibold mb-6 flex items-center text-gray-900">
+                            <div className="p-2 bg-orange-100 rounded-lg mr-3">
+                                <FiUser className="h-5 w-5 text-orange-600" />
+                            </div>
+                            Leave Settings
+                        </h3>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                                <label className="block text-sm font-medium text-gray-700">
+                                    Leave Eligibility After Joining
+                                </label>
+                                <input
+                                    type="number"
+                                    name="leaveEligibilityValue"
+                                    value={settings.leaveEligibilityValue}
+                                    onChange={handleInputChange}
+                                    min="0"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-gray-900 focus:border-gray-900"
+                                />
+                                <p className="text-xs text-gray-500">
+                                    Number of days or months before eligible
+                                </p>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="block text-sm font-medium text-gray-700">
+                                    Eligibility Unit
+                                </label>
+                                <select
+                                    name="leaveEligibilityUnit"
+                                    value={settings.leaveEligibilityUnit}
+                                    onChange={handleInputChange}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-gray-900 focus:border-gray-900"
+                                >
+                                    <option value="months">Months</option>
+                                    <option value="days">Days</option>
+                                </select>
+                                <p className="text-xs text-gray-500">
+                                    Unit for eligibility duration
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="mt-8 pt-6 border-t border-gray-100">
+                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
+                                <div className="flex items-center gap-3">
+                                    <h4 className="text-md font-semibold text-gray-800">Leave Policy Configuration</h4>
+                                    {hasChanges && (
+                                        <span className="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded flex items-center gap-1 shadow-sm">
+                                            <FiAlertTriangle size={10} /> Unsaved changes
+                                        </span>
+                                    )}
+                                </div>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={handleAddLeave}
+                                    className="flex items-center gap-1 shadow-sm border border-gray-300 bg-white hover:bg-gray-50 text-gray-700"
+                                >
+                                    <FiPlus /> Add Leave Type
+                                </Button>
+                            </div>
+
+                            <div className="overflow-x-auto rounded-lg border border-gray-200 shadow-sm bg-white">
+                                <table className="min-w-full divide-y divide-gray-200">
+                                    <thead className="bg-gray-50 sticky top-0 z-10">
+                                        <tr>
+                                            <th scope="col" className="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-1/4">Leave Type</th>
+                                            <th scope="col" className="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-24">Global Default</th>
+                                            <th scope="col" className="px-5 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider w-24">Doc Required</th>
+                                            <th scope="col" className="px-5 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Overrides</th>
+                                            <th scope="col" className="px-2 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider w-12"></th>
+                                        </tr>
+                                    </thead>
+                                    {Array.isArray(settings.leavePolicy) && settings.leavePolicy.map((leave, index) => (
+                                        <tbody key={leave.type || index} className="bg-white divide-y divide-gray-200 border-b-8 border-gray-50">
+                                            <tr className="hover:bg-blue-50/20 transition-colors duration-150 group">
+                                                <td className="px-5 py-3 align-top">
+                                                    <div className="pt-1 flex flex-col">
+                                                        <input
+                                                            type="text"
+                                                            value={leave.label || ''}
+                                                            onChange={(e) => handleLeavePolicyChange(index, 'label', e.target.value)}
+                                                            className="w-full bg-transparent border border-transparent focus:border-blue-500 hover:border-gray-300 focus:bg-white focus:ring-0 p-1.5 font-semibold text-gray-900 shadow-sm rounded-sm transition-all md:text-sm text-base placeholder-gray-300"
+                                                            placeholder="Leave name..."
+                                                        />
+                                                        {leave.overrides && leave.overrides.length > 0 && (
+                                                            <span className="text-[10px] font-medium text-blue-600 bg-blue-50 uppercase tracking-wider px-2 py-0.5 rounded-full mt-1.5 self-start shadow-sm border border-blue-100">
+                                                                {leave.overrides.length} Custom Rule(s) Active
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                                <td className="px-5 py-3 align-top">
+                                                    <div className="relative flex items-center pt-1 w-full max-w-[120px]">
+                                                        <input
+                                                            type="number"
+                                                            value={leave.defaultDays ?? 0}
+                                                            onChange={(e) => handleLeavePolicyChange(index, 'defaultDays', Number(e.target.value))}
+                                                            min="0"
+                                                            className="w-16 px-2 py-1.5 text-sm border border-gray-300 rounded shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                                        />
+                                                        <span className="ml-1.5 text-xs font-medium text-gray-500">days</span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-5 py-3 align-top text-center">
+                                                    <div className="pt-1 flex justify-center">
+                                                        <CustomToggle
+                                                            checked={leave.documentRequired || false}
+                                                            onChange={() => handleLeavePolicyChange(index, 'documentRequired', !leave.documentRequired)}
+                                                        />
+                                                    </div>
+                                                </td>
+                                                <td className="px-5 py-3 align-top text-center">
+                                                    <div className="pt-1">
+                                                        <Button
+                                                            type="button"
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={() => handleAddOverride(index)}
+                                                            className="text-xs bg-white border border-gray-300 shadow-sm hover:bg-gray-50 text-gray-800 font-semibold px-3 py-1.5 mx-auto flex items-center justify-center transition-all focus:ring-2 focus:ring-blue-100"
+                                                        >
+                                                            <FiPlus className="mr-1.5" /> Overrides
+                                                        </Button>
+                                                    </div>
+                                                </td>
+                                                <td className="px-2 py-3 align-top text-right">
+                                                    <div className="pt-1 pr-2 flex justify-end">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleRemoveLeave(index)}
+                                                            className="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all p-1.5 rounded hover:bg-red-50 focus:opacity-100 ring-1 ring-transparent hover:ring-red-100"
+                                                            title="Delete Leave Type"
+                                                        >
+                                                            <FiTrash2 size={16} />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            {/* Expandable Section for Overrides */}
+                                            {leave.overrides && leave.overrides.length > 0 && (
+                                                <tr>
+                                                    <td colSpan="4" className="bg-gray-50/50 px-5 py-4 border-b border-gray-200">
+                                                        <div className="pl-4 border-l-2 border-blue-400 space-y-3">
+                                                            <h5 className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">Policy Overrides</h5>
+                                                            {leave.overrides.map((override, oIdx) => (
+                                                                <div key={oIdx} className="flex flex-col sm:flex-row items-start gap-5 p-4 bg-white rounded-lg border border-gray-200 shadow-sm relative pr-24 hover:border-blue-200 transition-colors">
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => handleRemoveOverride(index, oIdx)}
+                                                                        className="absolute top-4 right-4 text-red-500 hover:text-red-700 hover:bg-red-50 text-xs font-semibold px-2 py-1 rounded border border-transparent hover:border-red-200 flex items-center transition-all bg-white"
+                                                                    >
+                                                                        <FiTrash2 size={13} className="mr-1" /> Remove
+                                                                    </button>
+
+                                                                    <div className="flex-1 w-full sm:w-auto">
+                                                                        <div className="w-full flex justify-between items-center mb-1.5">
+                                                                            <label className="text-xs font-bold text-gray-700">Override Group {oIdx + 1}: Select Employees</label>
+                                                                        </div>
+
+                                                                        <div className="w-full border border-gray-300 rounded shadow-sm bg-white flex flex-col">
+                                                                            <div className="p-2 border-b border-gray-100 bg-gray-50 flex items-center">
+                                                                                <input
+                                                                                    type="text"
+                                                                                    placeholder="Search employees..."
+                                                                                    value={overrideSearch[`${index}-${oIdx}`] || ''}
+                                                                                    onChange={(e) => setOverrideSearch({ ...overrideSearch, [`${index}-${oIdx}`]: e.target.value })}
+                                                                                    className="w-full text-xs px-2 py-1.5 border border-gray-200 rounded focus:ring-blue-500 focus:border-blue-500 outline-none"
+                                                                                />
+                                                                            </div>
+
+                                                                            <div className="min-h-[120px] max-h-[180px] overflow-y-auto w-full custom-scrollbar flex flex-col p-1.5 space-y-0.5">
+                                                                                {(() => {
+                                                                                    const searchStr = (overrideSearch[`${index}-${oIdx}`] || '').toLowerCase();
+                                                                                    const filteredWorkers = workers.filter(w =>
+                                                                                        w.name.toLowerCase().includes(searchStr) ||
+                                                                                        (w.employeeId && w.employeeId.toLowerCase().includes(searchStr)) ||
+                                                                                        (w.username && w.username.toLowerCase().includes(searchStr))
+                                                                                    );
+                                                                                    return filteredWorkers.length > 0 ? (
+                                                                                        <Fragment>
+                                                                                            <div className="flex justify-between items-center px-1 pb-1 mb-1 border-b border-gray-100">
+                                                                                                <span className="text-[10px] uppercase font-semibold text-gray-400">
+                                                                                                    {override.employeeIds?.length || 0} Selected
+                                                                                                </span>
+                                                                                                <button
+                                                                                                    type="button"
+                                                                                                    onClick={() => toggleAllOverrideEmployees(index, oIdx, filteredWorkers)}
+                                                                                                    className="text-[10px] font-semibold text-blue-600 hover:text-blue-800 focus:outline-none"
+                                                                                                >
+                                                                                                    Toggle All Visible
+                                                                                                </button>
+                                                                                            </div>
+                                                                                            {filteredWorkers.map(w => {
+                                                                                                const isChecked = override.employeeIds?.includes(w._id);
+                                                                                                const isSelectedElsewhere = leave.overrides.some((otherOverride, otherIdx) =>
+                                                                                                    otherIdx !== oIdx && otherOverride.employeeIds && otherOverride.employeeIds.includes(w._id)
+                                                                                                );
+                                                                                                const isDisabled = isSelectedElsewhere;
+                                                                                                return (
+                                                                                                    <label
+                                                                                                        key={w._id}
+                                                                                                        className={`flex items-center px-2 py-1.5 rounded transition-colors text-xs ${isDisabled ? 'opacity-60 bg-gray-50 cursor-not-allowed' : 'cursor-pointer hover:bg-blue-50'} ${isChecked ? 'bg-blue-50/50' : ''}`}
+                                                                                                    >
+                                                                                                        <input
+                                                                                                            type="checkbox"
+                                                                                                            checked={isChecked}
+                                                                                                            disabled={isDisabled}
+                                                                                                            onChange={() => toggleOverrideEmployee(index, oIdx, w._id)}
+                                                                                                            className="h-3.5 w-3.5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mr-2.5 cursor-pointer disabled:cursor-not-allowed"
+                                                                                                        />
+                                                                                                        <div className="flex-1 min-w-0 flex items-center justify-between">
+                                                                                                            <span className={`block truncate ${isChecked ? 'font-medium text-blue-800' : 'text-gray-700'}`}>
+                                                                                                                {w.name} {w.employeeId ? `(${w.employeeId})` : ''}
+                                                                                                            </span>
+                                                                                                            {isDisabled && (
+                                                                                                                <span className="text-[9px] font-medium text-gray-400 bg-white border border-gray-200 px-1.5 py-0.5 rounded shadow-sm whitespace-nowrap ml-2">
+                                                                                                                    In Use
+                                                                                                                </span>
+                                                                                                            )}
+                                                                                                        </div>
+                                                                                                    </label>
+                                                                                                );
+                                                                                            })}
+                                                                                        </Fragment>
+                                                                                    ) : (
+                                                                                        <span className="text-xs text-gray-500 italic p-3 block text-center">No employees found.</span>
+                                                                                    );
+                                                                                })()}
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="w-full sm:w-32">
+                                                                        <label className="block text-xs font-bold text-gray-700 mb-1.5">Override Days</label>
+                                                                        <div className="relative flex items-center">
+                                                                            <input
+                                                                                type="number"
+                                                                                value={override.days ?? 0}
+                                                                                onChange={(e) => handleOverrideChange(index, oIdx, 'days', Number(e.target.value))}
+                                                                                min="0"
+                                                                                className="w-16 px-2.5 py-2 text-sm border border-gray-300 rounded shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                                                            />
+                                                                            <span className="ml-2 text-sm text-gray-600 font-medium">days</span>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            )}
+                                        </tbody>
+                                    ))}
+                                </table>
+                            </div>
+
+                            {/* Mobile specific hints if needed */}
+                            <div className="md:hidden mt-3 mb-1 text-xs text-center text-gray-400">
+                                Scroll horizontally to view more fields
+                            </div>
+                        </div>
+                    </div>
+                </Card>
+
                 {/* Financial Settings */}
                 <Card className="mb-8 hover:shadow-lg transition-shadow duration-200">
                     <div className="h-2 bg-gradient-to-r from-emerald-400 to-teal-400" />
@@ -894,7 +1216,7 @@ const Settings = () => {
 
                             <div className="space-y-2">
                                 <label className="block text-sm font-medium text-gray-700">
-                                    Salary Deduction per Break (₹)
+                                    Salary Deduction per Break ({settings.localization?.currencySymbol || '₹'})
                                 </label>
                                 <input
                                     type="number"
@@ -1113,65 +1435,7 @@ const Settings = () => {
                     <div className="p-6">
                         <h3 className="text-lg font-semibold mb-6 text-gray-900">Configuration Summary</h3>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <div className="bg-white p-4 rounded-lg shadow-sm">
-                                <h4 className="font-medium text-gray-700 mb-3 flex items-center">
-                                    <FiClock className="mr-2 h-4 w-4" />
-                                    Meal Services
-                                </h4>
-                                <div className="space-y-2 text-sm">
-                                    <div className="flex justify-between">
-                                        <span>Breakfast:</span>
-                                        <span className={settings.breakfastEnabled ? 'text-green-600 font-medium' : 'text-red-600'}>
-                                            {settings.breakfastEnabled ? '✓ Enabled' : '✗ Disabled'}
-                                        </span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span>Lunch:</span>
-                                        <span className={settings.foodRequestEnabled ? 'text-green-600 font-medium' : 'text-red-600'}>
-                                            {settings.foodRequestEnabled ? '✓ Enabled' : '✗ Disabled'}
-                                        </span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span>Dinner:</span>
-                                        <span className={settings.dinnerEnabled ? 'text-green-600 font-medium' : 'text-red-600'}>
-                                            {settings.dinnerEnabled ? '✓ Enabled' : '✗ Disabled'}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
 
-                            <div className="bg-white p-4 rounded-lg shadow-sm">
-                                <h4 className="font-medium text-gray-700 mb-3 flex items-center">
-                                    <FiToggleRight className="mr-2 h-4 w-4" />
-                                    Automation
-                                </h4>
-                                <div className="space-y-2 text-sm">
-                                    <div className="flex justify-between">
-                                        <span>Email Reports:</span>
-                                        <span className={settings.emailReportsEnabled ? 'text-green-600 font-medium' : 'text-gray-600'}>
-                                            {settings.emailReportsEnabled ? '✓ Active' : '✗ Inactive'}
-                                        </span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span>Breakfast Auto:</span>
-                                        <span className={settings.breakfastAutoSwitch ? 'text-green-600 font-medium' : 'text-gray-600'}>
-                                            {settings.breakfastAutoSwitch ? '✓ Active' : '✗ Inactive'}
-                                        </span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span>Lunch Auto:</span>
-                                        <span className={settings.foodRequestAutoSwitch ? 'text-green-600 font-medium' : 'text-gray-600'}>
-                                            {settings.foodRequestAutoSwitch ? '✓ Active' : '✗ Inactive'}
-                                        </span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span>Dinner Auto:</span>
-                                        <span className={settings.dinnerAutoSwitch ? 'text-green-600 font-medium' : 'text-gray-600'}>
-                                            {settings.dinnerAutoSwitch ? '✓ Active' : '✗ Inactive'}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
 
                             <div className="bg-white p-4 rounded-lg shadow-sm">
                                 <h4 className="font-medium text-gray-700 mb-3 flex items-center">
@@ -1185,7 +1449,7 @@ const Settings = () => {
                                     </div>
                                     <div className="flex justify-between">
                                         <span>Deduction Amount:</span>
-                                        <span className="font-medium">₹{settings.salaryDeductionPerBreak}</span>
+                                        <span className="font-medium">{formatCurrency(settings.salaryDeductionPerBreak, settings)}</span>
                                     </div>
                                     <div className="flex justify-between">
                                         <span>Consider Overtime:</span>

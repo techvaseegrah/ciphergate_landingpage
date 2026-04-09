@@ -7,21 +7,10 @@ import Card from '../common/Card';
 import Button from '../common/Button';
 import Spinner from '../common/Spinner';
 import appContext from '../../context/AppContext';
+import LeaveBalanceCard from './LeaveBalanceCard';
+import { FiAlertTriangle, FiUploadCloud, FiFileText, FiX } from 'react-icons/fi';
 
-const LEAVE_TYPES = [
-  { value: 'Annual Leave', label: 'Annual Leave', noticeDays: 7, balanceKey: 'annualLeave' },
-  { value: 'Sick Leave', label: 'Sick Leave / Outpatient', noticeDays: 0, balanceKey: 'sickLeave', requiresCert: true },
-  { value: 'Hospitalization Leave', label: 'Hospitalization Leave', noticeDays: 0, balanceKey: 'hospitalizationLeave', requiresCert: true },
-  { value: 'Urgent Leave', label: 'Urgent Leave', noticeDays: 0, balanceKey: 'urgentLeave' },
-  { value: 'Marriage Leave', label: 'Marriage Leave', noticeDays: 7, balanceKey: 'marriageLeave' },
-  { value: 'Paternity Leave', label: 'Paternity Leave', noticeDays: 7, balanceKey: 'paternityLeave' },
-  { value: 'Compassionate Leave', label: 'Compassionate Leave', noticeDays: 0, balanceKey: 'compassionateLeave' },
-  { value: 'Unpaid Leave', label: 'Unpaid Leave', noticeDays: 7, balanceKey: 'unpaidLeave' },
-  { value: 'Home Country Leave', label: 'Home Country Leave', noticeDays: 30, balanceKey: 'homeCountryLeave' },
-  { value: 'Personal Leave', label: 'Personal Leave', noticeDays: 7, balanceKey: 'personalLeave' },
-  { value: 'Permission', label: 'Time-off / Permission (AM-PM)', noticeDays: 0, balanceKey: null },
-  { value: 'Others', label: 'Others', noticeDays: 7, balanceKey: null },
-];
+import { useMemo } from 'react';
 
 const ApplyForLeave = () => {
   const { user } = useAuth();
@@ -42,9 +31,12 @@ const ApplyForLeave = () => {
     returnTicketProvided: false,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [leaveBalance, setLeaveBalance] = useState(null);
+  const [calculatedBalances, setCalculatedBalances] = useState(null);
+  const [leaveUsed, setLeaveUsed] = useState(null);
   const [balanceLoading, setBalanceLoading] = useState(true);
   const [policy, setPolicy] = useState(null);
+  const [eligibilityData, setEligibilityData] = useState(null);
+  const [fileError, setFileError] = useState(false);
 
   // Fetch leave balance on mount
   useEffect(() => {
@@ -52,8 +44,14 @@ const ApplyForLeave = () => {
       try {
         setBalanceLoading(true);
         const data = await getLeaveBalance();
-        setLeaveBalance(data.leaveBalance);
+        setCalculatedBalances(data.calculatedBalances);
+        setLeaveUsed(data.leaveUsed);
         setPolicy(data.policy);
+        setEligibilityData({
+          value: data.eligibilityValue,
+          unit: data.eligibilityUnit,
+          dateOfJoining: data.dateOfJoining
+        });
       } catch (err) {
         console.error('Could not load leave balance:', err);
       } finally {
@@ -61,17 +59,53 @@ const ApplyForLeave = () => {
       }
     };
     fetchBalance();
+
   }, []);
 
-  const selectedLeaveType = LEAVE_TYPES.find(lt => lt.value === formData.leaveType);
+  const dynamicLeaveTypes = useMemo(() => {
+    let baseList = [];
+    if (policy && Array.isArray(policy)) {
+      baseList = policy.map(p => ({
+        value: p.label,
+        label: p.label,
+        noticeDays: p.label === 'Home Country Leave' ? 30 : (
+          p.label.toLowerCase().includes('sick') ||
+            p.label.toLowerCase().includes('hospital') ||
+            p.label.toLowerCase().includes('urgent') ||
+            p.label.toLowerCase().includes('compassion')
+            ? 0 : 7
+        ),
+        requiresCert: p.label.toLowerCase().includes('sick') || p.label.toLowerCase().includes('hospital')
+      }));
+    }
+
+    // Ensure Permission and Others are always appended at the end safely
+    if (!baseList.find(l => l.value === 'Permission')) {
+      baseList.push({ value: 'Permission', label: 'Time-off / Permission (AM-PM)', noticeDays: 0 });
+    }
+    if (!baseList.find(l => l.value === 'Others')) {
+      baseList.push({ value: 'Others', label: 'Others', noticeDays: 7 });
+    }
+    return baseList;
+  }, [policy]);
+
+  const selectedLeaveType = dynamicLeaveTypes.find(lt => lt.value === formData.leaveType);
   const requiresCertificate = selectedLeaveType?.requiresCert;
   const noticeDays = selectedLeaveType?.noticeDays ?? 0;
-  const balanceKey = selectedLeaveType?.balanceKey;
-  const remainingBalance = balanceKey && leaveBalance ? (leaveBalance[balanceKey] ?? 0) : null;
 
   const isPermission = formData.leaveType === 'Permission';
   const isHomeCountry = formData.leaveType === 'Home Country Leave';
+  const isOthers = formData.leaveType === 'Others';
   const isLongLeave = formData.totalDays >= (policy?.requireReturnTicketDays ?? 7);
+
+  let remainingBalance = null;
+  if (!isPermission && !isOthers && calculatedBalances) {
+    const allowed = calculatedBalances[formData.leaveType] ?? 0;
+    const used = (leaveUsed && leaveUsed[formData.leaveType]) ? leaveUsed[formData.leaveType] : 0;
+    remainingBalance = allowed - used;
+  }
+
+  const isDocRequired = true;
 
   const calculateTotalDays = (start, end, isHalfDay) => {
     if (!start || !end) return 0;
@@ -83,6 +117,28 @@ const ApplyForLeave = () => {
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
     return diffDays;
   };
+
+  let isEligible = true;
+  let eligibleDateFormatted = '';
+
+  if (eligibilityData?.dateOfJoining) {
+    const joiningDate = new Date(eligibilityData.dateOfJoining);
+    const eligibleDate = new Date(joiningDate);
+    if (eligibilityData.unit === 'days') {
+      eligibleDate.setDate(eligibleDate.getDate() + eligibilityData.value);
+    } else {
+      eligibleDate.setMonth(eligibleDate.getMonth() + eligibilityData.value);
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    isEligible = today >= eligibleDate;
+    const dd = String(eligibleDate.getDate()).padStart(2, '0');
+    const mm = String(eligibleDate.getMonth() + 1).padStart(2, '0');
+    const yyyy = eligibleDate.getFullYear();
+    eligibleDateFormatted = `${dd}-${mm}-${yyyy}`;
+  }
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -127,6 +183,7 @@ const ApplyForLeave = () => {
     const file = e.target.files[0];
     if (file) {
       setFormData(prev => ({ ...prev, document: file }));
+      setFileError(false);
     }
   };
 
@@ -148,12 +205,17 @@ const ApplyForLeave = () => {
       return;
     }
 
-    // Warn if doctor certificate needed but not uploaded
-    if (requiresCertificate && !formData.document) {
-      const proceed = window.confirm(
-        'A doctor certificate is required for Sick / Hospitalization Leave. Upload it now or you may be asked later. Continue anyway?'
-      );
-      if (!proceed) return;
+    if (remainingBalance !== null && formData.totalDays > remainingBalance && formData.totalDays > 0) {
+      toast.error(`Insufficient ${formData.leaveType} balance. You are requesting ${formData.totalDays} day(s) but only have ${remainingBalance} day(s) remaining.`);
+      return;
+    }
+
+    if (isDocRequired && !formData.document) {
+      toast.error('Supporting document is required');
+      setFileError(true);
+      const docInput = document.getElementById('document');
+      if (docInput) docInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
     }
 
     // Client-side notice period warning (server enforces it too)
@@ -215,40 +277,58 @@ const ApplyForLeave = () => {
     <div>
       <h1 className="text-2xl font-bold mb-6">Apply for Leave</h1>
 
-      {/* Leave Balance Summary */}
-      {!balanceLoading && leaveBalance && (
-        <Card className="mb-6 bg-blue-50 border border-blue-200">
-          <div className="mb-3">
-            <h2 className="font-semibold text-gray-800">Your Leave Balance</h2>
-            <p className="text-xs text-gray-500">
-              {policy?.eligibilityMonths
-                ? `Eligible after ${policy.eligibilityMonths} months of employment.`
-                : ''}
+      {/* Leave Balance Summary DASHBOARD */}
+      {balanceLoading ? (
+        <div className="mb-6 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="animate-pulse bg-white border border-gray-100 rounded-xl p-4 shadow-sm flex flex-col items-center justify-center min-h-[110px]">
+              <div className="h-3 bg-gray-200 rounded w-20 mb-3"></div>
+              <div className="h-8 bg-gray-200 rounded w-12 mb-2"></div>
+              <div className="h-2 bg-gray-100 rounded w-16"></div>
+            </div>
+          ))}
+        </div>
+      ) : calculatedBalances && Object.keys(calculatedBalances).length > 0 ? (
+        <div className="mb-10 bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+          <div className="mb-6">
+            <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+              Your Leave Balance
+              <span title="Calculations include any individual or group overrides assigned to you" className="cursor-help text-gray-400 hover:text-gray-600 transition-colors">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
+              </span>
+            </h2>
+            <p className="text-[13px] text-gray-500 mt-0.5">
+              {eligibilityData?.value !== undefined
+                ? `Eligible after ${eligibilityData.value} ${eligibilityData.unit} of employment.`
+                : 'Loading eligibility...'}
             </p>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
-            {[
-              { label: 'Annual', key: 'annualLeave' },
-              { label: 'Sick', key: 'sickLeave' },
-              { label: 'Hospital', key: 'hospitalizationLeave' },
-              { label: 'Urgent', key: 'urgentLeave' },
-              { label: 'Marriage', key: 'marriageLeave' },
-              { label: 'Paternity', key: 'paternityLeave' },
-              { label: 'Compassion', key: 'compassionateLeave' },
-              { label: 'Personal', key: 'personalLeave' },
-              { label: 'Unpaid', key: 'unpaidLeave' },
-              { label: 'Home Country', key: 'homeCountryLeave' },
-            ].map(item => (
-              <div key={item.key} className="bg-white rounded-lg p-2 text-center border border-blue-100 shadow-sm">
-                <p className="text-xs text-gray-500">{item.label}</p>
-                <p className={`text-lg font-bold ${(leaveBalance[item.key] ?? 0) === 0 ? 'text-red-500' : 'text-blue-700'}`}>
-                  {leaveBalance[item.key] ?? 0}
-                </p>
-                <p className="text-xs text-gray-400">days left</p>
-              </div>
-            ))}
+
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            {Object.keys(calculatedBalances)
+              .filter(label => label !== 'Unpaid Leave' && label !== 'Home Country Leave' && calculatedBalances[label] > 0)
+              .map(label => {
+                const allowed = calculatedBalances[label];
+                const used = leaveUsed?.[label] || 0;
+                const remaining = Math.max(0, allowed - used);
+
+                return (
+                  <LeaveBalanceCard
+                    key={label}
+                    title={label}
+                    value={remaining}
+                  />
+                );
+              })
+            }
           </div>
-        </Card>
+        </div>
+      ) : null}
+
+      {!isEligible && (
+        <div className="bg-red-50 text-red-600 p-4 rounded-lg mb-6 border border-red-200 font-medium">
+          You can apply leave after {eligibleDateFormatted}
+        </div>
       )}
 
       <Card>
@@ -266,7 +346,7 @@ const ApplyForLeave = () => {
                 onChange={handleChange}
                 required
               >
-                {LEAVE_TYPES.map(lt => (
+                {dynamicLeaveTypes.map(lt => (
                   <option key={lt.value} value={lt.value}>{lt.label}</option>
                 ))}
               </select>
@@ -429,26 +509,70 @@ const ApplyForLeave = () => {
 
           {/* Document Upload */}
           <div className="form-group mb-6">
-            <label htmlFor="document" className="form-label">
-              Supporting Document {requiresCertificate ? <span className="text-red-500">* (required)</span> : '(optional)'}
+            <label htmlFor="document" className="form-label flex items-center gap-1">
+              Supporting Document <span className="text-red-500">*</span>
             </label>
-            <input
-              type="file"
-              id="document"
-              name="document"
-              className="form-input"
-              onChange={handleDocumentChange}
-              accept=".jpg,.jpeg,.png,.pdf,.doc,.docx"
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              {requiresCertificate
-                ? 'Doctor certificate is mandatory for Sick / Hospitalization Leave. Inform within 48 hours.'
-                : 'Upload any supporting documents (medical certificates, etc.)'}
-            </p>
+
+            {!formData.document && (
+              <div className="mb-3 p-3 bg-red-50 border border-red-100 rounded-lg flex items-start gap-2 text-red-800 text-xs shadow-sm shadow-red-100/50">
+                <FiAlertTriangle className="mt-0.5 flex-shrink-0 text-red-500" />
+                <p className="font-medium">A supporting document is strictly mandatory for all leave requests and must be uploaded to proceed.</p>
+              </div>
+            )}
+
+            {!formData.document ? (
+              <div className={`relative border-2 border-dashed rounded-lg p-6 transition-all duration-200 ${fileError ? 'border-red-300 bg-red-50 ring-2 ring-red-100' : 'border-gray-200 hover:border-gray-300 bg-gray-50 hover:bg-gray-100/50'}`}>
+                <input
+                  type="file"
+                  id="document"
+                  name="document"
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                  onChange={handleDocumentChange}
+                  accept=".jpg,.jpeg,.png,.pdf,.doc,.docx"
+                />
+                <div className="flex flex-col items-center justify-center text-center">
+                  <FiUploadCloud className={`h-10 w-10 mb-3 ${fileError ? 'text-red-400' : 'text-gray-400'}`} />
+                  <p className={`text-sm font-semibold ${fileError ? 'text-red-700' : 'text-gray-700'}`}>
+                    {fileError ? 'File Required' : 'Click or drag to upload'}
+                  </p>
+                  <p className="text-xs text-gray-400 mt-1">PDF, JPG, PNG, DOC (Max 5MB)</p>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between p-4 bg-white border border-blue-200 rounded-lg shadow-sm">
+                <div className="flex items-center gap-3 overflow-hidden">
+                  <div className="p-2.5 bg-blue-100 rounded-lg text-blue-600">
+                    <FiFileText size={24} />
+                  </div>
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-sm font-semibold text-gray-900 truncate">{formData.document.name}</span>
+                    <span className="text-xs text-gray-500">{(formData.document.size / 1024).toFixed(1)} KB</span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setFormData(prev => ({ ...prev, document: null }))}
+                  className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-all"
+                  title="Remove file"
+                >
+                  <FiX size={20} />
+                </button>
+              </div>
+            )}
+
+            {fileError && (
+              <p className="text-[12px] text-red-600 mt-2 font-medium flex items-center gap-1">
+                <FiAlertTriangle size={12} /> Please upload a document
+              </p>
+            )}
           </div>
 
           <div className="flex justify-end">
-            <Button type="submit" variant="primary" disabled={isSubmitting}>
+            <Button
+              type="submit"
+              variant="primary"
+              disabled={isSubmitting || !isEligible || (isDocRequired && !formData.document)}
+            >
               {isSubmitting ? <Spinner size="sm" /> : 'Submit Leave Application'}
             </Button>
           </div>

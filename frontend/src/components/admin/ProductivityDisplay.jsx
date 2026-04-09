@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useContext } from 'react';
+import appContext from '../../context/AppContext';
+import { formatCurrency } from '../../utils/formatUtils';
 import { 
   FaClock, 
   FaUserClock, 
@@ -11,6 +13,7 @@ import {
 } from 'react-icons/fa';
 
 const ProductivityDisplay = ({ productivityData }) => {
+  const { settings } = useContext(appContext);
   // Helper function to convert minutes to hours and minutes display
   const formatMinutesToHoursMin = (minutes) => {
     const hours = Math.floor(minutes / 60);
@@ -80,13 +83,13 @@ const ProductivityDisplay = ({ productivityData }) => {
       {/* Salary Status */}
       <ProductivityCard
         title="Final Salary"
-        value={`₹${productivityData.summary.finalSalary.toFixed(3).toLocaleString()}`}
+        value={formatCurrency(productivityData.summary.finalSalary, settings)}
         icon={FaMoneyBillWave}
         bgColor={productivityData.totalSalaryDeduction > 0 ? "bg-red-50" : "bg-green-50"}
         textColor={productivityData.totalSalaryDeduction > 0 ? "text-red-600" : "text-green-600"}
         // subtitle={
         //   productivityData.totalSalaryDeduction > 0 
-        //     ? `Deduction: ₹${productivityData.totalSalaryDeduction.toFixed(3)}`
+        //     ? `Deduction: ${formatCurrency(productivityData.totalSalaryDeduction, settings)}`
         //     : "No deductions"
         // }
         subtitle={'Final salary of selected dates'}
@@ -120,7 +123,7 @@ const ProductivityDisplay = ({ productivityData }) => {
           title="Alerts"
           value={
             productivityData.totalSalaryDeduction > 0 
-              ? `₹${productivityData.totalSalaryDeduction.toFixed(3)}`
+              ? formatCurrency(productivityData.totalSalaryDeduction, settings)
               : "Permission Time High"
           }
           icon={FaExclamationTriangle}

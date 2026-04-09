@@ -12,6 +12,7 @@ import Spinner from '../common/Spinner';
 import appContext from '../../context/AppContext';
 import { useAuth } from '../../hooks/useAuth';
 import PricingModal from '../common/PricingModal';
+import { formatCurrency } from '../../utils/formatUtils';
 
 // Helper component for Circular Progress
 const CircularProgress = ({ percentage, size = 60, strokeWidth = 6 }) => {
@@ -67,7 +68,7 @@ const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [departments, setDepartments] = useState([]); // Changed from topWorkers to departments
   const [pendingLeaves, setPendingLeaves] = useState([]);
-  const { subdomain } = useContext(appContext);
+  const { subdomain, settings } = useContext(appContext);
   const { user } = useAuth();
   const [isPricingModalOpen, setIsPricingModalOpen] = useState(false);
   const [viewEmployeesModalOpen, setViewEmployeesModalOpen] = useState(false);
@@ -508,11 +509,11 @@ const Dashboard = () => {
                 <div className="space-y-4">
                   <div className="flex justify-between items-end">
                     <span className="text-gray-500 text-[10px] font-black uppercase">Earned Month</span>
-                    <span className="text-2xl font-black text-emerald-700">₹{employeeSummary.monthly.earnings.toLocaleString()}</span>
+                    <span className="text-2xl font-black text-emerald-700">{formatCurrency(employeeSummary.monthly.earnings, settings)}</span>
                   </div>
                   <div className="flex justify-between items-end opacity-80">
                     <span className="text-gray-500 text-[10px] font-black uppercase">Yearly Total</span>
-                    <span className="text-lg font-bold text-gray-800">₹{employeeSummary.yearly.earnings.toLocaleString()}</span>
+                    <span className="text-lg font-bold text-gray-800">{formatCurrency(employeeSummary.yearly.earnings, settings)}</span>
                   </div>
                 </div>
               </div>
@@ -549,7 +550,7 @@ const Dashboard = () => {
                             <span className="text-[10px] font-bold text-gray-500 w-10">{data.performance.toFixed(1)}%</span>
                           </div>
                         </td>
-                        <td className="py-3 text-right text-sm font-black text-emerald-600 tracking-tight">₹{data.earnings.toLocaleString()}</td>
+                        <td className="py-3 text-right text-sm font-black text-emerald-600 tracking-tight">{formatCurrency(data.earnings, settings)}</td>
                       </tr>
                     ))}
                   </tbody>

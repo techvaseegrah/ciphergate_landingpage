@@ -67,7 +67,7 @@ const calculateWorkerProductivity = (productivityParameters) => {
   };
 
   const formatCurrency = (amount) => {
-    return `₹${amount.toFixed(2)}`;
+    return amount.toFixed(2);
   };
 
   const formatDate = (dateStr) => {
@@ -830,7 +830,7 @@ const calculateWorkerProductivity = (productivityParameters) => {
     if (entry.status === 'Absent' && entry.delayTime === 'Full Day') {
       return sum;
     }
-    const deduction = parseFloat(entry.deductionAmount.replace('₹', ''));
+    const deduction = parseFloat(entry.deductionAmount);
     return sum + (isNaN(deduction) ? 0 : deduction);
   }, 0);
 
@@ -989,11 +989,11 @@ function emptyResponse() {
       "Actual Working Days": 0,
       "Total Working Hours": "0 hours",
       "Total Permission Time": "0 minutes",
-      "Absent Deduction": "₹0.00",
-      "Permission Deduction": "₹0.00",
-      "Total Salary Deductions": "₹0.00",
+      "Absent Deduction": "0.00",
+      "Permission Deduction": "0.00",
+      "Total Salary Deductions": "0.00",
       "Attendance Rate": "0%",
-      "Final Salary": "₹0.00"
+      "Final Salary": "0.00"
     },
     report: []
   };

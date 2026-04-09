@@ -96,6 +96,14 @@ const settingsSchema = mongoose.Schema({
     default: true
   },
 
+  // Localization settings
+  localization: {
+    country: { type: String, default: 'USA' },
+    currency: { type: String, default: 'USD' },
+    currencySymbol: { type: String, default: '$' },
+    locale: { type: String, default: 'en-US' }
+  },
+
   // Location settings for attendance restrictions
   attendanceLocation: {
     enabled: {
@@ -132,6 +140,43 @@ const settingsSchema = mongoose.Schema({
         message: props => `${props.value} is not a valid radius! Must be between 10 and 1000 meters.`
       }
     }
+  },
+
+  // Leave settings
+  leaveEligibilityValue: {
+    type: Number,
+    default: 3
+  },
+  leaveEligibilityUnit: {
+    type: String,
+    enum: ['days', 'months'],
+    default: 'months'
+  },
+  leavePolicy: {
+    type: [{
+      _id: false,
+      type: { type: String, required: true },
+      label: { type: String, required: true },
+      defaultDays: { type: Number, required: true, default: 0 },
+      overrides: [{
+          _id: false,
+          employeeIds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Worker' }],
+          days: { type: Number, required: true }
+      }],
+      documentRequired: { type: Boolean, default: false }
+    }],
+    default: [
+      { type: 'annual', label: 'Annual Leave', defaultDays: 7, overrides: [] },
+      { type: 'sick', label: 'Sick Leave', defaultDays: 14, overrides: [] },
+      { type: 'hospital', label: 'Hospitalization Leave', defaultDays: 60, overrides: [] },
+      { type: 'urgent', label: 'Urgent Leave', defaultDays: 3, overrides: [] },
+      { type: 'marriage', label: 'Marriage Leave', defaultDays: 3, overrides: [] },
+      { type: 'paternity', label: 'Paternity Leave', defaultDays: 3, overrides: [] },
+      { type: 'compassion', label: 'Compassionate Leave', defaultDays: 3, overrides: [] },
+      { type: 'personal', label: 'Personal Leave', defaultDays: 3, overrides: [] },
+      { type: 'unpaid', label: 'Unpaid Leave', defaultDays: 0, overrides: [] },
+      { type: 'homeCountry', label: 'Home Country Leave', defaultDays: 0, overrides: [] }
+    ]
   },
 
   // Common fields

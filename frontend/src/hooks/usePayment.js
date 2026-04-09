@@ -2,12 +2,15 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useAuth } from './useAuth';
+import appContext from '../context/AppContext';
+import { useContext } from 'react';
 import { createOrder, verifyPayment, cancelSubscription } from '../services/paymentService';
+import { formatCurrency } from '../utils/formatUtils';
 
 // ── Plan amounts in INR (single source of truth in code) ──
 const PLAN_AMOUNTS = {
-    monthly: 99,   // ₹99/month
-    yearly: 1100,  // ₹1100/year
+    monthly: 99,
+    yearly: 1100,
 };
 
 export const usePayment = () => {
@@ -15,6 +18,7 @@ export const usePayment = () => {
     const [isCancelling, setIsCancelling] = useState(false);
     const navigate = useNavigate();
     const { user } = useAuth();
+    const { settings } = useContext(appContext);
 
     const loadRazorpay = () => {
         return new Promise((resolve) => {
@@ -50,18 +54,24 @@ export const usePayment = () => {
 
         try {
             const planType = isYearly ? 'yearly' : 'monthly';
-            const amount = PLAN_AMOUNTS[planType]; // ₹99 or ₹1100
+            const amount = PLAN_AMOUNTS[planType]; // amount in base units (e.g. 99 for INR, not paise)
+            const currency = settings?.localization?.currency || 'INR';
+            const currencySymbol = settings?.localization?.currencySymbol || '$';
 
-            // Create a one-time Razorpay order with the correct amount
-            const order = await createOrder({ amount, currency: 'INR', planType });
+            // Create a one-time order with the current settings
+            const order = await createOrder({ 
+                amount, 
+                currency, 
+                planType 
+            });
 
             const options = {
                 key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_live_RqbpSczDZIkHfe',
                 order_id: order.id,
-                amount: order.amount,           // in paise (already multiplied by 100 on backend)
+                amount: order.amount,           // in smallest units (paise/cents)
                 currency: order.currency,
                 name: 'CipherGate Premium',
-                description: `${isYearly ? 'Yearly ₹1,100' : 'Monthly ₹99'} Premium Plan`,
+                description: `${isYearly ? 'Yearly' : 'Monthly'} ${formatCurrency(amount, settings)} Premium Plan`,
                 handler: async (response) => {
                     try {
                         await verifyPayment({

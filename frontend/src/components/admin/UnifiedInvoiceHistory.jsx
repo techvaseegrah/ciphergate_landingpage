@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import Card from '../common/Card';
 import { getAllInvoices, deleteInvoice } from '../../services/invoiceService';
+import appContext from '../../context/AppContext';
+import { formatCurrency } from '../../utils/formatUtils';
 
 const UnifiedInvoiceHistory = ({ onEditInvoice, onDeleteInvoice }) => {
   const [invoices, setInvoices] = useState([]);
@@ -9,6 +11,7 @@ const UnifiedInvoiceHistory = ({ onEditInvoice, onDeleteInvoice }) => {
   const [error, setError] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [invoiceToDelete, setInvoiceToDelete] = useState(null);
+  const { settings } = useContext(appContext);
 
   // Load unified invoice history from backend
   useEffect(() => {
@@ -156,7 +159,7 @@ const UnifiedInvoiceHistory = ({ onEditInvoice, onDeleteInvoice }) => {
                       </span>
                     </td>
                     <td className="py-3 px-4 text-sm text-gray-700 border-b text-right">
-                      ₹{calculateTotal(invoice).toFixed(2)}
+                      {formatCurrency(calculateTotal(invoice), settings)}
                     </td>
                     <td className="py-3 px-4 text-sm text-gray-700 border-b">
                       <span className={`px-2 py-1 text-xs rounded-full ${

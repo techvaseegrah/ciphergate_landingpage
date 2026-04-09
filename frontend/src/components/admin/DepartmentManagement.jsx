@@ -8,6 +8,7 @@ import Button from '../common/Button';
 import Modal from '../common/Modal';
 import Spinner from '../common/Spinner';
 import appContext from '../../context/AppContext';
+import { formatCurrency } from '../../utils/formatUtils';
 
 const DepartmentManagement = () => {
   const departmentInputRef = useRef(null);
@@ -89,7 +90,7 @@ const DepartmentManagement = () => {
     setViewEmployeesModalOpen(true);
   };
 
-  const { subdomain } = useContext(appContext);
+  const { subdomain, settings } = useContext(appContext);
 
   useEffect(() => {
     if (isAddModalOpen && departmentInputRef.current) {
@@ -526,11 +527,11 @@ const DepartmentManagement = () => {
                 <div className="space-y-4">
                   <div className="flex justify-between items-end">
                     <span className="text-gray-500 text-xs font-semibold uppercase">This Month</span>
-                    <span className="text-2xl font-black text-emerald-700">₹{employeeSummary.monthly.earnings.toLocaleString()}</span>
+                    <span className="text-2xl font-black text-emerald-700">{formatCurrency(employeeSummary.monthly.earnings, settings)}</span>
                   </div>
                   <div className="flex justify-between items-end">
                     <span className="text-gray-500 text-xs font-semibold uppercase">This Year</span>
-                    <span className="text-xl font-bold text-gray-700">₹{employeeSummary.yearly.earnings.toLocaleString()}</span>
+                    <span className="text-xl font-bold text-gray-700">{formatCurrency(employeeSummary.yearly.earnings, settings)}</span>
                   </div>
                 </div>
               </div>
@@ -568,7 +569,7 @@ const DepartmentManagement = () => {
                             <span className="text-xs font-bold text-gray-600 min-w-[40px]">{data.performance.toFixed(1)}%</span>
                           </div>
                         </td>
-                        <td className="py-4 text-right text-sm font-black text-emerald-600">₹{data.earnings.toLocaleString()}</td>
+                        <td className="py-4 text-right text-sm font-black text-emerald-600">{formatCurrency(data.earnings, settings)}</td>
                       </tr>
                     ))}
                   </tbody>

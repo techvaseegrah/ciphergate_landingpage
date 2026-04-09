@@ -3,6 +3,7 @@ const Leave = require('../models/Leave');
 const Admin = require('../models/Admin');
 const Worker = require('../models/Worker');
 const Department = require('../models/Department');
+const Settings = require('../models/Settings');
 
 const { sendNewLeaveRequestNotification } = require('../services/notificationService');
 
@@ -50,6 +51,58 @@ const getDeptPolicy = (department) => {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
+// HELPER: Dynamic Leave Balance Calculator
+// ─────────────────────────────────────────────────────────────────────────────
+const calculateLeaveBalance = (worker, settings) => {
+  const policyArray = settings?.leavePolicy;
+  let policyList = [];
+  if (Array.isArray(policyArray)) {
+    policyList = policyArray;
+  } else {
+    // fallback if no array
+    policyList = [
+      { type: 'annual', label: 'Annual Leave', defaultDays: 7, overrides: [] },
+      { type: 'sick', label: 'Sick Leave', defaultDays: 14, overrides: [] },
+      { type: 'hospital', label: 'Hospitalization Leave', defaultDays: 60, overrides: [] },
+      { type: 'urgent', label: 'Urgent Leave', defaultDays: 3, overrides: [] },
+      { type: 'marriage', label: 'Marriage Leave', defaultDays: 3, overrides: [] },
+      { type: 'paternity', label: 'Paternity Leave', defaultDays: 3, overrides: [] },
+      { type: 'compassion', label: 'Compassionate Leave', defaultDays: 3, overrides: [] },
+      { type: 'personal', label: 'Personal Leave', defaultDays: 3, overrides: [] },
+      { type: 'unpaid', label: 'Unpaid Leave', defaultDays: 0, overrides: [] },
+      { type: 'homeCountry', label: 'Home Country Leave', defaultDays: 0, overrides: [] }
+    ];
+  }
+  const workerOverrides = worker?.leaveOverrides || {};
+  const finalBalances = {};
+
+  policyList.forEach(leave => {
+    // 1. Worker Profile Override (Top level overrides applied on individual Worker management view)
+    if (workerOverrides[leave.type] !== undefined && workerOverrides[leave.type] !== '' && workerOverrides[leave.type] !== null) {
+      finalBalances[leave.label] = Number(workerOverrides[leave.type]);
+    } 
+    // 2. Policy Settings Group Override
+    else if (Array.isArray(leave.overrides) && worker && worker._id) {
+      const match = leave.overrides.find(o => 
+        Array.isArray(o.employeeIds) && o.employeeIds.some(id => id.toString() === worker._id.toString())
+      );
+      if (match) {
+        finalBalances[leave.label] = Number(match.days);
+      } else {
+        // 3. Global Default
+        finalBalances[leave.label] = Number(leave.defaultDays);
+      }
+    } 
+    // 3. Global Default
+    else {
+      finalBalances[leave.label] = Number(leave.defaultDays || 0);
+    }
+  });
+
+  return finalBalances;
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
 // LEAVE VALIDATION ENGINE
 // ─────────────────────────────────────────────────────────────────────────────
 const validateLeaveApplication = async (worker, leaveData, department) => {
@@ -61,19 +114,36 @@ const validateLeaveApplication = async (worker, leaveData, department) => {
   today.setHours(0, 0, 0, 0);
   const start = new Date(startDate);
 
-  // 1. ELIGIBILITY CHECK – must have joined at least eligibilityMonths ago
-  const joiningDate = new Date(worker.dateOfJoining);
-  const monthsSinceJoining = (today - joiningDate) / (1000 * 60 * 60 * 24 * 30);
+  // Fetch settings for eligibility and dynamic limits
+  const settings = await Settings.findOne({ subdomain: leaveData.subdomain || worker.subdomain });
+  const eligibilityValue = settings?.leaveEligibilityValue !== undefined ? settings.leaveEligibilityValue : 3;
+  const eligibilityUnit = settings?.leaveEligibilityUnit || 'months';
 
-  if (monthsSinceJoining < policy.eligibilityMonths) {
+  // 1. ELIGIBILITY CHECK
+  const joiningDate = new Date(worker.dateOfJoining);
+  let eligibleDate = new Date(joiningDate);
+  
+  if (eligibilityUnit === 'days') {
+      eligibleDate.setDate(eligibleDate.getDate() + eligibilityValue);
+  } else {
+      eligibleDate.setMonth(eligibleDate.getMonth() + eligibilityValue);
+  }
+ 
+  // Format eligible date DD-MM-YYYY
+  const dd = String(eligibleDate.getDate()).padStart(2, '0');
+  const mm = String(eligibleDate.getMonth() + 1).padStart(2, '0');
+  const yyyy = eligibleDate.getFullYear();
+  const formattedDate = `${dd}-${mm}-${yyyy}`;
+
+  if (today < eligibleDate) {
     errors.push(
-      `Not eligible for leave. You must complete ${policy.eligibilityMonths} months of employment (joined ${joiningDate.toDateString()}).`
+      `You can apply leave after ${formattedDate}`
     );
   }
 
-  // 2. SICK LEAVE – restricted during first 3 months
-  if ((leaveType === 'Sick Leave' || leaveType === 'Hospitalization Leave') && monthsSinceJoining < 3) {
-    errors.push('Sick / Hospitalization Leave is not allowed during the first 3 months of employment.');
+  // 2. SICK LEAVE – restricted during initial eligibility period
+  if ((leaveType === 'Sick Leave' || leaveType === 'Hospitalization Leave') && today < eligibleDate) {
+    errors.push(`Sick / Hospitalization Leave is not allowed before ${formattedDate}`);
   }
 
   // 3. NOTICE PERIOD CHECK
@@ -90,10 +160,28 @@ const validateLeaveApplication = async (worker, leaveData, department) => {
     }
   }
 
-  // 4. LEAVE BALANCE CHECK (skip for Unpaid / Permission / Others)
-  const balanceKey = getLeaveBalanceKey(leaveType);
-  if (balanceKey && totalDays > 0) {
-    const remaining = (worker.leaveBalance || {})[balanceKey] ?? 0;
+  // 4. DYNAMIC LEAVE BALANCE CHECK (skip for Permission / Others)
+  if (leaveType !== 'Permission' && leaveType !== 'Others' && totalDays > 0) {
+    const finalBalances = calculateLeaveBalance(worker, settings);
+    const allowedDays = finalBalances[leaveType] ?? 0;
+
+    // Calculate used days dynamically
+    const startOfYear = new Date(new Date().getFullYear(), 0, 1);
+    const endOfYear = new Date(new Date().getFullYear(), 11, 31);
+    const approvedLeaves = await Leave.find({
+      worker: worker._id,
+      status: 'Approved',
+      startDate: { $gte: startOfYear, $lte: endOfYear },
+      leaveType: leaveType
+    });
+    
+    let usedThisYear = 0;
+    approvedLeaves.forEach(l => {
+      usedThisYear += l.totalDays || 0;
+    });
+
+    const remaining = allowedDays - usedThisYear;
+    
     if (remaining < totalDays) {
       errors.push(`Insufficient ${leaveType} balance. Available: ${remaining} day(s), Requested: ${totalDays} day(s).`);
     }
@@ -106,9 +194,15 @@ const validateLeaveApplication = async (worker, leaveData, department) => {
     );
   }
 
-  // 6. SICK LEAVE – doctor certificate required (warn, not block)
-  const doctorCertRequired =
-    (leaveType === 'Sick Leave' || leaveType === 'Hospitalization Leave') && !leaveData.document;
+  // 6. SUPPORTING DOCUMENT VALIDATION (Strictly Mandatory)
+  if (!leaveData.document) {
+    errors.push("Supporting document is strictly required for all leave applications.");
+  }
+
+  const labelLower = (leaveType || '').toLowerCase();
+  const isMedical = labelLower.includes('medical') || labelLower.includes('sick') || labelLower.includes('hospital');
+
+  const doctorCertRequired = isMedical && !leaveData.document;
 
   return { errors, doctorCertRequired, policy };
 };
@@ -172,9 +266,39 @@ const getLeaveBalance = asyncHandler(async (req, res) => {
     throw new Error('Worker not found');
   }
   const policy = getDeptPolicy(worker.department);
+  const settings = await Settings.findOne({ subdomain: worker.subdomain });
+  
+  const eligibilityValue = settings?.leaveEligibilityValue !== undefined ? settings.leaveEligibilityValue : 3;
+  const eligibilityUnit = settings?.leaveEligibilityUnit || 'months';
+
+  // Calculate strict theoretical limits based on Top > Group > Global tiers
+  const finalBalances = calculateLeaveBalance(worker, settings);
+
+  // Compute actual Consumed Leave days statically for the current Year
+  const startOfYear = new Date(new Date().getFullYear(), 0, 1);
+  const endOfYear = new Date(new Date().getFullYear(), 11, 31);
+  
+  const leavesThisYear = await Leave.find({
+    worker: worker._id,
+    status: { $in: ['Approved', 'Pending'] },
+    startDate: { $gte: startOfYear, $lte: endOfYear }
+  });
+
+  const usedLeaves = {};
+  leavesThisYear.forEach(l => {
+    if (!usedLeaves[l.leaveType]) usedLeaves[l.leaveType] = 0;
+    usedLeaves[l.leaveType] += (l.totalDays || 0);
+  });
+
   res.status(200).json({
-    leaveBalance: worker.leaveBalance,
-    policy
+    calculatedBalances: finalBalances,
+    leaveUsed: usedLeaves,
+    leaveBalance: worker.leaveBalance, // legacy backward preservation 
+    policy: settings?.leavePolicy || {},
+    leaveOverrides: worker.leaveOverrides || {},
+    eligibilityValue,
+    eligibilityUnit,
+    dateOfJoining: worker.dateOfJoining
   });
 });
 
@@ -202,6 +326,14 @@ const createLeave = asyncHandler(async (req, res) => {
   if (!worker) {
     res.status(404);
     throw new Error('Worker not found');
+  }
+
+  // Strict document check as required by senior dev
+  if (!req.file) {
+    return res.status(400).json({
+      success: false,
+      message: "Supporting document is required"
+    });
   }
 
   // Run validation engine
@@ -292,15 +424,8 @@ const updateLeaveStatus = asyncHandler(async (req, res) => {
   if (status === 'Approved') {
     const worker = await Worker.findById(leave.worker);
     if (worker) {
-      // 1. Deduct from leave balance
-      const balanceKey = getLeaveBalanceKey(leave.leaveType);
-      if (balanceKey && leave.totalDays > 0) {
-        const current = (worker.leaveBalance || {})[balanceKey] ?? 0;
-        worker.leaveBalance = {
-          ...(worker.leaveBalance || {}),
-          [balanceKey]: Math.max(0, current - leave.totalDays)
-        };
-      }
+      // 1. Dynamic calculation means we don't manually deduct from leaveBalance object anymore!
+      // worker.leaveBalance is retained for legacy usage but not strictly updated here.
 
       // 2. Salary deduction
       let deduction = 0;
@@ -429,6 +554,9 @@ const getWorkerLeaveSummary = asyncHandler(async (req, res) => {
     throw new Error('Worker not found');
   }
 
+  // Fetch Global Policy from Settings
+  const settings = await Settings.findOne({ subdomain: worker.subdomain });
+
   // Count approved leaves by type for current year
   const startOfYear = new Date(new Date().getFullYear(), 0, 1);
   const endOfYear = new Date(new Date().getFullYear(), 11, 31);
@@ -446,14 +574,17 @@ const getWorkerLeaveSummary = asyncHandler(async (req, res) => {
     leaveUsed[l.leaveType] += l.totalDays || 0;
   });
 
-  const policy = getDeptPolicy(worker.department);
+  // Calculate final limits
+  const calculatedBalances = calculateLeaveBalance(worker, settings);
 
   res.status(200).json({
     worker: { name: worker.name, department: worker.department?.name },
-    leaveBalance: worker.leaveBalance,
+    calculatedBalances,
     leaveUsed,
-    policy,
-    eligibilityMonths: policy.eligibilityMonths,
+    policy: settings?.leavePolicy,
+    leaveOverrides: worker.leaveOverrides || {},
+    eligibilityValue: settings?.leaveEligibilityValue || 3,
+    eligibilityUnit: settings?.leaveEligibilityUnit || 'months',
     dateOfJoining: worker.dateOfJoining
   });
 });
@@ -504,21 +635,23 @@ const resetLeaveBalance = asyncHandler(async (req, res) => {
     throw new Error('Subdomain is required');
   }
 
+  const settings = await Settings.findOne({ subdomain });
+  const policy = settings?.leavePolicy || {};
+
   const workers = await Worker.find({ subdomain });
   const updates = workers.map(async (worker) => {
-    const dept = await Department.findById(worker.department);
-    const policy = getDeptPolicy(dept);
+    const overrides = worker.leaveOverrides || {};
     worker.leaveBalance = {
-      annualLeave: policy.annualLeaveLimit,
-      sickLeave: policy.sickLeaveLimit,
-      hospitalizationLeave: policy.hospitalizationLeaveLimit,
-      urgentLeave: policy.urgentLeaveLimit,
-      marriageLeave: policy.marriageLeaveLimit,
-      paternityLeave: policy.paternityLeaveLimit,
-      compassionateLeave: policy.compassionateLeaveLimit,
-      unpaidLeave: 0,
-      homeCountryLeave: 0,
-      personalLeave: 3
+      annualLeave: overrides.annual ?? policy.annual ?? 7,
+      sickLeave: overrides.sick ?? policy.sick ?? 14,
+      hospitalizationLeave: overrides.hospital ?? policy.hospital ?? 60,
+      urgentLeave: overrides.urgent ?? policy.urgent ?? 3,
+      marriageLeave: overrides.marriage ?? policy.marriage ?? 3,
+      paternityLeave: overrides.paternity ?? policy.paternity ?? 3,
+      compassionateLeave: overrides.compassion ?? policy.compassion ?? 3,
+      unpaidLeave: overrides.unpaid ?? policy.unpaid ?? 0,
+      homeCountryLeave: overrides.homeCountry ?? policy.homeCountry ?? 0,
+      personalLeave: overrides.personal ?? policy.personal ?? 3
     };
     return worker.save();
   });
