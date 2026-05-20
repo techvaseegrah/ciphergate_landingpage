@@ -1,249 +1,316 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { toast } from 'react-toastify';
 import { usePayment } from '../../hooks/usePayment';
 import { useAuth } from '../../hooks/useAuth';
 import appContext from '../../context/AppContext';
-import { formatCurrency } from '../../utils/formatUtils';
-import { useContext } from 'react';
-
-const CheckIcon = ({ color = "#111" }) => (
-  <svg className="w-3 h-3 flex-shrink-0" viewBox="0 0 16 16" fill="none">
-    <path d="M3 8.5l3 3 7-7" stroke={color} strokeWidth="1.5" strokeLinecap="square" strokeLinejoin="miter" />
-  </svg>
+import './Pricing.css';
+ 
+/* ─────────────────────────────────────────────────────────────
+   TUBE LIGHT SYSTEM
+   size="lg"  →  wide full-section tube (Figma reference)
+   size="sm"  →  tiny card-top tube
+───────────────────────────────────────────────────────────── */
+const TubeLight = ({ size = 'lg' }) => {
+ 
+  if (size === 'sm') {
+    return (
+      <div style={{ position: 'absolute', top: 0, left: '24px', zIndex: 10, pointerEvents: 'none' }}>
+        <div style={{
+          width: '60px', height: '2.5px', borderRadius: '2px', position: 'relative', zIndex: 2,
+          background: 'linear-gradient(90deg,rgba(255,255,255,0) 0%,rgba(255,255,255,0.6) 18%,#fff 42%,#fff 58%,rgba(255,255,255,0.6) 82%,rgba(255,255,255,0) 100%)',
+        }} />
+        <div style={{
+          position: 'absolute', top: '0.5px', left: '50%', transform: 'translateX(-50%)',
+          width: '36px', height: '1.5px', background: '#fff', borderRadius: '1px', zIndex: 3,
+          boxShadow: '0 0 3px 1px rgba(255,255,255,1),0 0 8px 3px rgba(255,255,255,0.6),0 0 16px 6px rgba(255,255,255,0.25)',
+        }} />
+        <div style={{
+          position: 'absolute', top: '2px', left: '50%', transform: 'translateX(-50%)',
+          width: '220px', height: '140px', zIndex: 1,
+          background: 'radial-gradient(ellipse 75% 100% at 50% 0%,rgba(255,255,255,0.08) 0%,rgba(255,255,255,0.025) 40%,transparent 72%)',
+        }} />
+        <div style={{
+          position: 'absolute', top: '2px', right: '100%',
+          width: '50px', height: '50px', filter: 'blur(4px)',
+          background: 'conic-gradient(from 90deg at 100% 0%,rgba(255,255,255,0.08) 0deg,transparent 28deg)',
+        }} />
+        <div style={{
+          position: 'absolute', top: '2px', left: '100%',
+          width: '50px', height: '50px', filter: 'blur(4px)',
+          background: 'conic-gradient(from 270deg at 0% 0%,rgba(255,255,255,0.08) 0deg,transparent 28deg)',
+        }} />
+      </div>
+    );
+  }
+ 
+  /* ── LARGE WIDE TUBE LIGHT — Clean, no effects ── */
+  return (
+    <div style={{
+      width: '100%',
+      lineHeight: 0,
+      display: 'block'
+    }}>
+      <img
+        src="/Frametb 1.png"
+        alt="Tube light"
+        style={{
+          width: '100%',
+          height: 'auto',
+          display: 'block',  // Prevents baseline alignment issues
+          margin: 0,
+          padding: 0,
+        }}
+      />
+    </div>
+  );
+};
+ 
+/* ─────────────────────────────────────────────────────────────
+   PLAN CARD
+───────────────────────────────────────────────────────────── */
+const PlanCard = ({ plan, index, isProcessing }) => (
+  <motion.div
+    className="plan-card glass-card-dark rounded-[28px] p-9 flex flex-col group"
+    initial={{ opacity: 0, y: 40 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true }}
+    transition={{ duration: 0.9, delay: index * 0.15, ease: [0.16, 1, 0.3, 1] }}
+    whileHover={{ y: -5 }}
+  >
+    <TubeLight size="sm" />
+ 
+    <div style={{
+      position: 'absolute', inset: 0, borderRadius: '28px', pointerEvents: 'none',
+      background: 'linear-gradient(135deg,rgba(255,255,255,0.05) 0%,transparent 42%)',
+    }} />
+ 
+    <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', height: '100%' }}>
+ 
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '22px', paddingTop: '10px' }}>
+        <span style={{ fontSize: '10px', fontWeight: 700, color: 'rgba(255,255,255,0.9)', textTransform: 'uppercase', letterSpacing: '0.22em' }}>
+          {plan.name}
+        </span>
+        {index === 1 && (
+          <span style={{
+            padding: '3px 10px', borderRadius: '100px', background: '#fff',
+            color: '#000', fontSize: '7.5px', fontWeight: 900,
+            textTransform: 'uppercase', letterSpacing: '0.14em',
+          }}>Popular</span>
+        )}
+      </div>
+ 
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginBottom: '12px' }}>
+        <span style={{ fontSize: '54px', fontWeight: 500, color: '#EAEAEA', letterSpacing: '-0.03em', lineHeight: 1 }}>
+          {plan.price}
+        </span>
+        <span style={{ fontSize: '11px', color: '#fff', fontWeight: 300, fontStyle: 'italic' }}>
+          {plan.period}
+        </span>
+      </div>
+ 
+      <p style={{ fontSize: '12.5px', color: 'rgba(255,255,255,0.8)', fontWeight: 300, lineHeight: 1.65, marginBottom: '22px', maxWidth: '270px' }}>
+        {plan.description}
+      </p>
+ 
+      <div style={{ width: '100%', height: '1px', background: 'linear-gradient(90deg,transparent,rgba(255,255,255,0.08),transparent)', marginBottom: '20px' }} />
+ 
+      <p style={{ fontSize: '10.5px', fontWeight: 600, color: '#fff', textTransform: 'uppercase', letterSpacing: '0.14em', marginBottom: '14px' }}>
+        What's Included
+      </p>
+ 
+      <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '28px', flexGrow: 1 }}>
+        {plan.features.map((f, i) => (
+          <li key={i} style={{ display: 'flex', alignItems: 'center', gap: '11px', fontSize: '12.5px', color: 'rgba(234,234,234,0.72)', fontWeight: 300 }}>
+            <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'rgba(255,255,255,0.28)', flexShrink: 0 }} />
+            {f}
+          </li>
+        ))}
+      </ul>
+ 
+      <motion.button
+        onClick={plan.handler}
+        disabled={isProcessing}
+        className="w-full py-4 mt-2 bg-[#f4f4f4] text-black text-[15px] font-bold flex items-center justify-center gap-3 hover:bg-gray-200 transition-colors duration-300"
+        style={{
+          clipPath: "polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px)",
+          opacity: isProcessing ? 0.6 : 1,
+          fontFamily: "'Inter', sans-serif"
+        }}
+        whileTap={{ scale: 0.98 }}
+        transition={{ duration: 0.2 }}
+      >
+        {isProcessing ? 'Processing...' : plan.cta}
+        {!isProcessing && (
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="ml-1">
+            <path d="M5 12h14m0 0l-6-6m6 6l-6 6" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        )}
+      </motion.button>
+ 
+    </div>
+  </motion.div>
 );
-
-const CrossIcon = ({ color = "#ccc" }) => (
-  <svg className="w-3 h-3 flex-shrink-0" viewBox="0 0 16 16" fill="none">
-    <path d="M4 4l8 8M12 4l-8 8" stroke={color} strokeWidth="1.5" strokeLinecap="square" />
-  </svg>
-);
-
-const Pricing = () => {
+ 
+/* ─────────────────────────────────────────────────────────────
+   MAIN PRICING SECTION
+───────────────────────────────────────────────────────────── */
+const Pricing = ({ id = "pricing-section" }) => {
   const [isYearly, setIsYearly] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
-
   const { handlePremiumSubscribe, isProcessing } = usePayment();
   const { settings } = useContext(appContext);
-
+ 
   const handleGetStarted = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    setTimeout(() => {
-      navigate('/admin/register');
-    }, 500);
+    setTimeout(() => navigate('/admin/register'), 500);
   };
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.2 }
-    }
-  };
-
-  const cardVariants = {
-    hidden: { y: 30, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: { duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }
-    }
-  };
-
-  const freeFeatures = [
-    { text: 'Up to 5 workers', enabled: true },
-    { text: 'Basic attendance tracking', enabled: true },
-    { text: 'Facial recognition login', enabled: true },
-    { text: 'Basic reporting & exports', enabled: true },
-    { text: 'Advanced analytics', enabled: false },
-    { text: 'Priority support', enabled: false },
+ 
+  const plans = [
+    {
+      name: 'Free Plan',
+      price: '$0',
+      period: 'Per User/Month',
+      description: 'Perfect For Small Businesses And Startups Exploring Smart Attendance.',
+      features: [
+        'Up To 5 Workers',
+        'Basic Attendance Tracking',
+        'Facial Recognition Login',
+        'Basic Reporting & Exports',
+        'Advanced Analytics',
+        'Priority Support',
+      ],
+      cta: 'Get Started',
+      handler: handleGetStarted,
+    },
+    {
+      name: 'Premium Plan',
+      price: isYearly ? '$990' : '$99',
+      period: `Per User/${isYearly ? 'Year' : 'Month'}`,
+      description: 'For Growing Businesses And Enterprises That Need Full Power.',
+      features: [
+        'Unlimited Workers',
+        'Everything In Free Plan',
+        'Advanced Analytics Dashboard',
+        'Custom Integrations & API',
+        'Premium Facial Recognition',
+        'Priority 24/7 Support',
+      ],
+      cta: user?.accountType === 'premium' ? 'Current Plan' : 'Get Started',
+      handler: () => handlePremiumSubscribe(isYearly),
+    },
   ];
-
-  const premiumFeatures = [
-    { text: 'Unlimited workers', enabled: true },
-    { text: 'Everything in Free Plan', enabled: true },
-    { text: 'Advanced analytics dashboard', enabled: true },
-    { text: 'Custom integrations & API', enabled: true },
-    { text: 'Premium facial recognition', enabled: true },
-    { text: 'Priority 24/7 support', enabled: true },
-  ];
-
+ 
   return (
-    <section id="pricing" className="py-24 md:py-32 bg-white border-t border-gray-100">
-      <div className="max-w-[1200px] mx-auto px-4 md:px-6">
+    <section id={id} className="pricing-section">
+      {/* 1. The Light Image - Physical element for height control */}
+      <div style={{ width: '100%', lineHeight: 0 }}>
+        <img 
+          src="/Frametb 1.png" 
+          alt="Glow" 
+          style={{ width: '100%', height: 'auto', display: 'block' }} 
+        />
+      </div>
 
-        {/* Section Header */}
+      {/* 2. Overlapping Content Wrapper */}
+      <div className="pricing-content-wrapper" style={{ width: '100%' }}>
+        {/* Badge */}
         <motion.div
-          className="text-center mb-12 md:mb-16 max-w-2xl mx-auto"
+           style={{
+             display: 'inline-flex', alignItems: 'center', gap: '8px',
+             padding: '10px 18px', borderRadius: '14px',
+             border: '1.5px solid rgba(255,255,255,0.15)',
+             background: 'rgba(255,255,255,0.08)',
+             backdropFilter: 'blur(16px)',
+             boxShadow: 'inset 0 0 12px rgba(255,255,255,0.03), 0 8px 32px rgba(0,0,0,0.5)',
+             marginBottom: '24px'
+           }}
+           initial={{ opacity: 0, y: 10 }}
+           whileInView={{ opacity: 1, y: 0 }}
+           viewport={{ once: true }}
+           transition={{ duration: 0.6 }}
+         >
+           <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#fff' }} />
+           <span style={{ color: '#ffffff' }}>Pricing</span>
+         </motion.div>
+ 
+        {/* Title */}
+        <motion.h2
+          className="section-title text-center"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-80px' }}
-          transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
-        >
-          <h2 className="text-2xl md:text-5xl lg:text-6xl font-light tracking-widest text-gray-900 leading-tight mb-6 uppercase">
-            Our Website Packages
-          </h2>
-          <p className="text-gray-500 text-xs md:text-base max-w-lg mx-auto font-light leading-relaxed tracking-wide">
-            Tailored for every budget and business goal — simple, transparent pricing with no hidden fees.
-          </p>
-
-          {/* Premium Animated Toggle */}
-          <div className="flex justify-center mt-4 mb-4">
-            <div className="relative flex items-center p-1 bg-[#fafafa] border border-gray-200 rounded-full shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)] max-w-full overflow-hidden">
-              <button
-                onClick={() => setIsYearly(false)}
-                className={`relative z-10 px-4 sm:px-8 py-2.5 sm:py-3.5 text-[9px] sm:text-[10px] font-medium uppercase tracking-[0.1em] sm:tracking-[0.2em] transition-colors duration-500 rounded-full outline-none ${!isYearly ? 'text-white' : 'text-gray-500 hover:text-gray-900'}`}
-              >
-                Monthly Plan
-                {!isYearly && (
-                  <motion.div
-                    layoutId="pricingToggle"
-                    className="absolute inset-0 bg-[#111] rounded-full -z-10 shadow-md"
-                    initial={false}
-                    transition={{ type: "spring", stiffness: 450, damping: 35 }}
-                  />
-                )}
-              </button>
-
-              <button
-                onClick={() => setIsYearly(true)}
-                className={`relative z-10 px-4 sm:px-8 py-2.5 sm:py-3.5 text-[9px] sm:text-[10px] font-medium uppercase tracking-[0.1em] sm:tracking-[0.2em] transition-colors duration-500 rounded-full flex items-center justify-center gap-2 sm:gap-3 outline-none ${isYearly ? 'text-white' : 'text-gray-500 hover:text-gray-900'}`}
-              >
-                <span>Yearly Plan</span>
-                {isYearly && (
-                  <motion.div
-                    layoutId="pricingToggle"
-                    className="absolute inset-0 bg-[#111] rounded-full -z-10 shadow-md"
-                    initial={false}
-                    transition={{ type: "spring", stiffness: 450, damping: 35 }}
-                  />
-                )}
-              </button>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Cards */}
-        <motion.div
-          className="grid grid-cols-2 gap-px border border-gray-200 bg-gray-200 max-w-5xl mx-auto overflow-hidden"
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
           viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
         >
-          {/* FREE PLAN */}
-          <motion.div variants={cardVariants} className="bg-white p-4 sm:p-10 md:p-14 border-gray-200">
-            <div className="flex flex-col h-full">
-              <div className="mb-6 md:mb-8">
-                <span className="text-[8px] md:text-[11px] font-medium tracking-[0.2em] uppercase text-gray-400 inline-block mb-2 md:mb-3">
-                  Starter
-                </span>
-                <h3 className="text-sm md:text-3xl font-light text-gray-900 tracking-wide uppercase leading-tight">
-                  Free Plan
-                </h3>
-                <p className="text-gray-500 text-[10px] md:text-sm mt-3 font-light leading-relaxed hidden sm:block">
-                  Perfect for small businesses and startups exploring smart attendance.
-                </p>
-              </div>
-
-              <div className="mb-8 md:mb-10 flex flex-col">
-                <span className="text-3xl md:text-6xl font-extralight text-gray-900 leading-none tracking-tight">
-                  {formatCurrency(0, settings)}
-                </span>
-                <span className="text-[8px] md:text-[10px] text-gray-400 mt-2 tracking-[0.1em] uppercase">/month</span>
-              </div>
-
-              <ul className="list-none p-0 m-0 mb-8 md:mb-10 flex flex-col gap-3 md:gap-4 flex-1">
-                {freeFeatures.map((f, i) => (
-                  <li key={i} className={`flex items-start md:items-center gap-2 md:gap-3 ${f.enabled ? 'opacity-100' : 'opacity-40'}`}>
-                    <div className="mt-1 md:mt-0"><CheckIcon color="#111" /></div>
-                    <span className={`text-[10px] md:text-sm tracking-wide font-light leading-tight ${f.enabled ? 'text-gray-700' : 'text-gray-400'}`}>
-                      {f.text}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-
-              <button
-                onClick={handleGetStarted}
-                className="w-full py-3 md:py-4 bg-transparent text-gray-900 border border-gray-900 text-[8px] md:text-[10px] font-medium tracking-[0.15em] uppercase transition-all duration-400 hover:bg-gray-900 hover:text-white"
-              >
-                Get Started
-              </button>
-            </div>
-          </motion.div>
-
-          {/* PREMIUM PLAN */}
-          <motion.div variants={cardVariants} className="bg-[#111] p-4 sm:p-10 md:p-14 relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-gray-800 via-gray-700 to-gray-800" />
-            <div className="flex flex-col h-full relative z-10">
-              <div className="absolute top-0 right-0 text-white text-[7px] md:text-[9px] font-medium tracking-[0.2em] uppercase px-2 md:px-3 py-1 md:py-1.5 bg-rose-gold-animate shadow-lg shadow-[#B76E79]/20">
-                Pro
-              </div>
-
-              <div className="mb-6 md:mb-8 text-white">
-                <span className="text-[8px] md:text-[11px] font-medium tracking-[0.2em] uppercase text-gray-500 inline-block mb-2 md:mb-3">
-                  Pro
-                </span>
-                <h3 className="text-sm md:text-3xl font-light tracking-wide uppercase leading-tight">
-                  Premium Plan
-                </h3>
-                <p className="text-gray-400 text-[10px] md:text-sm mt-3 font-light leading-relaxed hidden sm:block">
-                  For growing businesses and enterprises that need full power.
-                </p>
-              </div>
-
-              <div className="mb-8 md:mb-10 flex flex-col">
-                <div className="flex items-baseline gap-1 text-white">
-                  <span className="text-3xl md:text-6xl font-extralight leading-none tracking-tight">
-                    {isYearly ? (
-                      <>
-                        <span className="hidden sm:inline">{formatCurrency(1100, settings)}</span>
-                        <span className="inline sm:hidden">{formatCurrency(1100, settings)}</span>
-                      </>
-                    ) : formatCurrency(99, settings)}
-                  </span>
-                </div>
-                <span className="text-[8px] md:text-[10px] text-gray-600 mt-2 tracking-[0.1em] uppercase">{isYearly ? '/year' : '/month'}</span>
-              </div>
-
-              <ul className="list-none p-0 m-0 mb-8 md:mb-10 flex flex-col gap-3 md:gap-4 flex-1">
-                {premiumFeatures.map((f, i) => (
-                  <li key={i} className="flex items-start md:items-center gap-2 md:gap-3">
-                    <div className="mt-1 md:mt-0"><CheckIcon color="#fff" /></div>
-                    <span className="text-[10px] md:text-sm text-gray-300 font-light tracking-wide leading-tight">
-                      {f.text}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-
-              <button
-                onClick={() => handlePremiumSubscribe(isYearly)}
-                disabled={isProcessing}
-                className={`w-full py-3 md:py-4 text-[8px] md:text-[10px] font-medium tracking-[0.15em] uppercase transition-all duration-400 border ${isProcessing ? 'bg-gray-800 text-gray-500 border-gray-800 cursor-not-allowed' : 'bg-white text-gray-900 border-white hover:bg-transparent hover:text-white'}`}
-              >
-                {isProcessing ? '...' : user?.accountType === 'premium' ? 'Current' : 'Upgrade'}
-              </button>
-            </div>
-          </motion.div>
-        </motion.div>
-
-        {/* Bottom note */}
+          Plans That Glow With You
+        </motion.h2>
+ 
+        {/* Subtitle */}
         <motion.p
-          className="text-center mt-12 text-[10px] text-gray-400 font-light tracking-widest uppercase"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
+          className="text-center"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ delay: 0.4, duration: 0.8 }}
+          transition={{ duration: 0.8, delay: 0.15 }}
         >
-          No credit card required · Cancel anytime · Secure &amp; encrypted
+          Tailored For Every Budget And Business Goal — Simple,<br />
+          Transparent Pricing With No Hidden Fees.
         </motion.p>
+ 
+        {/* Toggle */}
+        <motion.div
+          style={{
+            display: 'inline-flex',
+            background: 'rgba(255,255,255,0.05)',
+            border: '1px solid rgba(255,255,255,0.1)',
+            borderRadius: '100px', padding: '4px',
+            marginBottom: '40px',
+            backdropFilter: 'blur(12px)',
+          }}
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8, delay: 0.3 }}
+        >
+          {['Monthly Plan', 'Yearly Plan'].map((label, i) => {
+            const active = (i === 0 && !isYearly) || (i === 1 && isYearly);
+            return (
+              <button
+                key={label}
+                onClick={() => setIsYearly(i === 1)}
+                style={{
+                  position: 'relative', padding: '10px 26px', borderRadius: '100px',
+                  fontSize: '12px', fontWeight: 600, border: 'none', cursor: 'pointer',
+                  background: 'transparent', color: active ? '#000' : '#fff',
+                  transition: 'color 0.3s', zIndex: 1, fontFamily: 'inherit',
+                }}
+              >
+                {label}
+                {active && (
+                  <motion.div
+                    layoutId="pricingTogglePill"
+                    style={{
+                      position: 'absolute', inset: 0,
+                      background: '#EAEAEA', borderRadius: '100px', zIndex: -1,
+                    }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                  />
+                )}
+              </button>
+            );
+          })}
+        </motion.div>
+ 
+        {/* Cards */}
+        <div className="pricing-grid">
+          {plans.map((plan, index) => (
+            <PlanCard key={index} plan={plan} index={index} isProcessing={isProcessing} />
+          ))}
+        </div>
       </div>
     </section>
   );
 };
-
+ 
 export default Pricing;

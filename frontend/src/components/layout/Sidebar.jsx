@@ -1,83 +1,69 @@
 import { useContext, useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { FaChevronLeft, FaChevronRight, FaTimes, FaChevronDown, FaChevronUp } from 'react-icons/fa';
-import { FiLogOut } from "react-icons/fi";
+import { FaChevronDown } from 'react-icons/fa';
+import { FiLogOut, FiClock } from "react-icons/fi";
 import appContext from '../../context/AppContext';
 import ShatteredLogo from '../common/ShatteredLogo';
-import { motion } from 'framer-motion';
+import Modal from '../common/Modal';
+import Button from '../common/Button';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const Sidebar = ({
   links,
   logoText = 'Task Tracker',
   user,
   onLogout,
-  onUpgradeClick
+  onUpgradeClick,
+  isOpen,
+  onClose,
+  onExpandToggle
 }) => {
-  const [isOpen, setIsOpen] = useState(false);
   const [expandedDropdowns, setExpandedDropdowns] = useState({});
   const [showFullLogo, setShowFullLogo] = useState(false);
   const [triggerLogoAnimation, setTriggerLogoAnimation] = useState(false);
-  const [clickedItem, setClickedItem] = useState(null); // Track clicked item
-  const location = useLocation();
+  const [clickedItem, setClickedItem] = useState(null);
+  const [isHovered, setIsHovered] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
+  const location = useLocation();
   const { subdomain } = useContext(appContext);
 
-  // Theme Colors
-  const themeColor = "bg-[#3b3b3b]"; // Dark theme color
-  const activeBg = "bg-[#f3f4f6]"; // Light gray background for active item
-  const activeText = "text-[#3b3b3b]"; // Dark text for active item
+  // Desktop expanded condition: open via menu OR hovered
+  const isExpanded = isOpen || isHovered;
 
-  // Get icon class based on state
-  const getIconClass = (isActive, isClicked) => {
-    if (isClicked) {
-      return "sidebar-icon-gradient clicked mr-3 text-lg";
-    }
-    if (isActive) {
-      return "sidebar-icon-gradient active mr-3 text-lg";
-    }
-    return "sidebar-icon-gradient inactive mr-3 text-lg";
-  };
-
-  // Trigger logo animation when component mounts
   useEffect(() => {
-    // Show shattered logo for 2 seconds
+    if (onExpandToggle) {
+      onExpandToggle(isExpanded);
+    }
+  }, [isExpanded, onExpandToggle]);
+
+  // Theme Colors
+  const themeColor = "bg-white border-r border-gray-100"; // Premium White
+
+  useEffect(() => {
     const logoTimer = setTimeout(() => {
       setShowFullLogo(true);
     }, 2000);
-
     return () => clearTimeout(logoTimer);
   }, []);
 
-  // Trigger logo animation when sidebar opens
   useEffect(() => {
     if (isOpen) {
       setTriggerLogoAnimation(prev => !prev);
       setShowFullLogo(false);
-
-      // Reset showFullLogo after animation completes
       const resetTimer = setTimeout(() => {
         setShowFullLogo(true);
       }, 2000);
-
       return () => clearTimeout(resetTimer);
     }
   }, [isOpen]);
 
-  const toggleSidebar = () => {
-    setIsOpen(!isOpen);
-  };
-
-  const closeSidebar = () => {
-    setIsOpen(false);
-  };
-
   const handleItemClick = (to) => {
     setClickedItem(to);
-    // Reset clicked item after animation duration
     setTimeout(() => {
       setClickedItem(null);
     }, 1000);
-    closeSidebar();
+    if (onClose) onClose();
   };
 
   const toggleDropdown = (key) => {
@@ -93,248 +79,290 @@ const Sidebar = ({
 
   return (
     <>
-      {/* External toggle button */}
-      {!isOpen && (
-        <button
-          type="button"
-          className="md:hidden fixed top-1/2 left-0 z-20 p-2 rounded-r-full text-white bg-[#3b3b3b] shadow-lg hover:bg-[#2a2a2a] focus:outline-none transform -translate-y-1/2"
-          onClick={toggleSidebar}
-        >
-          <span className="sr-only">Open sidebar</span>
-          <FaChevronRight className="h-6 w-6" />
-        </button>
-      )}
-
-      {/* Sidebar Backdrop */}
+      {/* Sidebar Backdrop for Mobile */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/30 backdrop-blur-sm z-20 md:hidden"
-          onClick={closeSidebar}
+          className="fixed inset-0 bg-black/40 backdrop-blur-md z-[1000] md:hidden transition-all duration-300"
+          onClick={onClose}
         ></div>
       )}
 
-      {/* Close toggle button */}
-      {isOpen && (
-        <button
-          type="button"
-          className="fixed top-1/2 right-0 z-40 p-2 rounded-l-full text-[#3b3b3b] bg-white shadow-lg focus:outline-none transform -translate-y-1/2"
-          onClick={toggleSidebar}
-        >
-          <span className="sr-only">Close sidebar</span>
-          <FaChevronLeft className="h-6 w-6" />
-        </button>
-      )}
-
-      {/* Sidebar Container - Teal Background */}
+      {/* Sidebar Container */}
       <div
-        className={`fixed inset-y-0 left-0 z-30 w-64 ${themeColor} transform overflow-y-auto sidebar-container ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
-          }`}
-        style={{ borderTopRightRadius: '30px', borderBottomRightRadius: '30px' }}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        className={`fixed inset-y-0 left-0 z-[1001] ${themeColor} transform flex flex-col sidebar-container transition-all duration-300 ease-in-out ${
+          isOpen ? 'translate-x-0 w-64 shadow-2xl' : '-translate-x-full md:translate-x-0'
+        } ${isExpanded ? 'w-64 shadow-2xl md:w-64' : 'md:w-[84px]'}`}
+        style={{ borderTopRightRadius: '32px', borderBottomRightRadius: '32px' }}
       >
         {/* Logo section */}
-        <div className="flex items-center justify-center h-16 px-4">
-          <div className="flex items-center justify-center w-full">
-            <div className="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-xl p-1 flex-shrink-0">
+        <div className="flex items-center h-20 px-5 box-border w-full">
+          <div className="flex items-center w-full">
+            <div className="w-11 h-11 flex items-center justify-center bg-slate-900 rounded-2xl p-2.5 flex-shrink-0 shadow-lg shadow-slate-900/20">
               <ShatteredLogo
                 triggerAnimation={triggerLogoAnimation}
                 src="/logo.png"
                 alt="Logo"
-                className="w-full h-full object-contain"
-                onComplete={() => console.log('Shattering animation complete')}
+                className="w-full h-full object-contain brightness-0 invert"
+                onComplete={() => {}}
               />
             </div>
 
-            <div
-              className={`ml-3 overflow-hidden ${showFullLogo ? 'opacity-100' : 'opacity-0'} w-full`}
-            >
-              <h1
-                className="text-lg font-bold text-white truncate"
-              >
-                {logoText}
-              </h1>
-            </div>
+            <AnimatePresence>
+              {isExpanded && (
+                <motion.div
+                  initial={{ opacity: 0, width: 0 }}
+                  animate={{ opacity: 1, width: 'auto' }}
+                  exit={{ opacity: 0, width: 0 }}
+                  className="ml-3.5 overflow-hidden whitespace-nowrap flex-1"
+                >
+                  <span className="text-[18px] font-extrabold !text-slate-900 tracking-tight font-poppins leading-[1.15] block">
+                    {logoText.split(' ').map((line, i) => <span key={i} className="block">{line}</span>)}
+                  </span>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
 
-        {/* User profile */}
-        {user && (
-          <div className="px-4 py-3 mb-2 mx-3 bg-white/10 rounded-xl backdrop-blur-sm">
-            <div className="flex items-center justify-between w-full">
-              <div className='flex items-center min-w-0 w-full'>
-                <div className="flex-shrink-0">
-                  <img
-                    className="h-8 w-8 rounded-full object-cover border-2 border-white/30"
-                    src={user.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || user.username)}`}
-                    alt={user.name || user.username}
-                  />
-                </div>
-                <div className="ml-2 min-w-0 w-full">
-                  <p className="text-xs font-semibold text-white truncate">
-                    {/* Debugging: Check console if object shows */}
-                    {console.log('Sidebar User:', user)}
-                    {user.displayName || user.name || user.username} {user.departmentName ? `- ${user.departmentName}` : (user.department?.name ? `- ${user.department.name}` : '')}
-                  </p>
-                  <p className="text-xs text-teal-100 truncate">{user.subdomain || 'Company Name'}</p>
-                </div>
-              </div>
-              <div className="ml-1 flex-shrink-0 flex items-center gap-2">
-                {user.accountType === 'premium' && (
-                  <span className="text-[10px] bg-yellow-400 text-yellow-900 font-bold px-1.5 py-0.5 rounded shadow-sm whitespace-nowrap">
-                    PRO
-                  </span>
-                )}
-                {onLogout && <button
-                  className="text-white p-1 hover:text-red-200 text-sm"
-                  onClick={onLogout}
-                >
-                  <FiLogOut />
-                </button>}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Navigation Links */}
-        <nav className="mt-6 px-0 pb-10 space-y-2">
+        {/* Navigation Links - Scrollable Area */}
+        <nav className="flex-1 px-5 py-6 space-y-2 overflow-y-auto no-scrollbar box-border w-full">
           {links.map((link, index) => {
-            // Define variables at the top to avoid scope issues
             const isActive = location.pathname === link.to;
-            const isClicked = clickedItem === link.to;
 
-            // Handle header items
             if (link.isHeader) {
               return (
-                <div key={`header-${index}`} className="pt-4 pb-2 px-6">
-                  <h3 className="text-xs font-bold text-teal-200 uppercase tracking-wider">
-                    {link.label}
-                  </h3>
+                <div key={`header-${index}`} className={`pt-6 pb-2 ${isExpanded ? 'px-2 text-left' : 'px-0 text-center'} transition-all duration-300 overflow-hidden`}>
+                  {isExpanded ? (
+                    <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap opacity-100 transition-opacity duration-300">
+                      {link.label}
+                    </h3>
+                  ) : (
+                    <div className="w-6 h-0.5 bg-slate-200 rounded-full mx-auto my-2"></div>
+                  )}
                 </div>
               );
             }
 
-            // Handle dropdown items
             if (link.isDropdown) {
               const dropdownKey = `dropdown-${index}`;
-              const isExpanded = expandedDropdowns[dropdownKey];
+              const isExpandedKey = expandedDropdowns[dropdownKey];
               const hasActiveChild = isAnyChildActive(link.children || []);
 
               return (
-                <div key={dropdownKey} className="px-4">
+                <div key={dropdownKey} className="relative w-full">
                   <button
-                    onClick={() => toggleDropdown(dropdownKey)}
+                    onClick={() => {
+                      if (!isExpanded) setIsHovered(true);
+                      toggleDropdown(dropdownKey);
+                    }}
                     className={`
-                      group flex items-center w-full px-4 py-3 text-sm font-medium rounded-xl
-                      ${hasActiveChild
-                        ? 'bg-white text-[#3b3b3b] shadow-md'
-                        : 'text-white hover:bg-white/10'
+                      group flex items-center h-11 box-border rounded-2xl transition-all duration-300 font-poppins overflow-hidden border-0 cursor-pointer
+                      ${isExpanded ? 'w-full' : 'w-11'}
+                      ${isExpandedKey || hasActiveChild
+                        ? 'bg-slate-900 text-white shadow-xl shadow-slate-900/20'
+                        : 'text-slate-500 hover:bg-slate-100/80 hover:text-slate-900 bg-transparent'
                       }
                     `}
+                    title={!isExpanded ? link.label : undefined}
                   >
-                    {link.icon && (
-                      <span className={getIconClass(hasActiveChild, false)}>
+                    <div className="w-11 h-11 flex items-center justify-center flex-shrink-0">
+                      <span className={`text-lg transition-colors flex items-center justify-center ${isExpandedKey || hasActiveChild ? 'text-white' : 'text-slate-400 group-hover:text-slate-900'}`}>
                         {link.icon}
                       </span>
-                    )}
-                    <span className="flex-1 text-left truncate">{link.label}</span>
-                    {link.badge && (
-                      <span className="ml-2 bg-red-500 text-white text-xs rounded-full px-2 py-0.5 flex-shrink-0">
-                        {link.badge}
-                      </span>
-                    )}
-                    <span className={`ml-2 ${isExpanded ? 'rotate-180' : ''}`}>
-                      <FaChevronDown className="h-3 w-3" />
-                    </span>
+                    </div>
+                    <AnimatePresence>
+                      {isExpanded && (
+                        <motion.div
+                          initial={{ opacity: 0, width: 0 }}
+                          animate={{ opacity: 1, width: 'auto' }}
+                          exit={{ opacity: 0, width: 0 }}
+                          className="flex-1 flex items-center overflow-hidden whitespace-nowrap pr-3"
+                        >
+                          <span className="flex-1 text-left truncate tracking-tight font-semibold ml-1.5 text-[13px]">{link.label}</span>
+                          <span className={`ml-2 flex items-center justify-center transition-transform duration-300 ${isExpandedKey ? 'rotate-180' : ''}`}>
+                            <FaChevronDown size={10} className="opacity-50" />
+                          </span>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </button>
 
-                  {/* Dropdown children */}
-                  <div className={`${isExpanded ? 'block' : 'hidden'}`}>
-                    <div className="pl-4 space-y-1 mt-1">
-                      {link.children?.map((child) => (
-                        <Link
-                          key={child.to}
-                          to={child.to}
-                          className={`
-                            group flex items-center px-4 py-2 text-sm font-medium rounded-xl mx-2
-                            ${location.pathname === child.to
-                              ? 'bg-white/20 text-white'
-                              : 'text-teal-100 hover:text-white hover:bg-white/10'
-                            }
-                          `}
-                          onClick={() => handleItemClick(child.to)}
-                        >
-                          <span className={getIconClass(location.pathname === child.to, clickedItem === child.to)}>
-                            {child.icon}
-                          </span>
-                          <span className="flex-1 text-left truncate">{child.label}</span>
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
+                  <AnimatePresence>
+                    {isExpanded && isExpandedKey && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className="overflow-hidden space-y-1 ml-4 border-l-2 border-slate-100 pl-4 mt-1.5"
+                      >
+                        {link.children?.map((child) => {
+                          const isSelected = location.pathname === child.to;
+                          return (
+                            <Link
+                              key={child.to}
+                              to={child.to}
+                              className={`flex items-center gap-3 px-4 py-2.5 text-[12px] font-bold rounded-xl transition-all duration-200 ${isSelected ? 'text-slate-900 bg-slate-100' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'}`}
+                              onClick={() => handleItemClick(child.to)}
+                            >
+                              <span className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-slate-900' : 'bg-slate-200 hover:bg-slate-400'}`}></span>
+                              <span className="truncate">{child.label}</span>
+                            </Link>
+                          );
+                        })}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               );
             }
 
-            // Handle regular navigation items
-            // Variables are already defined at the top
-
             return (
-              <div key={link.to} className={`relative ${isActive ? 'px-0 pl-0' : 'px-4'}`}>
-                {isActive && (
-                  <>
-                    {/* CSS trick to create the curve effect above and below active item */}
-                    <div className="absolute right-0 top-[-20px] w-5 h-5 bg-transparent rounded-br-3xl shadow-[5px_5px_0_0_#f3f4f6] z-10 pointer-events-none md:block hidden"></div>
-                    <div className="absolute right-0 bottom-[-20px] w-5 h-5 bg-transparent rounded-tr-3xl shadow-[5px_-5px_0_0_#f3f4f6] z-10 pointer-events-none md:block hidden"></div>
-                  </>
-                )}
+              <div key={link.to} className="relative w-full">
                 <Link
                   to={link.to}
                   className={`
-                  group flex items-center px-6 py-3.5 text-sm font-medium
-                  relative
-                  ${isActive
-                      ? `${activeBg} ${activeText} rounded-l-full ml-4 shadow-sm z-0 md:rounded-r-none md:rounded-l-full`
-                      : 'text-white hover:bg-white/10 rounded-xl'
+                    group flex items-center h-11 box-border rounded-2xl transition-all duration-300 font-poppins overflow-hidden
+                    ${isExpanded ? 'w-full' : 'w-11'}
+                    ${isActive
+                      ? 'bg-slate-900 text-white shadow-xl shadow-slate-900/20 active-pill'
+                      : 'text-slate-500 hover:bg-slate-100/80 hover:text-slate-900'
                     }
-                  md:${isActive ? 'rounded-l-full ml-4' : 'rounded-xl'}
-                  ${isActive ? 'mobile-active-item' : ''}
-                `}
+                  `}
                   onClick={() => handleItemClick(link.to)}
+                  title={!isExpanded ? link.label : undefined}
                 >
-                  {link.icon && (
-                    <span className={getIconClass(isActive, isClicked)}>
+                  <div className="w-11 h-11 flex items-center justify-center flex-shrink-0">
+                    <span className={`text-lg transition-colors flex items-center justify-center ${isActive ? 'text-white' : 'text-slate-400 group-hover:text-slate-900'}`}>
                       {link.icon}
                     </span>
-                  )}
-                  <span className="flex-1 text-left truncate">{link.label}</span>
-                  {link.badge && (
-                    <span className={`ml-2 text-xs rounded-full px-2 py-0.5 flex-shrink-0 ${isActive ? 'bg-[#3b3b3b] text-white' : 'bg-white text-[#3b3b3b]'}`}>
-                      {link.badge}
-                    </span>
-                  )}
+                  </div>
+                  <AnimatePresence>
+                    {isExpanded && (
+                      <motion.div
+                        initial={{ opacity: 0, width: 0 }}
+                        animate={{ opacity: 1, width: 'auto' }}
+                        exit={{ opacity: 0, width: 0 }}
+                        className="flex-1 flex items-center overflow-hidden whitespace-nowrap pr-3"
+                      >
+                        <span className="flex-1 text-left truncate tracking-tight font-semibold ml-1.5 text-[13px]">{link.label}</span>
+                        {link.badge && (
+                          <span className={`text-[10px] font-semibold rounded-lg px-2 py-0.5 flex-shrink-0 ml-2 ${isActive ? 'bg-emerald-500 text-white shadow-sm shadow-emerald-500/20' : 'bg-slate-900 text-white shadow-sm'}`}>
+                            {link.badge}
+                          </span>
+                        )}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </Link>
               </div>
             );
           })}
         </nav>
+
+        {/* User profile */}
+        {user && (
+          <div className="px-5 mt-auto mb-6 box-border w-full">
+            <div className={`bg-slate-50 border border-slate-100 h-11 box-border ${isExpanded ? 'w-full rounded-3xl px-1.5 flex-row' : 'w-11 rounded-2xl p-1.5 flex-col'} group transition-all duration-300 hover:bg-white hover:shadow-xl hover:shadow-slate-200/50 flex items-center overflow-hidden`}>
+              <div className="w-8 h-8 flex items-center justify-center flex-shrink-0 relative cursor-pointer" onClick={() => setShowLogoutModal(true)} title="Click to logout">
+                <img
+                  className={`w-8 h-8 rounded-xl object-cover border-2 border-white shadow-md transition-all duration-300 group-hover:scale-105`}
+                  src={user.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || user.username || 'U')}&background=0f172a&color=ffffff&bold=true`}
+                  alt={user.name || user.username}
+                />
+                <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full"></div>
+              </div>
+
+              <AnimatePresence>
+                {isExpanded && (
+                  <>
+                    <motion.div
+                      initial={{ opacity: 0, width: 0 }}
+                      animate={{ opacity: 1, width: 'auto' }}
+                      exit={{ opacity: 0, width: 0 }}
+                      className="ml-3 overflow-hidden whitespace-nowrap flex-1 flex flex-col justify-center"
+                    >
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-[14px] font-bold text-slate-900 truncate leading-none mb-0">
+                          {user.displayName || user.name || user.username}
+                        </p>
+                        {user.accountType === 'premium' && (
+                          <span className="text-[8px] bg-amber-500 text-white font-bold px-1.5 py-0.5 rounded-md uppercase tracking-widest shadow-sm shadow-amber-500/20">
+                            PRO
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-slate-400 truncate font-bold mt-1.5 uppercase tracking-wider mb-0">
+                        {user.departmentName || user.department?.name || 'Admin'}
+                      </p>
+                    </motion.div>
+
+                    <motion.button
+                      initial={{ opacity: 0, scale: 0 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0 }}
+                      onClick={() => setShowLogoutModal(true)}
+                      title="Logout"
+                      className="w-8 h-8 rounded-xl bg-rose-50 text-rose-500 hover:bg-rose-500 hover:text-white flex items-center justify-center transition-all duration-300 ml-1 border-0 cursor-pointer flex-shrink-0 shadow-sm"
+                    >
+                      <FiLogOut size={16} />
+                    </motion.button>
+                  </>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Mobile specific styles for active item - converted to standard style tag */}
+      {/* Logout Confirmation Modal */}
+      <Modal
+        isOpen={showLogoutModal}
+        onClose={() => setShowLogoutModal(false)}
+        title="Confirm Logout"
+        size="sm"
+        footer={
+          <>
+            <Button variant="outline" onClick={() => setShowLogoutModal(false)}>
+              Cancel
+            </Button>
+            <Button variant="danger" onClick={() => {
+              setShowLogoutModal(false);
+              if (onLogout) onLogout();
+            }}>
+              Logout
+            </Button>
+          </>
+        }
+      >
+        <div className="flex flex-col items-center text-center py-4">
+          <div className="w-16 h-16 rounded-full bg-rose-100 flex items-center justify-center text-rose-500 mb-4 shadow-inner">
+            <FiLogOut size={32} />
+          </div>
+          <h4 className="text-lg font-bold text-slate-900 mb-2">Are you sure you want to log out?</h4>
+          <p className="text-sm text-slate-500 max-w-sm mb-0">
+            You will be signed out of your account and returned to the login screen.
+          </p>
+        </div>
+      </Modal>
+
       <style>{`
         @media (max-width: 767px) {
-          .mobile-active-item {
-            border-top-right-radius: 2rem !important;
-            border-bottom-right-radius: 2rem !important;
-            border-top-left-radius: 0.5rem !important;
-            border-bottom-left-radius: 0.5rem !important;
-            margin-left: 1rem !important;
-            margin-right: 1rem !important;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+          .active-pill {
+            border-radius: 16px !important;
           }
-          
           .sidebar-container {
-            border-top-right-radius: 30px !important;
-            border-bottom-right-radius: 30px !important;
+            border-top-right-radius: 24px !important;
+            border-bottom-right-radius: 24px !important;
           }
+        }
+        .no-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+        .no-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
         }
       `}</style>
     </>

@@ -179,11 +179,11 @@ const AdminFoodRequest = () => {
 
   return (
     <>
-      <div className="bg-white p-6 rounded-lg shadow-md mb-4">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold text-gray-800">Food Request Employees</h2>
-          <Button onClick={() => setIsModalOpen(true)} disabled={isSubmitting || selectedWorkerCount === 0 || allMealsDisabled} variant="primary">
-            {isSubmitting ? <Spinner size="sm" /> : `Submit (${selectedWorkerCount})`}
+      <div className="bg-white p-8 rounded-[20px] shadow-[0_4px_25px_rgba(0,0,0,0.04)] border border-gray-100 mb-8">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-black tracking-tight">Food Request Employees</h2>
+          <Button onClick={() => setIsModalOpen(true)} disabled={isSubmitting || selectedWorkerCount === 0 || allMealsDisabled} className="bg-black text-white hover:bg-gray-800 rounded-xl font-bold uppercase text-[10px] tracking-widest px-6 py-2.5 shadow-lg h-min">
+            {isSubmitting ? <Spinner size="sm" /> : `SUBMIT (${selectedWorkerCount})`}
           </Button>
         </div>
         <div className="relative" ref={dropdownRef}>
@@ -251,20 +251,20 @@ const AdminFoodRequest = () => {
           </h3>
           
           <div className="flex flex-col sm:flex-row justify-around space-y-2 sm:space-y-0 sm:space-x-2">
-            <Button onClick={() => handleModalSubmit('breakfast')} disabled={isSubmitting || !isMealActive('breakfast')} variant="primary" className="flex-1">
-              {isSubmitting ? <Spinner size="sm" /> : `Breakfast (${getMealStatus('breakfast').label})`}
+            <Button onClick={() => handleModalSubmit('breakfast')} disabled={isSubmitting || !isMealActive('breakfast')} className="bg-black text-white hover:bg-gray-800 rounded-xl font-bold uppercase text-[10px] tracking-widest px-4 py-3 shadow-md flex-1">
+              {isSubmitting ? <Spinner size="sm" /> : `BREAKFAST (${getMealStatus('breakfast').label.toUpperCase()})`}
             </Button>
-            <Button onClick={() => handleModalSubmit('lunch')} disabled={isSubmitting || !isMealActive('lunch')} variant="primary" className="flex-1">
-              {isSubmitting ? <Spinner size="sm" /> : `Lunch (${getMealStatus('lunch').label})`}
+            <Button onClick={() => handleModalSubmit('lunch')} disabled={isSubmitting || !isMealActive('lunch')} className="bg-black text-white hover:bg-gray-800 rounded-xl font-bold uppercase text-[10px] tracking-widest px-4 py-3 shadow-md flex-1">
+              {isSubmitting ? <Spinner size="sm" /> : `LUNCH (${getMealStatus('lunch').label.toUpperCase()})`}
             </Button>
-            <Button onClick={() => handleModalSubmit('dinner')} disabled={isSubmitting || !isMealActive('dinner')} variant="primary" className="flex-1">
-              {isSubmitting ? <Spinner size="sm" /> : `Dinner (${getMealStatus('dinner').label})`}
+            <Button onClick={() => handleModalSubmit('dinner')} disabled={isSubmitting || !isMealActive('dinner')} className="bg-black text-white hover:bg-gray-800 rounded-xl font-bold uppercase text-[10px] tracking-widest px-4 py-3 shadow-md flex-1">
+              {isSubmitting ? <Spinner size="sm" /> : `DINNER (${getMealStatus('dinner').label.toUpperCase()})`}
             </Button>
           </div>
           
-          <div className="mt-6 text-center">
-            <Button onClick={() => setIsModalOpen(false)} variant="secondary">
-              Cancel
+          <div className="mt-8 text-center">
+            <Button onClick={() => setIsModalOpen(false)} className="text-xs font-bold text-gray-400 uppercase tracking-widest hover:text-black transition-all">
+              CANCEL
             </Button>
           </div>
         </div>

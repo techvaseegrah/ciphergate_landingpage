@@ -3,6 +3,7 @@ import { toast } from 'react-toastify';
 import { format } from 'date-fns';
 import { FaChevronDown, FaChevronUp, FaSearch, FaBusinessTime, FaUserClock, FaBalanceScale, FaEye, FaFileAlt } from 'react-icons/fa';
 import { MdPolicy, MdRefresh } from 'react-icons/md';
+import { FiCalendar } from 'react-icons/fi';
 import {
   getAllLeaves, markLeavesAsViewedByAdmin, updateLeaveStatus,
   getWorkerLeaveSummary, resetLeaveBalance, updateWorkerLeaveBalance
@@ -215,75 +216,78 @@ const LeaveManagement = () => {
     return ['all', ...types];
   };
 
-  const LeaveItem = ({ leave }) => (
-    <Card className={`mb-4 border-t-4 ${leave.status === 'Approved' ? 'border-green-500' :
-      leave.status === 'Rejected' ? 'border-red-500' :
-        'border-yellow-500'
-      }`}>
-      <div className="flex justify-between flex-wrap gap-2">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1 flex-wrap">
-            <p className="font-semibold text-gray-800">{leave.worker?.name || 'Unknown Employee'}</p>
-            {leave.isHalfDay && (
-              <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded-full">
-                Half-day ({leave.halfDayPeriod || 'AM'})
-              </span>
-            )}
-            {leave.returnTicketRequired && (
-              <span className={`px-2 py-0.5 text-xs rounded-full ${leave.returnTicketProvided ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                Ticket: {leave.returnTicketProvided ? 'Provided' : 'Not Provided'}
-              </span>
-            )}
-          </div>
-          <p className="text-sm text-gray-500">
-            {LEAVE_TYPE_LABELS[leave.leaveType] || leave.leaveType} • Applied: {new Date(leave.createdAt).toLocaleString()}
-          </p>
-          <p className="text-sm text-gray-500">
-            {new Date(leave.startDate).toLocaleDateString()} → {new Date(leave.endDate).toLocaleDateString()}
-            {' '}• <span className="font-medium">{leave.leaveType === 'Permission'
-              ? calculatePermissionDuration(leave.startTime, leave.endTime) || 'Time-off'
-              : `${leave.totalDays} day(s)`
-            }</span>
-          </p>
-          {leave.leaveType === 'Permission' && leave.startTime && leave.endTime && (
-            <p className="text-sm text-blue-700 font-medium">
-              {formatTime(leave.startTime)} – {formatTime(leave.endTime)} {calculatePermissionDuration(leave.startTime, leave.endTime)}
-            </p>
-          )}
-          {leave.doctorCertificateProvided && (
-            <p className="text-xs text-green-600 mt-1">Doctor certificate uploaded</p>
-          )}
-          {(leave.leaveType === 'Sick Leave' || leave.leaveType === 'Hospitalization Leave') && !leave.doctorCertificateProvided && (
-            <p className="text-xs text-red-500 mt-1">Doctor certificate not uploaded</p>
-          )}
-          <p className="text-sm text-gray-500 mt-1">Notice: {leave.noticeDaysBefore} day(s) before</p>
-        </div>
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return isNaN(date.getTime()) ? 'N/A' : date.toLocaleDateString();
+  };
 
-        <div className="flex flex-col items-end gap-2">
-          <span className={`px-3 py-1 rounded-full text-xs font-medium ${leave.status === 'Approved' ? 'bg-green-100 text-green-800' :
-            leave.status === 'Rejected' ? 'bg-red-100 text-red-800' :
-              'bg-yellow-100 text-yellow-800'
-            }`}>
-            {leave.status}
-          </span>
-          <button
-            onClick={() => handleViewLeaveSummary(leave.worker?._id)}
-            className="flex items-center gap-1 px-2 py-1 bg-indigo-50 text-indigo-700 rounded border border-indigo-200 hover:bg-indigo-100 transition-colors text-[10px] font-bold uppercase tracking-wider"
-            title="View leave balance"
-          >
-            <FaBalanceScale size={12} />
-            Balance
-          </button>
+  const LeaveItem = ({ leave }) => (
+    <div className={`mb-4 p-5 rounded-[20px] bg-white border border-slate-100 shadow-[0_2px_10px_rgba(0,0,0,0.02)] transition-all font-poppins relative overflow-hidden group hover:shadow-md hover:border-slate-200 ${
+      leave.status === 'Approved' ? 'border-l-[6px] border-l-emerald-500' :
+      leave.status === 'Rejected' ? 'border-l-[6px] border-l-rose-500' :
+      'border-l-[6px] border-l-amber-500'
+    }`}>
+      <div className="flex justify-between items-start mb-4">
+        <div className="flex items-center gap-4">
+          <img
+            src={leave.worker?.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(leave.worker?.name || 'User')}&background=F1F5F9&color=64748B&bold=true`}
+            alt=""
+            className="w-12 h-12 rounded-2xl object-cover shadow-sm group-hover:scale-105 transition-transform"
+          />
+          <div>
+            <h3 className="text-[15px] font-bold text-slate-900 tracking-tight">{leave.worker?.name || 'Unknown Employee'}</h3>
+            <div className="flex items-center gap-2.5 text-slate-400 text-[11px] font-bold uppercase tracking-wider mt-1">
+              <span>{LEAVE_TYPE_LABELS[leave.leaveType] || leave.leaveType}</span>
+              <span className="w-1 h-1 bg-slate-200 rounded-full"></span>
+              <span>Applied: {formatDate(leave.createdAt)}</span>
+            </div>
+          </div>
+        </div>
+        <div className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-[0.1em] ${
+          leave.status === 'Approved' ? 'bg-emerald-50 text-emerald-600' :
+          leave.status === 'Rejected' ? 'bg-rose-50 text-rose-600' :
+          'bg-amber-50 text-amber-600'
+        }`}>
+          {leave.status}
         </div>
       </div>
 
-      <p className="mt-2 text-gray-600 text-sm">Reason: {leave.reason}</p>
-      {leave.adminNote && (
-        <p className="mt-1 text-xs text-gray-500 italic">Admin note: {leave.adminNote}</p>
-      )}
+      <div className="bg-slate-50 rounded-[16px] p-4 mb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-slate-900 font-bold text-[13px]">
+            <FiCalendar className="text-slate-400" size={14} />
+            <span>{formatDate(leave.startDate)} → {formatDate(leave.endDate)}</span>
+          </div>
+          <div className="flex items-center gap-2">
+             <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Duration:</span>
+             <span className="text-slate-900 font-bold text-[13px]">{leave.leaveType === 'Permission'
+               ? calculatePermissionDuration(leave.startTime, leave.endTime) || 'Time-off'
+               : `${leave.totalDays} day(s)`
+             }</span>
+          </div>
+        </div>
+        {leave.leaveType === 'Permission' && leave.startTime && leave.endTime && (
+          <p className="text-[12px] text-slate-400 font-normal mt-2">
+            {formatTime(leave.startTime)} – {formatTime(leave.endTime)}
+          </p>
+        )}
+      </div>
 
-      {leave.document && (
-        <div className="mt-3">
+      <p className="text-[13px] text-slate-500 mb-4 line-clamp-2 leading-[1.4]">
+        <span className="font-semibold text-slate-900 mr-1">Reason:</span>
+        {leave.reason}
+      </p>
+
+      <div className="flex items-center justify-between">
+        <button
+          onClick={() => handleViewLeaveSummary(leave.worker?._id)}
+          className="h-10 px-4 bg-slate-900 text-white rounded-xl text-[12px] font-medium active:scale-95 transition-all shadow-lg shadow-slate-900/10"
+        >
+          View Balance
+        </button>
+        
+        {leave.document && (
           <button
             onClick={() => {
                 const baseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').split('/api')[0];
@@ -291,55 +295,50 @@ const LeaveManagement = () => {
                 setViewerFileName(leave.document);
                 setIsViewerOpen(true);
             }}
-            className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-lg border border-emerald-200 hover:bg-emerald-100 transition-all text-xs font-semibold shadow-sm"
+            className="w-10 h-10 flex items-center justify-center bg-slate-50 text-slate-400 rounded-xl hover:text-slate-900 transition-all"
+            title="View Attachment"
           >
-            <FaFileAlt />
-            <span>View Attachment</span>
-            <FaEye className="ml-1 opacity-70" />
+            <FaFileAlt size={16} />
           </button>
-        </div>
-      )}
+        )}
+      </div>
 
       {leave.status === 'Pending' && (
-        <div className="mt-4 flex space-x-2">
+        <div className="mt-4 flex gap-3 border-t border-slate-50 pt-4">
           <button
             onClick={() => openApproveModal(leave)}
             disabled={processing[leave._id]}
-            className="px-3 py-1.5 bg-[#111111] text-white text-sm rounded hover:bg-white hover:text-[#111111] border-2 border-[#111111] transition-colors"
+            className="flex-1 h-[44px] bg-emerald-500 text-white rounded-[12px] text-[14px] font-medium active:scale-95 transition-all shadow-lg shadow-emerald-500/10"
           >
             {processing[leave._id] ? <Spinner size="sm" /> : 'Approve'}
           </button>
           <button
             onClick={() => handleReview(leave._id, 'Rejected')}
             disabled={processing[leave._id]}
-            className="px-3 py-1.5 bg-gray-500 text-white text-sm rounded hover:bg-white hover:text-gray-500 border-2 border-gray-500 transition-colors"
+            className="flex-1 h-[44px] bg-white text-rose-500 border border-rose-100 rounded-[12px] text-[14px] font-medium active:scale-95 transition-all shadow-sm"
           >
             Reject
           </button>
         </div>
       )}
-    </Card>
+    </div>
   );
 
   const displayLeaves = showAllLeaves ? filteredLeaves : filteredLeaves.slice(0, 5);
 
-  const tabClass = (name) =>
-    `px-3 py-1 rounded-md text-xs cursor-pointer whitespace-nowrap ${activeView === name
-      ? 'bg-[#111111] text-white'
-      : 'bg-gray-200 text-gray-700 hover:bg-[#111111] hover:text-white'
-    }`;
+
 
   return (
     <div>
       <div className="flex justify-between items-center mb-6 flex-wrap gap-2">
-        <h1 className="text-2xl font-bold">Leave Management</h1>
+        <h1 className="text-[18px] font-semibold text-slate-900 tracking-tight">Leaves</h1>
         <div className="flex gap-2 flex-wrap">
           <button
             onClick={handleResetLeaveBalance}
-            className="flex items-center gap-1 px-3 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
+            className="h-[44px] px-4 bg-slate-900 text-white text-[14px] font-medium rounded-[12px] shadow-lg shadow-slate-900/10 active:scale-95 transition-all flex items-center gap-2"
             title="Reset annual leave balances for all employees"
           >
-            <MdRefresh /> Reset Annual Balance
+            <MdRefresh size={18} /> Reset Balance
           </button>
         </div>
       </div>
@@ -373,27 +372,36 @@ const LeaveManagement = () => {
           </div>
 
           {/* Status tabs */}
-          <div className="flex space-x-2 mb-3 overflow-x-auto pb-1">
+          <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-1 no-scrollbar">
             {['all', 'Pending', 'Approved', 'Rejected'].map(tab => (
-              <div key={tab} className={tabClass(tab)} onClick={() => setActiveView(tab)}>
-                {tab === 'all' ? 'All' : tab}
-              </div>
+              <button 
+                key={tab} 
+                onClick={() => setActiveView(tab)}
+                className={`h-9 px-5 rounded-full text-[12px] font-medium transition-all whitespace-nowrap ${
+                  activeView === tab
+                  ? 'bg-slate-900 text-white shadow-md'
+                  : 'bg-white text-slate-400 border border-slate-100 hover:text-slate-900'
+                }`}
+              >
+                {tab === 'all' ? 'All Requests' : tab}
+              </button>
             ))}
           </div>
 
           {/* Leave type filter */}
-          <div className="flex space-x-2 mb-4 overflow-x-auto pb-1">
+          <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-1 no-scrollbar">
             {getLeaveTypeOptions().map(type => (
-              <div
+              <button
                 key={type}
-                className={`px-3 py-1 rounded-full text-xs cursor-pointer whitespace-nowrap border ${activeTypeFilter === type
-                  ? 'bg-blue-600 text-white border-blue-600'
-                  : 'bg-white text-gray-600 border-gray-300 hover:border-blue-400'
-                  }`}
                 onClick={() => setActiveTypeFilter(type)}
+                className={`h-8 px-4 rounded-full text-[11px] font-medium transition-all whitespace-nowrap border ${
+                  activeTypeFilter === type
+                  ? 'bg-slate-100 text-slate-900 border-slate-200'
+                  : 'bg-white text-slate-400 border-slate-100 hover:border-slate-300'
+                }`}
               >
                 {type === 'all' ? 'All Types' : `${LEAVE_TYPE_LABELS[type] || type}`}
-              </div>
+              </button>
             ))}
           </div>
 
@@ -446,7 +454,8 @@ const LeaveManagement = () => {
             <div className="mb-4 p-3 bg-gray-50 rounded-lg">
               <p className="font-semibold">{selectedLeaveForApproval.worker?.name}</p>
               <p className="text-sm text-gray-600">{selectedLeaveForApproval.leaveType} • {selectedLeaveForApproval.totalDays} day(s)</p>
-              <p className="text-sm text-gray-600">{new Date(selectedLeaveForApproval.startDate).toLocaleDateString()} – {new Date(selectedLeaveForApproval.endDate).toLocaleDateString()}</p>
+
+              <p className="text-sm text-gray-600">{formatDate(selectedLeaveForApproval.startDate)} – {formatDate(selectedLeaveForApproval.endDate)}</p>
               {selectedLeaveForApproval.returnTicketRequired && !selectedLeaveForApproval.returnTicketProvided && (
                 <p className="text-xs text-red-500 mt-1">Return ticket not confirmed by employee</p>
               )}
@@ -526,7 +535,7 @@ const LeaveManagement = () => {
                 const used = summaryData.leaveUsed?.[key.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase())] || 0;
                 return (
                   <div key={key} className="bg-gray-50 p-2 rounded border text-sm">
-                    <p className="text-gray-500 text-xs mb-1">{label}</p>
+                    <p className="text-[#475569] text-xs mb-1">{label}</p>
                     {editBalanceMode ? (
                       <input
                         type="number"

@@ -4,6 +4,7 @@ import { toast } from 'react-toastify';
 import { registerAdmin, subdomainAvailable } from '../../services/authService';
 import { motion } from 'framer-motion';
 import { FaLink } from 'react-icons/fa';
+import { FiAlertTriangle } from 'react-icons/fi';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 import Spinner from '../../components/common/Spinner';
@@ -56,13 +57,24 @@ const TwoStepRegistration = () => {
   // Use a ref to track the latest subdomain check to avoid race conditions
   const latestCheckRef = React.useRef(0);
 
+  const [domainError, setDomainError] = useState('');
+
   const handleSubdomainChange = async (e) => {
     const { value } = e.target;
+    
+    if (value.length === 0) {
+      setDomainError('');
+      setDomainAvailable(true);
+      return;
+    }
+
     if (value.length < 3) {
+      setDomainError('Company name must be at least 3 characters');
       setDomainAvailable(false);
       return;
     }
 
+    setDomainError('');
     const checkId = ++latestCheckRef.current;
 
     // Simple debounce logic: wait 500ms before checking
@@ -71,12 +83,20 @@ const TwoStepRegistration = () => {
       try {
         const response = await subdomainAvailable({ subdomain: value });
         if (checkId === latestCheckRef.current) {
-          setDomainAvailable(response.available);
+          if (response.available) {
+            setDomainAvailable(true);
+            setDomainError('');
+          } else {
+            setDomainAvailable(false);
+            setDomainError('This company name is already taken');
+          }
         }
       } catch (error) {
         if (checkId === latestCheckRef.current) {
           console.error('Subdomain check error:', error);
+          // If the server is down or returns an error, we don't want to say it's "not available"
           setDomainAvailable(false);
+          setDomainError('Unable to verify availability. Please check your connection.');
         }
       }
     }, 500);
@@ -86,6 +106,10 @@ const TwoStepRegistration = () => {
     e.preventDefault();
     if (formData.password !== formData.confirmPassword) {
       toast.error('Passwords do not match');
+      return;
+    }
+    if (domainError) {
+      toast.error(domainError);
       return;
     }
     if (!domainAvailable) {
@@ -165,7 +189,7 @@ const TwoStepRegistration = () => {
       >
         <div className="mb-6 text-center">
           <motion.h1
-            className="text-2xl sm:text-3xl font-bold text-[#111111]"
+            className="text-xl sm:text-2xl font-black text-[#111111] tracking-tight"
             initial={{ y: -20 }}
             animate={{ y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
@@ -173,9 +197,9 @@ const TwoStepRegistration = () => {
             Create Admin Account
           </motion.h1>
           <motion.div
-            className="h-1 bg-[#111111] rounded-full w-0 mx-auto mt-2"
+            className="h-1 bg-[#111111] rounded-full w-0 mx-auto mt-1"
             initial={{ width: 0 }}
-            animate={{ width: "60px" }}
+            animate={{ width: "40px" }}
             transition={{ duration: 0.5, delay: 0.4 }}
           />
         </div>
@@ -189,24 +213,29 @@ const TwoStepRegistration = () => {
             animate="visible"
             custom={1}
           >
-            <label htmlFor="subdomain" className="text-black flex items-center text-sm font-medium mb-2">
-              <FaLink className="h-4 w-4 mr-2 text-[#111111]" />
+            <label className="text-xs font-bold text-gray-500 uppercase tracking-widest pl-1 mb-2 block">
               Company Name
             </label>
-            <input
-              type="text"
-              id="subdomain"
-              name="subdomain"
-              className={`w-full px-4 py-3 bg-gray-100 border ${domainAvailable ? 'border-gray-300' : 'border-red-500'} rounded-lg focus:outline-none focus:ring-2 focus:ring-[#111111] focus:border-transparent text-black`}
-              value={formData.subdomain}
-              onChange={handleChange}
-              required
-              placeholder="Enter your company name"
-            />
-            {!domainAvailable && (
-              <p className="text-red-500 text-xs mt-1">
-                This company name is not available or too short
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <span className="text-gray-400 font-bold select-none">@</span>
+              </div>
+              <input
+                type="text"
+                name="subdomain"
+                value={formData.subdomain}
+                onChange={handleChange}
+                placeholder="yourcompany"
+                className={`w-full pl-8 pr-4 py-3 bg-gray-50 border ${domainError ? 'border-red-500' : 'border-gray-100'} rounded-xl focus:ring-2 focus:ring-black focus:border-black outline-none transition-all font-bold text-sm tracking-tight`}
+                required
+              />
+            </div>
+            {domainError ? (
+              <p className="text-red-500 text-[10px] mt-1.5 font-bold uppercase tracking-tight flex items-center gap-1">
+                <FiAlertTriangle className="h-3 w-3" /> {domainError}
               </p>
+            ) : (
+              <p className="text-gray-400 text-[10px] mt-1.5 font-bold uppercase tracking-tight">This will be your unique company portal address</p>
             )}
           </motion.div>
 
@@ -388,18 +417,21 @@ const TwoStepRegistration = () => {
             initial="hidden"
             animate="visible"
             custom={7}
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.98 }}
-            className="w-full py-3 bg-[#111111] text-white rounded-lg hover:bg-[#000000] border-2 border-[#111111] transition-colors disabled:opacity-70 font-medium"
+            className="w-full h-12 bg-[#111111] text-white rounded-xl font-black text-sm tracking-[0.2em] shadow-lg hover:shadow-black/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:hover:scale-100 uppercase"
           >
-            {isLoading ? (
-              <span className="flex items-center justify-center">
-                <Spinner size="sm" className="mr-2" />
-                Creating Account...
-              </span>
-            ) : 'Create Account'}
+            {isLoading ? <Spinner size="sm" /> : 'CREATE ACCOUNT'}
           </motion.button>
         </form>
+
+        <div className="mt-8 text-center">
+          <p className="text-gray-400 text-[11px] font-bold uppercase tracking-widest mb-4">Already have an account?</p>
+          <Link
+            to="/admin/login"
+            className="inline-flex items-center text-sm font-black text-black hover:tracking-widest transition-all uppercase tracking-tighter"
+          >
+            LOGIN TO PORTAL <FaLink className="ml-2 h-3 w-3" />
+          </Link>
+        </div>
 
         <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-100">
           <div className="flex items-start">

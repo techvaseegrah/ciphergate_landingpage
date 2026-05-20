@@ -100,7 +100,7 @@ const DepartmentManagement = () => {
 
   const loadDepartments = async () => {
     setIsLoading(true);
-    if (!subdomain || subdomain == 'main') {
+    if (!subdomain) {
       return;
     }
 
@@ -141,7 +141,7 @@ const DepartmentManagement = () => {
       return;
     }
 
-    if (!subdomain || subdomain == 'main') {
+    if (!subdomain) {
       console.log(subdomain);
       toast.error('Subdomain is missing, check the URL.');
       return;
@@ -237,13 +237,14 @@ const DepartmentManagement = () => {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Department Management</h1>
+      <div className="page-header-row flex justify-between items-center mb-6">
+        <h1 className="text-[18px] font-semibold text-slate-900">Departments</h1>
         <Button
           variant="primary"
           onClick={() => setIsAddModalOpen(true)}
+          className="add-btn h-[44px] px-6 rounded-[12px] text-[14px] font-medium"
         >
-          <FaPlus className="mr-2 inline" /> Add Department
+          <FaPlus size={14} className="mr-2" /> Add Department
         </Button>
       </div>
 
@@ -257,64 +258,54 @@ const DepartmentManagement = () => {
             No departments found. Add a department to get started.
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {departments.map(department => (
               <div
                 key={department._id}
-                className="bg-white border rounded-lg p-4 flex justify-between items-center"
+                className="bg-white rounded-[16px] p-4 flex items-center justify-between shadow-[0_5px_15px_rgba(0,0,0,0.02)] transition-all hover:shadow-[0_10px_25px_rgba(0,0,0,0.05)]"
               >
-                {/* …inside your departments.map(…) */}
-                <div>
+                <div className="flex-1 min-w-0">
                   <h3
-                    className="text-lg font-medium cursor-pointer hover:text-indigo-600 transition-colors"
+                    className="text-[15px] font-semibold text-slate-900 cursor-pointer hover:text-slate-600 transition-colors truncate tracking-tight"
                     onClick={() => handleViewEmployees(department)}
                   >
                     {department.name}
                   </h3>
-                  <button
-                    onClick={() => handleViewEmployees(department)}
-                    className="
-                      inline-flex items-center
-                      text-indigo-600 font-semibold
-                      hover:text-indigo-800 active:text-indigo-900
-                      cursor-pointer
-                      transform hover:scale-105
-                      transition-transform duration-75 ease-in-out
-                      focus:outline-none
-                    "
-                  >
-                    <FaUserFriends className="inline mr-1 align-text-bottom" />
-                    {department.workerCount || 0} Employee{(department.workerCount || 0) !== 1 ? 's' : ''}
-                  </button>
-                  <div className="mt-2 flex items-center gap-2">
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-tighter ${department.punchedInCount === department.workerCount && department.workerCount > 0
-                      ? 'bg-emerald-100 text-emerald-700'
-                      : 'bg-gray-100 text-gray-600'
+                  <div className="flex items-center gap-3 mt-1.5">
+                    <button
+                      onClick={() => handleViewEmployees(department)}
+                      className="inline-flex items-center text-slate-400 text-[12px] font-medium hover:text-slate-900 transition-colors"
+                    >
+                      <FaUserFriends size={14} className="mr-1.5" />
+                      {department.workerCount || 0} Personnel
+                    </button>
+                    <span className={`text-[11px] font-medium px-2 py-0.5 rounded-lg ${department.punchedInCount === department.workerCount && department.workerCount > 0
+                      ? 'bg-emerald-50 text-emerald-600'
+                      : 'bg-slate-50 text-slate-400'
                       }`}>
-                      <>{department.punchedInCount} / {department.workerCount} PRESENT</>
+                      {department.punchedInCount}/{department.workerCount} Online
                     </span>
                   </div>
-
                 </div>
 
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center gap-1 flex-shrink-0">
                   <button
-                    className="text-[#111111] hover:text-gray-700 mr-2"
+                    className="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-slate-900 transition-all"
                     onClick={() => {
                       setEditingDepartment(department);
                       setIsEditModalOpen(true);
                     }}
                   >
-                    <FaEdit />
+                    <FaEdit size={16} />
                   </button>
                   <button
-                    className="text-red-500 hover:text-red-700"
+                    className="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-rose-500 transition-all"
                     onClick={() => {
                       setSelectedDepartment(department);
                       setIsDeleteModalOpen(true);
                     }}
                   >
-                    <FaTrash />
+                    <FaTrash size={16} />
                   </button>
                 </div>
               </div>
@@ -464,7 +455,7 @@ const DepartmentManagement = () => {
                 <div className="flex-1">
                   <span className="text-md font-semibold text-gray-800 block">{emp.name}</span>
                   <div className="mt-1 flex items-center">
-                    <span className={`inline-flex items-center gap-1.5 text-[10px] font-black px-2 py-1 rounded-lg uppercase tracking-wider shadow-sm border ${emp.status === 'Present' ? 'bg-emerald-50 border-emerald-200 text-emerald-700' :
+                    <span className={`inline-flex items-center gap-1.5 text-[11px] font-bold px-2 py-1 rounded-lg shadow-sm border ${emp.status === 'Present' ? 'bg-emerald-50 border-emerald-200 text-emerald-700' :
                       emp.status === 'On Leave' ? 'bg-amber-50 border-amber-200 text-amber-700' :
                         'bg-rose-50 border-rose-200 text-rose-700'
                       }`}>
@@ -502,15 +493,15 @@ const DepartmentManagement = () => {
                   <div className="p-2 bg-blue-500 rounded-lg text-white">
                     <FaChartLine />
                   </div>
-                  <h3 className="font-bold text-gray-800 uppercase tracking-wider text-sm">Attendance Performance</h3>
+                  <h3 className="font-bold text-[#475569] tracking-tight text-sm">Attendance Performance</h3>
                 </div>
                 <div className="space-y-4">
                   <div className="flex justify-between items-end">
-                    <span className="text-gray-500 text-xs font-semibold uppercase">This Month</span>
+                    <span className="text-[#475569] text-xs font-semibold">This Month</span>
                     <span className="text-2xl font-black text-indigo-700">{employeeSummary.monthly.performance.toFixed(2)}%</span>
                   </div>
                   <div className="flex justify-between items-end">
-                    <span className="text-gray-500 text-xs font-semibold uppercase">This Year</span>
+                    <span className="text-[#475569] text-xs font-semibold">This Year</span>
                     <span className="text-xl font-bold text-gray-700">{employeeSummary.yearly.performance.toFixed(2)}%</span>
                   </div>
                 </div>
@@ -522,15 +513,15 @@ const DepartmentManagement = () => {
                   <div className="p-2 bg-emerald-500 rounded-lg text-white">
                     <FaMoneyBillWave />
                   </div>
-                  <h3 className="font-bold text-gray-800 uppercase tracking-wider text-sm">Earnings Overview</h3>
+                  <h3 className="font-bold text-[#475569] tracking-tight text-sm">Earnings Overview</h3>
                 </div>
                 <div className="space-y-4">
                   <div className="flex justify-between items-end">
-                    <span className="text-gray-500 text-xs font-semibold uppercase">This Month</span>
+                    <span className="text-[#475569] text-xs font-semibold">This Month</span>
                     <span className="text-2xl font-black text-emerald-700">{formatCurrency(employeeSummary.monthly.earnings, settings)}</span>
                   </div>
                   <div className="flex justify-between items-end">
-                    <span className="text-gray-500 text-xs font-semibold uppercase">This Year</span>
+                    <span className="text-[#475569] text-xs font-semibold">This Year</span>
                     <span className="text-xl font-bold text-gray-700">{formatCurrency(employeeSummary.yearly.earnings, settings)}</span>
                   </div>
                 </div>
@@ -543,12 +534,12 @@ const DepartmentManagement = () => {
                 <div className="p-2 bg-amber-500 rounded-lg text-white">
                   <FaCalendarAlt />
                 </div>
-                <h3 className="font-bold text-gray-800 uppercase tracking-wider text-sm">Last 6 Months Trend</h3>
+                <h3 className="font-bold text-[#475569] tracking-tight text-sm">6 Months Trend</h3>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-50">
+                    <tr className="text-[11px] font-bold text-[#475569] border-b border-gray-50">
                       <th className="text-left pb-3">Month</th>
                       <th className="text-center pb-3">Performance</th>
                       <th className="text-right pb-3">Earnings</th>

@@ -7,7 +7,7 @@ export const createDepartment = async (departmentData) => {
       throw new Error('Department name must be at least 2 characters long');
     }
 
-    if (!departmentData.subdomain || departmentData.subdomain == 'main') {
+    if (!departmentData.subdomain) {
       throw new Error('Subdomain is missing, check the URL from server.');
     }
 

@@ -4,11 +4,14 @@ import React, { useRef } from 'react';
 import { useScroll, motion } from 'framer-motion';
 import Header from './Header.jsx';
 import Hero from './Hero.jsx';
-import ParallaxImage from './ParallaxImage.jsx';
-import Features from './Features.jsx';
-import UseCase from './UseCase.jsx';
+import BentoFeatures from '../../components/landing/BentoFeatures.jsx';
+import { StreamlineSection } from './StreamlineSection.jsx';
+import FaceCheckInSection from './FaceCheckInSection.jsx';
 import Pricing from './Pricing.jsx';
 import Contact from './Contact.jsx';
+import TrustedBy from './TrustedBy.jsx';
+import Testimonials from './Testimonials.jsx';
+import FAQ from './FAQ.jsx';
 import Footer from './Footer.jsx';
 
 function LandingPage() {
@@ -20,26 +23,20 @@ function LandingPage() {
   });
 
   return (
-    <div className="App bg-transparent relative overflow-hidden">
-      {/* Rose Gold Animated Blobs for Background Atmosphere */}
-      <div className="rose-gold-blob top-[-10%] left-[-5%]" />
-      <div className="rose-gold-blob-2 bottom-[10%] right-[-5%]" />
-      <div className="rose-gold-blob top-[40%] right-[10%] opacity-40" style={{ width: '30vw', height: '30vw' }} />
-
+    <div ref={scrollContainerRef} className="App bg-[#000000] relative overflow-hidden">
       <Header />
 
-      <div className="relative">
-        <div>
-          <Hero scrollYProgress={scrollYProgress} />
-        </div>
-        <ParallaxImage scrollYProgress={scrollYProgress} />
-      </div>
+      <Hero id="home" scrollYProgress={scrollYProgress} />
 
-      <div className="space-y-16 md:space-y-20">
-        <Features />
-        <UseCase />
-        <Pricing />
-        <Contact />
+      <div className="space-y-0 relative z-10">
+        <BentoFeatures id="our-story" />
+        <StreamlineSection />
+        <FaceCheckInSection id="features" />
+        <Pricing id="pricing" />
+        <Testimonials />
+        <FAQ id="faq" />
+        <Contact id="contact" />
+        <TrustedBy />
       </div>
       <Footer />
     </div>

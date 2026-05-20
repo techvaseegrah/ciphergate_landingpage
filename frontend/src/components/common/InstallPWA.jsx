@@ -51,32 +51,29 @@ const InstallPWA = () => {
     }
 
     return (
-        <div className="animated-border-wrapper transition-all duration-300">
-            <div className="animated-border-inner p-3 sm:p-4">
-                <div className="flex items-center gap-2 sm:gap-3">
-                    <div className="bg-[#111]/5 p-2 rounded-full flex-shrink-0 border border-gray-100">
-                        <Download className="w-4 h-4 sm:w-5 sm:h-5 text-[#111]" />
-                    </div>
-                    <div className="flex flex-col pt-0.5">
-                        <h3 className="text-[#111] text-[11px] sm:text-[13px] uppercase tracking-[0.15em] sm:tracking-[0.2em] leading-tight flex items-center">
-                            <span className="font-light">Cipher</span>
-                            <span className="font-semibold text-[#B76E79]">Gate</span>
-                        </h3>
-                        <p className="text-[#666] text-[8px] sm:text-[9px] mt-0.5 uppercase tracking-[0.1em]">App access</p>
-                    </div>
+        <div className="mobile-install-banner transition-all duration-300">
+            <div className="banner-content">
+                {/* Left side: Icon and Brand Name */}
+                <div className="left-group">
+                    <Download className="w-5 h-5 text-black" />
+                    <span className="brand-name">
+                        CIPHERGATE
+                    </span>
                 </div>
-                <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-                    <button
+
+                {/* Right side: Later and Install button */}
+                <div className="right-group">
+                    <span 
                         onClick={onDismiss}
-                        className="text-[#666] text-[9px] sm:text-[10px] uppercase tracking-[0.1em] font-medium hover:text-[#111] px-1 sm:px-2 transition-colors"
+                        className="later-link"
                     >
-                        Later
-                    </button>
-                    <button
+                        LATER
+                    </span>
+                    <button 
                         onClick={onClick}
-                        className="bg-[#111] hover:bg-black text-white px-4 sm:px-5 py-2 sm:py-2.5 text-[9px] sm:text-[10px] font-semibold tracking-[0.15em] sm:tracking-[0.2em] uppercase transition-all duration-500 flex items-center gap-1.5"
+                        className="install-btn"
                     >
-                        Install
+                        INSTALL
                     </button>
                 </div>
             </div>

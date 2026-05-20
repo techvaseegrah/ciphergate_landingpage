@@ -12,12 +12,12 @@ const useSmoothScroll = () => {
         
         if (targetElement) {
           // Calculate offset to account for fixed header
-          const offsetTop = targetElement.offsetTop - 100; // Adjust for header height
+          const offsetTop = targetElement.offsetTop - 80; // Adjust for header height
         
-          // Smooth scrolling with custom easing for slower, more pleasant animation
+          // Smooth scrolling with custom easing for faster, precise animation
           const start = window.pageYOffset;
           const distance = offsetTop - start;
-          const duration = 1200; // Increased duration for slower scroll
+          const duration = 500; // Decreased duration for faster scroll
           let startTime = null;
 
           const animation = (currentTime) => {

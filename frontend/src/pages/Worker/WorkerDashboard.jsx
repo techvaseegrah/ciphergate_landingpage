@@ -8,6 +8,7 @@ import AttendanceReport from '../../components/worker/AttendanceReport';
 import Notifications from '../../components/worker/Notifications';
 import FaceAttendancePage from '../../components/worker/FaceAttendancePage'; // Import FaceAttendancePage
 import RFIDAttendance from '../../components/worker/RFIDAttendance'; // Import RFIDAttendance
+import WorkAllocation from '../../components/admin/WorkAllocation';
 
 const WorkerDashboard = () => {
   // State to track if a test is in progress
@@ -23,6 +24,7 @@ const WorkerDashboard = () => {
       <Routes>
         <Route path="" element={<Dashboard />} />
         <Route path="/attendance" element={<AttendanceReport />} />
+        <Route path="/work-allocation" element={<WorkAllocation isWorkerView={true} />} />
         <Route path="/leave-apply" element={<LeaveApplication />} />
         <Route path="/leave-requests" element={<LeaveRequests />} />
         <Route path="/notifications" element={<Notifications />} />

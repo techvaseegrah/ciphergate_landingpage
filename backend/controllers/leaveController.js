@@ -220,28 +220,36 @@ const getLeaves = asyncHandler(async (req, res) => {
     throw new Error('URL not found');
   }
 
-  if (!subdomain || subdomain === 'main') {
-    res.status(400);
-    throw new Error('Company name is missing, login again.');
-  }
+  // ALLOW 'main' for mock/development mode
+  const effectiveSubdomain = subdomain || 'main';
 
   let leaves;
 
-  if (me === '1') {
-    leaves = await Leave.find({ worker: req.user._id }).sort({ createdAt: -1 });
-  } else if (me === '0') {
-    const user = await Admin.findById(req.user._id);
-    if (user) {
-      leaves = await Leave.find({ subdomain })
-        .populate('worker', 'name department leaveBalance')
-        .sort({ createdAt: -1 });
-    } else {
-      res.status(403);
-      throw new Error('Access denied. Admin access required.');
+  try {
+    if (me === '1') {
+      leaves = await Leave.find({ worker: req.user._id })
+        .sort({ createdAt: -1 })
+        .maxTimeMS(10000)
+        .lean();
+    } else if (me === '0') {
+      if (req.user.role === 'admin') {
+        leaves = await Leave.find({ subdomain: effectiveSubdomain })
+          .populate('worker', 'name department leaveBalance')
+          .sort({ createdAt: -1 })
+          .maxTimeMS(10000)
+          .lean();
+      } else {
+        res.status(403);
+        throw new Error('Access denied. Admin access required.');
+      }
     }
+    res.status(200).json(leaves);
+  } catch (error) {
+    console.error('Get Leaves Error:', error.message);
+    if (res.headersSent) return;
+    res.status(500);
+    throw new Error('Failed to retrieve leaves');
   }
-
-  res.status(200).json(leaves);
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

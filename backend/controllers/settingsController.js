@@ -1,49 +1,64 @@
 const Settings = require('../models/Settings');
 
+
+
 // Helper to migrate legacy leave policy to array format
 const migrateLeavePolicy = async (subdomain) => {
-  const dbSettings = await Settings.collection.findOne({ subdomain });
-  if (!dbSettings || !dbSettings.leavePolicy) return;
+  try {
+    // Use Mongoose findOne with a short timeout to prevent hanging the whole request
+    const dbSettings = await Settings.findOne({ subdomain }).maxTimeMS(5000).lean();
+    if (!dbSettings || !dbSettings.leavePolicy) return;
 
-  if (!Array.isArray(dbSettings.leavePolicy)) {
-    const old = dbSettings.leavePolicy;
-    const newPolicy = [
-      { type: 'annual', label: 'Annual Leave', defaultDays: old.annual ?? 7, overrides: [] },
-      { type: 'sick', label: 'Sick Leave', defaultDays: old.sick ?? 14, overrides: [] },
-      { type: 'hospital', label: 'Hospitalization Leave', defaultDays: old.hospital ?? 60, overrides: [] },
-      { type: 'urgent', label: 'Urgent Leave', defaultDays: old.urgent ?? 3, overrides: [] },
-      { type: 'marriage', label: 'Marriage Leave', defaultDays: old.marriage ?? 3, overrides: [] },
-      { type: 'paternity', label: 'Paternity Leave', defaultDays: old.paternity ?? 3, overrides: [] },
-      { type: 'compassion', label: 'Compassionate Leave', defaultDays: old.compassion ?? 3, overrides: [] },
-      { type: 'personal', label: 'Personal Leave', defaultDays: old.personal ?? 3, overrides: [] },
-      { type: 'unpaid', label: 'Unpaid Leave', defaultDays: old.unpaid ?? 0, overrides: [] },
-      { type: 'homeCountry', label: 'Home Country Leave', defaultDays: old.homeCountry ?? 0, overrides: [] }
-    ];
-    await Settings.collection.updateOne({ _id: dbSettings._id }, { $set: { leavePolicy: newPolicy } });
-    console.log(`Migrated legacy object leave policy for subdomain: ${subdomain}`);
-  } else {
-    // Array format exists, check if we need to migrate scope to overrides
-    const hasOldScopeSchema = dbSettings.leavePolicy.some(p => p.scope !== undefined || p.assignedEmployees !== undefined);
-    if (hasOldScopeSchema) {
-      const newPolicy = dbSettings.leavePolicy.map(p => {
-        const migratedPolicy = { ...p };
-        if (!migratedPolicy.overrides) migratedPolicy.overrides = [];
-        
-        if (migratedPolicy.scope === 'specific' && Array.isArray(migratedPolicy.assignedEmployees) && migratedPolicy.assignedEmployees.length > 0) {
-          migratedPolicy.overrides.push({
-            employeeIds: migratedPolicy.assignedEmployees,
-            days: migratedPolicy.defaultDays
-          });
-          // Set to 0 because under the old schema, specific meant NO global default days for others.
-          migratedPolicy.defaultDays = 0;
-        }
-        delete migratedPolicy.scope;
-        delete migratedPolicy.assignedEmployees;
-        return migratedPolicy;
-      });
-      await Settings.collection.updateOne({ _id: dbSettings._id }, { $set: { leavePolicy: newPolicy } });
-      console.log(`Migrated array leave policy (scope->overrides) for subdomain: ${subdomain}`);
+    let needsUpdate = false;
+    let newPolicy = dbSettings.leavePolicy;
+
+    // Check for legacy object format
+    if (!Array.isArray(dbSettings.leavePolicy)) {
+      const old = dbSettings.leavePolicy;
+      newPolicy = [
+        { type: 'annual', label: 'Annual Leave', defaultDays: old.annual ?? 7, overrides: [] },
+        { type: 'sick', label: 'Sick Leave', defaultDays: old.sick ?? 14, overrides: [] },
+        { type: 'hospital', label: 'Hospitalization Leave', defaultDays: old.hospital ?? 60, overrides: [] },
+        { type: 'urgent', label: 'Urgent Leave', defaultDays: old.urgent ?? 3, overrides: [] },
+        { type: 'marriage', label: 'Marriage Leave', defaultDays: old.marriage ?? 3, overrides: [] },
+        { type: 'paternity', label: 'Paternity Leave', defaultDays: old.paternity ?? 3, overrides: [] },
+        { type: 'compassion', label: 'Compassionate Leave', defaultDays: old.compassion ?? 3, overrides: [] },
+        { type: 'personal', label: 'Personal Leave', defaultDays: old.personal ?? 3, overrides: [] },
+        { type: 'unpaid', label: 'Unpaid Leave', defaultDays: old.unpaid ?? 0, overrides: [] },
+        { type: 'homeCountry', label: 'Home Country Leave', defaultDays: old.homeCountry ?? 0, overrides: [] }
+      ];
+      needsUpdate = true;
+      console.log(`Migrating legacy object leave policy for subdomain: ${subdomain}`);
+    } else {
+      // Check for old scope schema within array
+      const hasOldScopeSchema = dbSettings.leavePolicy.some(p => p.scope !== undefined || p.assignedEmployees !== undefined);
+      if (hasOldScopeSchema) {
+        newPolicy = dbSettings.leavePolicy.map(p => {
+          const migratedPolicy = { ...p };
+          if (!migratedPolicy.overrides) migratedPolicy.overrides = [];
+          
+          if (migratedPolicy.scope === 'specific' && Array.isArray(migratedPolicy.assignedEmployees) && migratedPolicy.assignedEmployees.length > 0) {
+            migratedPolicy.overrides.push({
+              employeeIds: migratedPolicy.assignedEmployees,
+              days: migratedPolicy.defaultDays
+            });
+            migratedPolicy.defaultDays = 0;
+          }
+          delete migratedPolicy.scope;
+          delete migratedPolicy.assignedEmployees;
+          return migratedPolicy;
+        });
+        needsUpdate = true;
+        console.log(`Migrating array leave policy (scope->overrides) for subdomain: ${subdomain}`);
+      }
     }
+
+    if (needsUpdate) {
+      await Settings.updateOne({ subdomain }, { $set: { leavePolicy: newPolicy } }).maxTimeMS(5000);
+    }
+  } catch (error) {
+    console.error(`Migration error for subdomain ${subdomain}:`, error.message);
+    // Continue even if migration fails to avoid blocking the main request
   }
 };
 
@@ -53,7 +68,7 @@ const migrateLeavePolicy = async (subdomain) => {
 const getSettings = async (req, res) => {
   try {
     await migrateLeavePolicy(req.params.subdomain);
-    let settings = await Settings.findOne({ subdomain: req.params.subdomain });
+    let settings = await Settings.findOne({ subdomain: req.params.subdomain }).maxTimeMS(10000).lean();
     
     // If settings don't exist, create default settings
     if (!settings) {
@@ -71,10 +86,12 @@ const getSettings = async (req, res) => {
       console.log(`Created default settings for subdomain: ${req.params.subdomain}`);
     }
     
-    res.json(settings);
+    return res.json(settings);
   } catch (error) {
-    console.error('Error in getSettings:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    console.error('Error in getSettings:', error.message);
+    
+    if (res.headersSent) return;
+    return res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
 
@@ -82,27 +99,42 @@ const getSettings = async (req, res) => {
 // @route   GET /api/settings/public/:subdomain
 // @access  Public
 const getSettingsPublic = async (req, res) => {
+  const subdomain = req.params.subdomain;
   try {
-    await migrateLeavePolicy(req.params.subdomain);
-    let settings = await Settings.findOne({ subdomain: req.params.subdomain });
+    // Migration is non-critical for public settings (location only)
+    await migrateLeavePolicy(subdomain);
+    
+    let settings = await Settings.findOne({ subdomain }).maxTimeMS(10000).lean();
     
     // If settings don't exist, create default settings
     if (!settings) {
-      settings = await Settings.create({
-        subdomain: req.params.subdomain
-      });
-      console.log(`Created default public settings for subdomain: ${req.params.subdomain}`);
+      try {
+        settings = await Settings.create({ subdomain });
+        console.log(`Created default public settings for subdomain: ${subdomain}`);
+      } catch (createError) {
+        console.error('Failed to create settings in public view:', createError.message);
+        // Fallback to a minimal settings object if creation fails
+        settings = { subdomain, attendanceLocation: { enabled: false } };
+      }
     }
     
     // Only return location settings for public access
     const publicSettings = {
-      attendanceLocation: settings.attendanceLocation
+      attendanceLocation: settings.attendanceLocation || { enabled: false }
     };
     
     res.json(publicSettings);
   } catch (error) {
-    console.error('Error in getSettingsPublic:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    console.error('Error in getSettingsPublic:', error.message);
+    
+    if (res.headersSent) {
+      return;
+    }
+
+    // Return a safe default for public requests on error
+    res.json({
+      attendanceLocation: { enabled: false, latitude: 0, longitude: 0, radius: 100 }
+    });
   }
 };
 
@@ -142,7 +174,6 @@ const updateMealSettings = async (req, res) => {
     const updatedSettings = await settings.save();
     res.json(updatedSettings);
   } catch (error) {
-    console.error('Error in updateMealSettings:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
@@ -225,7 +256,6 @@ const updateSettings = async (req, res) => {
 
     res.json(updatedSettings);
   } catch (error) {
-    console.error('Error in updateSettings:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };

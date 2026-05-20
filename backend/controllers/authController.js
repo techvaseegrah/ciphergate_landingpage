@@ -127,9 +127,6 @@ const loginAdmin = asyncHandler(async (req, res) => {
     admin = await Admin.findOne({ email }).select('+password');
   } else if (username) {
     admin = await Admin.findOne({ username }).select('+password');
-  } else {
-    res.status(400);
-    throw new Error('Please provide either email or username');
   }
 
   if (admin && (await bcrypt.compare(password, admin.password))) {
@@ -145,6 +142,7 @@ const loginAdmin = asyncHandler(async (req, res) => {
       admin.subscriptionEndDate = null;
       await admin.save({ validateBeforeSave: false });
     }
+
     res.json({
       _id: admin._id,
       username: admin.username,
@@ -154,6 +152,15 @@ const loginAdmin = asyncHandler(async (req, res) => {
       accountType: admin.accountType,
       businessType: admin.businessType,
       phoneNumber: admin.phoneNumber,
+      flatShopNo: admin.flatShopNo,
+      street: admin.street,
+      pincode: admin.pincode,
+      city: admin.city,
+      district: admin.district,
+      state: admin.state,
+      country: admin.country,
+      website: admin.website,
+      gstNumber: admin.gstNumber,
       createdAt: admin.createdAt,
       organizationId: admin.subdomain,
       token: generateToken(admin._id, 'admin')
@@ -243,6 +250,9 @@ const loginWorker = asyncHandler(async (req, res) => {
   const worker = await Worker.findOne({ username }).select('+password').populate('department');
 
   if (worker && (await bcrypt.compare(password, worker.password))) {
+    const admin = await Admin.findOne({ subdomain: worker.subdomain });
+    const accountType = admin ? admin.accountType : 'free';
+
     res.json({
       _id: worker._id,
       username: worker.username,
@@ -256,6 +266,7 @@ const loginWorker = asyncHandler(async (req, res) => {
       salary: worker.salary,
       finalSalary: worker.finalSalary,
       perDaySalary: worker.perDaySalary,
+      accountType,
       token: generateToken(worker._id, 'worker')
     });
   } else {
@@ -279,6 +290,8 @@ const getMe = asyncHandler(async (req, res) => {
 
   if (req.user.role === 'worker') {
     responseData.departmentName = req.user.department ? req.user.department.name : '';
+    const admin = await Admin.findOne({ subdomain: req.user.subdomain });
+    responseData.accountType = admin ? admin.accountType : 'free';
   }
 
   res.status(200).json(responseData);
@@ -302,8 +315,22 @@ const loginClient = asyncHandler(async (req, res) => {
       token: token
     });
   } else {
-    res.status(401);
-    throw new Error('Invalid credentials');
+    // Also allow registered admin accounts to log in here
+    const admin = await Admin.findOne({ username }).select('+password');
+    if (admin && (await bcrypt.compare(password, admin.password))) {
+      const token = generateToken(admin._id, 'client');
+      res.json({
+        _id: admin._id,
+        username: admin.username,
+        subdomain: admin.subdomain,
+        email: admin.email,
+        role: 'client',
+        token: token
+      });
+    } else {
+      res.status(401);
+      throw new Error('Invalid credentials');
+    }
   }
 });
 
@@ -396,6 +423,7 @@ const updateAdmin = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const {
     username,
+    subdomain,
     email,
     businessType,
     phoneNumber,
@@ -416,6 +444,17 @@ const updateAdmin = asyncHandler(async (req, res) => {
   if (!admin) {
     res.status(404);
     throw new Error('Admin not found');
+  }
+
+  // If subdomain is being updated, check for uniqueness
+  if (subdomain && subdomain.toLowerCase().trim() !== admin.subdomain) {
+    const sanitizedSub = subdomain.toLowerCase().trim();
+    const existing = await Admin.findOne({ subdomain: sanitizedSub });
+    if (existing && existing._id.toString() !== id) {
+      res.status(400);
+      throw new Error('Company name already exists');
+    }
+    admin.subdomain = sanitizedSub;
   }
 
   // Update fields

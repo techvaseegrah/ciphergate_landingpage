@@ -1,14 +1,39 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700;800&family=Bruno+Ace+SC&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 /* Ensure proper box-sizing and prevent horizontal overflow */
-*,
-*::before,
-*::after {
+
+:root {
+  --font-primary: 'Poppins', sans-serif;
+  --bg-slate: #F8FAFC;
+  --border-slate: #E2E8F0;
+  --text-slate-900: #0F172A;
+  --text-slate-500: #64748B;
+  
+  /* Anti-Gravity Tokens */
+  --space-8: 8px;
+  --space-16: 16px;
+  --space-24: 24px;
+  --space-32: 32px;
+  
+  font-family: var(--font-primary);
+  line-height: 1.5;
+  font-weight: 400;
+  font-size: 16px;
   box-sizing: border-box;
+}
+
+*, *::before, *::after {
+  box-sizing: inherit;
+}
+
+@media (max-width: 768px) {
+  :root {
+    font-size: 14px;
+  }
 }
 
 html,
@@ -21,21 +46,138 @@ body {
 
 /* Custom base styles */
 body {
-  @apply bg-gray-50 text-dark-navy font-sans antialiased;
-  /* background: linear-gradient(135deg, #f8fdfa 0%, #ffffff 50%, #f8fdfa 100%); REMOVED to allow GlobalBackground to show */
-  background: transparent;
+  @apply text-slate-900 antialiased;
+  font-family: var(--font-primary);
+  background: var(--bg-slate);
+  overflow-x: hidden;
+  width: 100%;
 }
 
-h1 {
-  @apply text-4xl md:text-5xl font-extrabold mb-6 leading-tight;
+.anti-gravity-card {
+  @apply bg-white border border-slate-200/60 transition-all duration-300;
+  border-radius: 24px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.05);
 }
 
-h2 {
-  @apply text-3xl md:text-4xl font-bold mb-6 leading-tight;
+/* Admin Dashboard Specific Theme */
+.admin-app-shell {
+  background-color: var(--bg-slate);
+  color: var(--text-slate-900);
 }
 
-h3 {
-  @apply text-2xl font-semibold mb-4;
+.admin-main-content {
+  background-color: var(--bg-slate);
+}
+
+.admin-app-shell h1, 
+.admin-app-shell h2, 
+.admin-app-shell h3 {
+  color: var(--text-slate-900) !important;
+  font-family: var(--font-primary);
+}
+
+.admin-app-shell .bg-white {
+  background-color: #ffffff;
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.05), 0 1px 2px -1px rgb(0 0 0 / 0.05);
+  border: 1px solid var(--border-slate);
+}
+
+.admin-app-shell h1 {
+  @apply font-bold mb-6 leading-tight tracking-tight;
+  font-size: clamp(18px, 3vw, 24px);
+}
+
+.admin-app-shell h2 {
+  @apply font-semibold mb-4 leading-tight tracking-tight;
+  font-size: clamp(14px, 2vw, 18px);
+}
+
+.admin-app-shell p {
+  @apply font-normal;
+}
+
+button:not(.sidebar-link):not([role="switch"]):not(.mobile-header-btn) {
+  font-family: var(--font-primary);
+  @apply transition-all duration-200;
+}
+
+/* Page Header & Actions Wrapper */
+.page-header {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+@media (min-width: 769px) {
+  .page-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
+.header-actions {
+  display: grid !important;
+  grid-template-columns: repeat(2, 1fr) !important;
+  gap: 10px !important;
+  width: 100%;
+}
+
+.header-actions > * {
+  width: 100% !important;
+  min-height: 38px !important;
+  display: flex !important;
+  align-items: center; 
+  justify-content: center !important;
+  @apply transition-all duration-300;
+}
+
+@media (min-width: 769px) {
+  .header-actions {
+    display: flex !important;
+    width: auto;
+    justify-content: flex-end;
+    gap: 12px !important;
+  }
+  .header-actions > * {
+    min-width: auto !important;
+    padding: 0 20px !important;
+    height: 42px !important;
+    font-size: 13px !important;
+    border-color: transparent !important;
+  }
+}
+
+/* Mobile Dashboard/Grid Tweaks */
+@media (max-width: 768px) {
+  .admin-main-content main {
+    padding: 24px 16px !important; 
+  }
+
+  .header-container {
+    display: flex !important;
+    align-items: center !important;
+    height: 64px !important;
+    padding: 0 16px !important; 
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border-slate) !important;
+  }
+
+  .dashboard-grid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 16px !important;
+    width: 100% !important;
+  }
+
+  .card, .stat-card {
+    border-radius: 20px !important;
+    border: 1px solid var(--border-slate) !important;
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05) !important;
+    @apply transition-all duration-200;
+  }
 }
 
 /* Custom component classes */
@@ -57,6 +199,268 @@ h3 {
   /* Glass Dashboard Card Styling */
   .glass-dashboard {
     @apply bg-white/80 backdrop-blur-md border border-white/50 rounded-3xl shadow-glass;
+  }
+
+  /* 🖥️ DESKTOP: Flex layout for Streamline Section */
+  @media (min-width: 1025px) {
+    .streamline-main-row {
+      display: flex !important;
+      flex-direction: row !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      gap: 32px !important;
+    }
+
+    /* Left text - equal space */
+    .streamline-col-left {
+      flex: 1 !important;
+      text-align: left !important;
+      align-items: flex-start !important;
+    }
+
+    /* Center image - dominant, 60% width */
+    .streamline-col-center {
+      flex: none !important;
+      width: 60% !important;
+    }
+
+    /* Right text - equal space */
+    .streamline-col-right {
+      flex: 1 !important;
+      text-align: left !important;
+      align-items: flex-start !important;
+    }
+  }
+
+  /* 📱 FULL RESPONSIVE OVERRIDES — ≤ 1024px (Mobile & Tablet) */
+  /* 📱 FULL RESPONSIVE OVERRIDES — ≤ 1024px (Mobile & Tablet) */
+  @media (max-width: 1024px) {
+    html, body {
+      overflow-x: hidden !important;
+      position: relative;
+      max-width: 100vw;
+    }
+
+    /* Navbar / Logo Scaling */
+    header nav {
+      padding-left: 15px !important;
+      padding-right: 15px !important;
+      width: 92% !important;
+      margin: 0 auto !important;
+      box-sizing: border-box;
+    }
+
+    header nav h1 {
+      font-size: 14px !important; /* Scale logo text */
+      letter-spacing: 0.1em !important;
+    }
+
+    header nav img {
+      height: 24px !important; /* Standardized small size for branding */
+      width: auto !important;
+    }
+
+    /* Global Typography Scaling */
+    h2, .title-gradient {
+      font-size: clamp(26px, 7vw, 42px) !important;
+      line-height: 1.15 !important;
+      text-align: center !important;
+    }
+
+    h3 {
+      font-size: clamp(18px, 4vw, 24px) !important;
+    }
+
+    /* Global Image Constraint */
+    img {
+      max-width: 100% !important;
+      height: auto !important;
+    }
+
+    /* Hero Section Polish */
+    .hero-section {
+      background: #000 !important; 
+      background-image: none !important;
+      padding-top: 0 !important;
+      margin-top: 0 !important;
+      text-align: center;
+    }
+
+    .hero-section .title-gradient {
+      margin-bottom: 20px !important;
+      white-space: normal !important;
+      padding: 0 10px !important;
+    }
+
+    .hero-section p {
+      padding: 0 16px !important;
+      margin-bottom: 32px !important;
+      font-size: 15px !important;
+      color: white !important;
+      max-width: 100% !important;
+    }
+
+    /* Full-width Centered Hero Buttons */
+    .hero-section .landing-container > div:last-child,
+    .hero-section .flex.flex-col.sm\:flex-row {
+      flex-direction: column !important;
+      width: 100% !important;
+      max-width: 340px; /* Balanced button width for mobile */
+      margin: 0 auto !important;
+      gap: 12px !important;
+      justify-content: center !important;
+      align-items: center !important;
+    }
+
+    .hero-section button, 
+    .hero-section a.btn {
+      width: 100% !important;
+      min-height: 52px !important; /* Accessible touch target */
+      justify-content: center !important;
+    }
+
+    /* Grid / Card Stacking for Bento & Features - Refined to allow 2-col grids */
+    .plans-grid, .pricing-grid {
+      grid-template-columns: 1fr !important;
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 16px !important;
+      align-items: center !important;
+    }
+
+    .bento-card-premium, .glass-card {
+      padding: 24px 20px !important;
+      width: 100% !important;
+      max-width: 450px !important;
+      margin: 0 auto;
+    }
+
+    /* Contact Card - Full Width */
+    .glass-card-dark {
+      width: 100% !important;
+      max-width: 100% !important;
+      padding: 32px 20px !important;
+      border-radius: 24px !important;
+    }
+
+    /* 1. FORCE CONTINUOUS LOOP MARQUEE ON ALL SCREENS */
+    .logos-grid-container {
+      display: flex !important;
+      flex-direction: row !important;
+      flex-wrap: nowrap !important;
+      width: max-content !important;
+      animation: loop-scroll 35s linear infinite !important; /* Slower, smoother scroll */
+      gap: 15px !important; /* Tightened gap for mobile lock */
+      padding: 10px !important;
+      align-items: center !important;
+    }
+
+    /* 2. STANDARDIZED LOGO SIZE & SPACING */
+    .small-logo {
+      width: 70px !important;  /* Mobile Lock: small and uniform */
+      height: 50px !important; /* Mobile Lock: prevent tall logos */
+      margin: 0 !important;
+      flex-shrink: 0 !important;
+      object-fit: contain !important;
+      pointer-events: none;
+    }
+
+    /* 3. FIX BRANDING & LOGO SCALING */
+    .navbar-logo-container {
+      display: flex !important;
+      align-items: center !important;
+      width: auto !important; 
+      flex-shrink: 0 !important;
+      overflow: visible !important; /* This is the key: stop clipping! */
+      white-space: nowrap !important;
+    }
+
+    .footer-logo-wrapper {
+      justify-content: center !important; /* Center on mobile */
+      width: 100% !important;
+      margin-bottom: 10px !important;
+    }
+
+    .footer-main-logo, .main-logo-class, .footer-logo-wrapper img, .footer-logo-class {
+      height: 40px !important; /* Unified branding height - match header */
+      width: auto !important;  /* Let aspect ratio determine width */
+      max-width: 150px !important; /* Hard cap — never wider than 150px */
+      min-width: unset !important; /* Remove any min-width that could inflate it */
+      flex-shrink: 0 !important;
+      flex-grow: 0 !important;   /* Prevent flex stretching */
+      align-self: center !important;
+      margin: 0 !important;
+      display: block !important;
+    }
+
+    /* Section Gaps & Padding Scaling */
+    section, .landing-section {
+      padding-top: 50px !important;
+      padding-bottom: 50px !important;
+    }
+
+    .landing-container {
+      padding-left: 20px !important;
+      padding-right: 20px !important;
+      max-width: 100% !important;
+    }
+
+    /* No Side Scroll Lockdown */
+    * {
+      max-width: 100vw !important;
+      box-sizing: border-box !important;
+    }
+  }
+
+  /* 📱 SMALL PHONES — ≤ 768px */
+  @media (max-width: 768px) {
+    h1 {
+      font-size: 28px !important;
+      line-height: 1.2 !important;
+    }
+
+    .section-title {
+      font-size: 28px !important;
+    }
+    
+    .title-gradient {
+      font-size: clamp(28px, 6vw, 40px) !important;
+      line-height: 1.2 !important;
+    }
+
+    /* Glass UI refinements for mobile */
+    .glass-card-dark, .bento-card-premium {
+      backdrop-filter: blur(12px) saturate(120%) !important;
+      -webkit-backdrop-filter: blur(12px) saturate(120%) !important;
+      padding: 24px 20px !important;
+      border-radius: 20px !important;
+    }
+
+    /* ===== FOOTER LOGO MOBILE LOCK ===== */
+    /* Prevent the global img{max-width:100%} rule from inflating the footer logo */
+    .footer-logo-wrapper img,
+    .footer-main-logo,
+    .footer-logo-class {
+      width: auto !important;       /* Match header logo behaviour */
+      height: 40px !important;      /* Exact same height as header logo */
+      max-width: 150px !important;  /* Hard cap — never wider than 150px */
+      min-width: unset !important;
+      flex-shrink: 0 !important;
+      flex-grow: 0 !important;
+      display: block !important;
+      margin: 0 !important;
+    }
+
+    /* Ensure the wrapper row doesn't stretch the image */
+    .footer-logo-wrapper {
+      display: flex !important;
+      flex-direction: row !important;
+      align-items: center !important;
+      justify-content: center !important;
+      width: 100% !important;
+      overflow: visible !important;
+      flex-wrap: nowrap !important;
+    }
   }
 
   .glass-card {
@@ -249,9 +653,127 @@ h3 {
   transition: all 0.3s ease;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
+section {
+  scroll-margin-top: 80px;
+}
+
+/* ══ PRICING SECTION REORDERING ══ */
+.pricing-section {
+  padding: 0;
+  background: #000;
+}
+
+.pricing-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+/* 1. Base Styles (Desktop-First) */
+.pricing-text {
+  order: 1; /* Text at TOP on desktop */
+  position: relative;
+  z-index: 10;
+  padding-top: 100px;
+}
+
+.tubelight-img-container {
+  order: 2; /* Image BELOW text on desktop */
+  width: 100%;
+  line-height: 0;
+  margin-top: -240px; /* Overlap effect on desktop */
+}
+
+/* 2. Mobile Override (Only for screens ≤ 768px) */
+@media (max-width: 768px) {
+  .pricing-section {
+    padding: 20px 0;
+  }
+  
+  .pricing-content {
+    flex-direction: column;
+  }
+  
+  .tubelight-img-container {
+    order: 1; /* Image swaps to TOP on mobile */
+    margin-top: 0;
+    margin-bottom: 30px;
+  }
+  
+  .pricing-text {
+    order: 2; /* Text moves BELOW image on mobile */
+    padding: 0 20px;
+    padding-top: 0;
+  }
+  
+  .tubelight-img-container img {
+    width: 90% !important;
+    margin: 0 auto;
+  }
+}
+
+body {
+  margin: 0;
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ══ LOCKED LAYOUT STRATEGY ══ */
+.main-wrapper {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 24px;
+  width: 100%;
+}
+
+/* ══ BENTO FEATURES GRID ══ */
+.features-grid-flat {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  width: 100%;
+}
+
+/* Tall cards span 2 rows — creates the bento effect */
+.features-grid-flat > .card-tall {
+  grid-row: span 2;
+}
+
+/* Tablet (≤ 1024px) */
+@media (max-width: 1024px) {
+  .features-grid-flat {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+}
+
+/* Mobile (≤ 768px) */
+@media (max-width: 768px) {
+  .main-wrapper {
+    padding: 0 16px;
+  }
+
+  .features-grid-flat {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .features-grid-flat > .card-tall {
+    grid-row: auto;
+  }
+}
+
 .sidebar-icon-gradient.active {
   filter: drop-shadow(0 0 0 transparent);
-  background: linear-gradient(135deg, #111111, #0ea5e9, #1d4ed8);
+  background: linear-gradient(135deg, #ffffff, #e2e8f0);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -259,7 +781,7 @@ h3 {
 
 .sidebar-icon-gradient.inactive {
   filter: drop-shadow(0 0 0 transparent);
-  background: linear-gradient(135deg, #ffffff, #cbd5e1);
+  background: linear-gradient(135deg, #475569, #1a1a1a);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -267,16 +789,169 @@ h3 {
 
 .sidebar-icon-gradient.clicked {
   filter: drop-shadow(0 0 0 transparent);
-  background: linear-gradient(135deg, #fbbf24, #f97316, #ef4444);
+  background: linear-gradient(135deg, #000000, #333333);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   animation: pulse 0.5s ease-in-out;
 }
 
+/* 📱 COMPREHENSIVE MOBILE RESPONSIVENESS OVERHAUL */
+@media (max-width: 768px) {
+  /* 1. TYPOGRAPHY SCALE OVERRIDES */
+  h1, .admin-app-shell h1 { font-size: 22px !important; font-weight: 600 !important; }
+  h2, .admin-app-shell h2 { font-size: 17px !important; font-weight: 600 !important; }
+  h3, .admin-app-shell h3 { font-size: 14px !important; font-weight: 500 !important; }
+  p, span, label { font-size: 13px !important; font-weight: 400 !important; }
+  .stat-value, [class*="text-6xl"], [class*="text-[32px]"] { font-size: 24px !important; font-weight: 600 !important; }
+  button, .btn { font-size: 13px !important; font-weight: 500 !important; }
+
+  /* 2. BUTTONS & ACTIONS STACKING */
+  .page-header-row {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+    margin-bottom: 24px !important;
+    width: 100% !important;
+  }
+
+  .page-header-row .add-btn,
+  .page-header-row button:not(.sidebar-toggle),
+  .page-header-row .flex.gap-3 {
+    width: 100% !important;
+    display: flex !important;
+  }
+
+  .page-header-row button:not(.sidebar-toggle) {
+    width: 100% !important;
+    justify-content: center !important;
+    padding: 10px 16px !important;
+    height: auto !important;
+    min-height: 44px !important;
+  }
+
+  /* 3. MOBILE HEADER (4-ITEM ROW) */
+  header.mobile-header, .admin-app-shell header {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    height: 56px !important;
+    padding: 0 16px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 100 !important; /* Reduced from 1000 to 100 to allow sidebar (1000+) to cover it */
+    background: #fff !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+  }
+
+  /* Sidebar layering overrides */
+  .sidebar-container {
+    z-index: 1001 !important;
+  }
+  
+  .fixed.inset-0.bg-black\/40 {
+    z-index: 1000 !important;
+  }
+
+  .mobile-logo-container {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+  }
+
+  .mobile-logo-text {
+    font-size: 16px !important;
+    font-weight: 700 !important;
+    color: #0f172a !important;
+    letter-spacing: -0.02em !important;
+  }
+
+  .pro-badge {
+    font-size: 10px !important;
+    padding: 2px 6px !important;
+    background: #f8fafc !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 4px !important;
+    color: #64748b !important;
+    font-weight: 600 !important;
+  }
+
+  /* 4. BOTTOM NAV PILL */
+  .md\:hidden.fixed.left-1\/2.-translate-x-1\/2 {
+    width: calc(100% - 16px) !important;
+    max-width: 420px !important;
+    background: #ffffff !important;
+    border-radius: 40px !important;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12) !important;
+    border: 1px solid rgba(0, 0, 0, 0.05) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 0 6px !important;
+    height: 68px !important;
+  }
+
+  .mobile-nav-item {
+    padding: 10px 12px !important;
+    border-radius: 30px !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  /* 5. SALARY CARD & OVERFLOW FIXES */
+  .salary-worker-card {
+    overflow: hidden !important;
+    position: relative !important;
+  }
+
+  .salary-worker-card .flex-shrink-0 {
+    flex-shrink: 0 !important;
+  }
+
+  /* 6. GLOBAL CONTAINER RULES */
+  .admin-main-content {
+    padding: 0 !important;
+  }
+
+  main {
+    padding: 16px 16px 110px 16px !important; /* Increased padding to clear bottom nav */
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .card, .bg-white.rounded-3xl, .bg-white.rounded-2xl {
+    padding: 16px !important;
+    border-radius: 20px !important;
+  }
+
+  /* FAB Z-INDEX */
+  .fixed.bottom-\[90px\] {
+    z-index: 1100 !important;
+  }
+}
+
+/* 📱 EXTRA SMALL PHONES */
+@media (max-width: 480px) {
+  .fixed.left-1\/2.-translate-x-1\/2.z-50 {
+    width: calc(100% - 16px) !important;
+  }
+  
+  .fixed.left-1\/2.-translate-x-1\/2.z-50 a span:not(.text-white) {
+    display: none !important; /* Hide labels for inactive items on very small screens to save space */
+  }
+
+  .department-health-header {
+    flex-wrap: nowrap !important;
+  }
+}
+
 .sidebar-icon-gradient:not(.active):not(.clicked) {
   filter: drop-shadow(0 0 0 transparent);
-  background: linear-gradient(135deg, #4f46e5, #0ea5e9, #111111);
+  background: linear-gradient(135deg, #1a1a1a, #64748b);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -798,6 +1473,50 @@ h3 {
   }
 }
 
+.separator-line {
+  width: 100%;
+  height: 1px;
+  margin-bottom: 24px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 1) 0%,
+    rgba(255, 255, 255, 1) 38%,
+    rgba(153, 153, 153, 0.1) 100%
+  );
+  border: none;
+}
+
+.bento-card-premium {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.02) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(40px);
+  position: relative;
+  box-shadow: 0 4px 50px rgba(0, 0, 0, 0.6);
+  overflow: hidden;
+}
+
+/* Precision Specular Highlight */
+.bento-card-premium::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 24px;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.4), transparent 50%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.bar-chart-gradient {
+  background: linear-gradient(180deg, 
+    rgba(255, 255, 255, 1) 0%, 
+    rgba(255, 255, 255, 1) 54%, 
+    rgba(255, 255, 255, 0.7) 83%, 
+    rgba(255, 255, 255, 0) 100%
+  );
+}
+
 /* New animation for CipherGate text - smooth letter-by-letter appearance */
 @keyframes typing {
   from {
@@ -884,9 +1603,26 @@ h3 {
 
 .animate-loop-scroll {
   /* Increase 25s to 40s to make it slower, or 15s to make it faster */
-  animation: loop-scroll 25s linear infinite;
+  animation: loop-scroll 40s linear infinite;
   display: flex;
   width: max-content;
+  align-items: center;
+  gap: 100px; /* Space between logos on desktop */
+}
+
+.small-logo {
+  height: 36px; /* Reduced by 24px for a sleeker profile */
+  width: auto;
+  max-width: 180px;
+  object-fit: contain;
+  flex-shrink: 0;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  opacity: 0.8; /* Slightly semi-transparent for better blending */
+}
+
+.small-logo:hover {
+  opacity: 1;
+  transform: scale(1.1);
 }
 
 /* Additional responsive utilities */
@@ -954,4 +1690,553 @@ h3 {
   .animated-border-inner {
     gap: 1rem;
   }
+}
+
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   STRICT SPACING SYSTEM
+   ────────────────────────────────────────────────────────────────────────────── */
+:root {
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --section-spacing-mobile: 48px;
+  --section-spacing-desktop: 100px;
+  --container-padding: 16px;
+}
+
+.landing-container {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding-left: var(--container-padding);
+  padding-right: var(--container-padding);
+}
+
+section, .landing-section {
+  padding-top: var(--section-spacing-mobile);
+  padding-bottom: var(--section-spacing-mobile);
+}
+
+@media (min-width: 1024px) {
+  section, .landing-section {
+    padding-top: var(--section-spacing-desktop);
+    padding-bottom: var(--section-spacing-desktop);
+  }
+}
+
+/* Touch targets */
+button, a, .clickable {
+  min-height: 44px;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   TYPOGRAPHY & BRANDING
+   ────────────────────────────────────────────────────────────────────────────── */
+.font-bruno {
+  font-family: 'Bruno Ace SC', cursive;
+}
+
+.title-gradient {
+  background: linear-gradient(180deg, #F1F1F1 43%, #8B8B8B 84%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+  font-weight: 500 !important;
+}
+
+.section-title {
+  @apply title-gradient;
+  font-size: clamp(40px, 8vw, 84px);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  font-weight: 700 !important;
+  text-align: center;
+}
+
+@media (min-width: 1024px) {
+  .section-title {
+    font-size: 84px;
+    font-weight: 700 !important;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   RESPONSIVE REFINEMENTS
+   ────────────────────────────────────────────────────────────────────────────── */
+
+/* Tablet & Mobile Layout Polish */
+@media (max-width: 1024px) {
+  /* Logo scaling */
+  .navbar-logo-container img {
+    height: 28px !important;
+  }
+  
+  .navbar-logo-container h1 {
+    font-size: 18px !important;
+    letter-spacing: 0.15em !important;
+  }
+
+  /* Force vertical stacking on mobile for grids */
+  @media (max-width: 768px) {
+    .grid-stack {
+      display: flex !important;
+      flex-direction: column !important;
+      gap: var(--spacing-md) !important;
+    }
+  }
+
+  /* Tablet - Use 2 columns for pricing or features if space permits */
+  @media (min-width: 769px) and (max-width: 1024px) {
+    .tablet-grid-2 {
+      display: grid !important;
+      grid-template-columns: repeat(2, 1fr) !important;
+      gap: var(--spacing-lg) !important;
+    }
+  }
+}
+
+/* Fix for potential horizontal overflow */
+html, body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+/* Smooth Scroll */
+html {
+  scroll-behavior: smooth;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   PREMIUM DARK-MODE GLASSMORPHISM
+   ────────────────────────────────────────────────────────────────────────────── */
+.glass-card-dark {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.08) 0%,
+    rgba(255, 255, 255, 0.02) 100%
+  );
+  backdrop-filter: blur(20px) saturate(120%);
+  -webkit-backdrop-filter: blur(20px) saturate(120%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.5);
+  border-radius: 20px;
+}
+
+.bento-card-premium {
+  @apply glass-card-dark;
+  padding: var(--spacing-lg);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   CYBER-TECH BUTTON SYSTEM (Advanced Polygon Stroke)
+   ────────────────────────────────────────────────────────────────────────────── */
+.btn-cyber-primary {
+  position: relative;
+  background-color: #fff;
+  color: #000;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-weight: 700;
+  transition: all 0.3s ease;
+  /* Pixel-perfect 18px cuts for sharp industrial look */
+  clip-path: polygon(18px 0, 100% 0, 100% calc(100% - 18px), calc(100% - 18px) 100%, 0 100%, 0 18px);
+  padding: 0 40px;
+  height: 48px;
+  border: none;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.btn-cyber-primary:hover {
+  background-color: #e5e5e5;
+  transform: translateY(-2px);
+}
+
+.btn-cyber-secondary {
+  position: relative;
+  background-color: transparent;
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-weight: 700;
+  transition: all 0.3s ease;
+  clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);
+  padding: 0 40px;
+  height: 48px;
+  border: none;
+  cursor: pointer;
+  z-index: 1;
+}
+
+/* White border frame layer */
+.btn-cyber-secondary::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(255, 255, 255, 0.88);
+  clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* Black hollow — leaves 1.5px white border visible */
+.btn-cyber-secondary::after {
+  content: "";
+  position: absolute;
+  top: 1.5px; left: 1.5px;
+  width: calc(100% - 3px);
+  height: calc(100% - 3px);
+  background: #000;
+  clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);
+  z-index: -1;
+  pointer-events: none;
+  transition: background 0.3s ease;
+}
+
+.btn-cyber-secondary:hover::after {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.btn-cyber-secondary:hover {
+  transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+  .btn-cyber-primary, .btn-cyber-secondary {
+    width: 100%;
+    padding: 0 24px;
+    height: 52px;
+  }
+}
+
+/* =========================
+   GLOBAL TYPOGRAPHY SYSTEM
+   ========================= */
+
+/* Desktop (Locked) */
+@media (min-width: 1280px) {
+  h1, .heading-xl {
+    font-size: 56px;
+    font-weight: 600; /* semibold */
+    line-height: 1.1;
+  }
+}
+
+/* Tablet */
+@media (min-width: 768px) and (max-width: 1279px) {
+  h1, .heading-xl {
+    font-size: 42px;
+    font-weight: 600;
+    line-height: 1.15;
+  }
+}
+
+/* Mobile */
+@media (max-width: 767px) {
+  h1, .heading-xl {
+    font-size: 28px;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+}
+
+/* Logo Alignment Fix */
+/* ══ MOBILE APP INSTALL BANNER (Floating Footer) ══ */
+.mobile-install-banner {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: white;
+  padding: 10px 15px;
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
+  z-index: 9999;
+  border-top: 1px solid #eee;
+}
+
+.banner-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.left-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.right-group {
+  display: flex;
+  align-items: center;
+  gap: 15px; /* Space between LATER and INSTALL button */
+}
+
+.brand-name {
+  font-weight: 800;
+  font-size: 14px;
+  color: #000;
+  letter-spacing: -0.01em;
+}
+
+.later-link {
+  font-size: 12px;
+  color: #666;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.later-link:hover {
+  color: #000;
+}
+
+.install-btn {
+  background: black;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.2s;
+  flex-shrink: 0;
+}
+
+.install-btn:active {
+  transform: scale(0.95);
+}
+
+/* Hide this on Desktop/Laptop */
+@media (min-width: 1025px) {
+  .mobile-install-banner {
+    display: none !important;
+  }
+}
+
+/* Prevent footer content overlap */
+@media (max-width: 768px) {
+  body {
+    padding-bottom: 60px !important;
+  }
+}
+
+.logo-container {
+  display: flex;
+  align-items: center; /* This aligns icon and text vertically in the center */
+  gap: 10px;           /* Adjust spacing between icon and text */
+}
+
+.logo-icon {
+  height: 35px;        /* Set a fixed height to match your design */
+  width: auto;         /* Maintains aspect ratio */
+  display: block;      /* Removes extra spacing underneath images */
+}
+
+.logo-text {
+  font-size: 18px;     /* Match your text size */
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+/* Ensure the whole header stays aligned */
+.header {
+  display: flex;
+  align-items: center; /* This ensures the Logo and Button are aligned with each other */
+  justify-content: space-between;
+  padding: 10px 50px;
+}
+
+.footer-logo-icon {
+  /* Match the exact height used in your header logo-icon */
+  height: 40px; 
+  width: auto;
+  
+  /* This ensures it aligns perfectly with text or other footer elements */
+  display: inline-block;
+  vertical-align: middle; 
+  
+  /* Removes any default margins that might be pushing it up or down */
+  margin: 0;
+  padding: 0;
+}
+/* ══ PRICING SECTION LOCK ══ */
+.pricing-section {
+  background-color: #000;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+  padding-bottom: 120px;
+}
+
+.pricing-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+/* Ensure the image container sits at the very top */
+.tubelight-img-container {
+  width: 100%;
+  line-height: 0;
+  position: relative;
+  z-index: 1;
+}
+
+/* Aggressively pull text into the glow */
+.pricing-text {
+  margin-top: -180px; 
+  position: relative;
+  z-index: 10; /* Bring above any other elements */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.pricing-grid {
+  width: 100%;
+  max-width: 1240px;
+  margin: 80px auto 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(300px, 1fr));
+  gap: 32px;
+  justify-items: center;
+}
+
+@media (max-width: 1024px) {
+  .pricing-text {
+    margin-top: -80px; 
+  }
+
+  .pricing-grid {
+    grid-template-columns: 1fr;
+    max-width: 480px;
+    gap: 24px;
+  }
+}
+
+
+/* ══ THREADS STYLE SIDEBAR NESTED MENU ══ */
+.sidebar-sub-menu {
+  position: relative;
+  margin-left: 28px;
+  padding-left: 12px;
+  margin-top: 4px;
+}
+
+.sidebar-vertical-line {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: #e5e7eb; /* Light grey for the connecting line */
+}
+
+.sidebar-sub-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  margin: 4px 0;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  color: #4b5563;
+  text-decoration: none;
+}
+
+.sidebar-sub-item:hover {
+  background-color: #f3f4f6;
+  color: #1a1a1a;
+}
+
+.sidebar-sub-item.selected {
+  background-color: #e5e7eb;
+  color: #000000;
+  font-weight: 600;
+}
+
+.sidebar-sub-item-icon {
+  margin-right: 10px;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
+/* ==============================================================================
+   PILL TOGGLE SYSTEM — Scoped to [role="switch"] only
+   Works WITH Tailwind's flex + translate classes on <button role="switch">
+   Does NOT affect regular <input type="checkbox"> elements.
+   ============================================================================== */
+[role="switch"] {
+    width: 44px !important;
+    height: 24px !important;
+    min-width: 44px !important;
+    min-height: 24px !important;
+    border-radius: 9999px !important;
+    position: relative !important;
+    display: inline-flex !important;
+    flex-shrink: 0 !important;
+    align-items: center !important;
+    border: 2px solid transparent !important;
+    padding: 0 !important;
+    cursor: pointer !important;
+    transition: background-color 0.2s ease-in-out !important;
+}
+
+/* Off State */
+[role="switch"]:not([aria-checked="true"]) {
+    background-color: #cbd5e1 !important;
+}
+
+/* On State */
+[role="switch"][aria-checked="true"] {
+    background-color: #0f172a !important;
+}
+
+/* Handle (the white circle knob) */
+[role="switch"] > span {
+    display: block !important;
+    width: 20px !important;
+    height: 20px !important;
+    background-color: #fff !important;
+    border-radius: 9999px !important;
+    box-shadow: 0 1px 3px 0 rgba(0,0,0,0.1), 0 1px 2px -1px rgba(0,0,0,0.1) !important;
+    pointer-events: none !important;
+    transition: transform 0.2s ease-in-out !important;
+}
+
+/* Handle position — OFF */
+[role="switch"]:not([aria-checked="true"]) > span {
+    transform: translateX(0px) !important;
+}
+
+/* Handle position — ON */
+[role="switch"][aria-checked="true"] > span {
+    transform: translateX(20px) !important;
+}
+
+/* Disabled state */
+[role="switch"]:disabled {
+    opacity: 0.5 !important;
+    cursor: not-allowed !important;
+}
+
+.admin-search-input {
+  padding-left: 44px !important;
+  padding-right: 16px !important;
 }

@@ -7,7 +7,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center space-x-3 mb-4">
-              <img src="/logo.png" alt="CipherGate Logo" className="h-8 w-auto" />
+              <img src="/logo.png" alt="CipherGate Logo" className="main-logo-class h-8 w-auto" />
               <span className="text-xl font-bold font-serif">CipherGate</span>
             </div>
             <p className="text-gray-400 mb-4 max-w-md">

@@ -6,26 +6,7 @@ export const putAttendance = async (attendanceData) => {
     const token = getAuthToken();
 
     try {
-        // Check location if subdomain is provided
-        if (attendanceData.subdomain) {
-            try {
-                // Get current position
-                const position = await getCurrentPosition();
-                const { latitude, longitude } = position;
-
-                // Check if worker is in allowed location
-                const locationResult = await isWorkerInAllowedLocation(attendanceData.subdomain, latitude, longitude);
-
-                if (!locationResult.allowed) {
-                    throw new Error(locationResult.message);
-                }
-            } catch (locationError) {
-                console.warn('Location check failed:', locationError);
-                // Depending on requirements, we might want to allow or deny attendance
-                // For now, we'll proceed with attendance but log the error
-            }
-        }
-
+        
         const response = await api.put('attendance', attendanceData, {
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -33,7 +14,6 @@ export const putAttendance = async (attendanceData) => {
             },
         });
 
-        // Return the response data directly
         return response.data;
     } catch (error) {
         console.error('Failed to update attendance:', error);
@@ -57,35 +37,7 @@ export const putRfidAttendance = async (attendanceData) => {
         const worker = workerResponse.data.worker;
         const subdomain = worker.subdomain;
 
-        // Add location data to attendanceData
-        let attendanceRequest = { ...attendanceData };
-
-        // Check location if subdomain is available
-        if (subdomain) {
-            try {
-                // Get current position
-                const position = await getCurrentPosition();
-                const { latitude, longitude } = position;
-
-                // Add location data to request
-                attendanceRequest = {
-                    ...attendanceRequest,
-                    latitude,
-                    longitude
-                };
-
-                // Check if worker is in allowed location
-                const locationResult = await isWorkerInAllowedLocation(subdomain, latitude, longitude);
-
-                if (!locationResult.allowed) {
-                    throw new Error(locationResult.message);
-                }
-            } catch (locationError) {
-                console.warn('Location check failed:', locationError);
-                // Deny attendance if location check fails
-                throw new Error(`Attendance not allowed: ${locationError.message || 'Location validation failed'}`);
-            }
-        }
+        const attendanceRequest = { ...attendanceData, latitude: 0, longitude: 0 };
 
         const response = await api.post('attendance/rfid', attendanceRequest, {
             headers: {
@@ -171,7 +123,12 @@ export const getWorkerLastAttendance = async (rfid, subdomain) => {
     }
 };
 
+let paginatedController = null;
+
 export const getPaginatedAttendance = async (attendanceData) => {
+    if (paginatedController) paginatedController.abort();
+    paginatedController = new AbortController();
+    
     const token = getAuthToken();
 
     try {
@@ -180,9 +137,11 @@ export const getPaginatedAttendance = async (attendanceData) => {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             },
+            signal: paginatedController.signal
         });
         return response.data;
     } catch (error) {
+        if (error.name === 'CanceledError' || error.name === 'AbortError') return { attendance: [], hasMore: false };
         console.error('Failed to fetch paginated attendance:', error);
         throw error.response?.data || new Error('Failed to fetch paginated attendance');
     }

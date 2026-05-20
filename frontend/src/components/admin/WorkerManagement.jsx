@@ -8,7 +8,6 @@ import { getSettings } from '../../services/settingsService';
 import { getCurrentUser } from '../../services/authService';
 import Card from '../common/Card';
 import Button from '../common/Button';
-import Table from '../common/Table';
 import Modal from '../common/Modal';
 import Spinner from '../common/Spinner';
 import appContext from '../../context/AppContext';
@@ -137,35 +136,46 @@ const WorkerManagement = () => {
     setIsLoadingDepartments(true);
 
     try {
+      // Fetch data individually to prevent one failure from blocking everything
+      const workersPromise = getWorkers({ subdomain }).catch(err => {
+        console.error('Failed to fetch workers:', err);
+        return [];
+      });
+      
+      const departmentsPromise = getDepartments({ subdomain }).catch(err => {
+        console.error('Failed to fetch departments:', err);
+        return [];
+      });
+      
+      const settingsPromise = getSettings({ subdomain }).catch(err => {
+        console.error('Failed to fetch settings:', err);
+        return {};
+      });
+      
+      const userPromise = Promise.resolve(getCurrentUser());
+
       const [workersData, departmentsData, settingsData, userData] = await Promise.all([
-        getWorkers({ subdomain }),
-        getDepartments({ subdomain }),
-        getSettings({ subdomain }),
-        getCurrentUser() // Get current user data
+        workersPromise,
+        departmentsPromise,
+        settingsPromise,
+        userPromise
       ]);
 
-      const safeWorkersData = Array.isArray(workersData) ? workersData : [];
-      const safeDepartmentsData = Array.isArray(departmentsData) ? departmentsData : [];
-      const safeSettingsData = settingsData || {};
-
-      setWorkers(safeWorkersData);
-      setDepartments(safeDepartmentsData);
-      setBatches(safeSettingsData.batches || []);
-      if (Array.isArray(safeSettingsData.leavePolicy)) {
-        setGlobalLeavePolicy(safeSettingsData.leavePolicy);
+      setWorkers(Array.isArray(workersData) ? workersData : []);
+      setDepartments(Array.isArray(departmentsData) ? departmentsData : []);
+      
+      if (settingsData) {
+        setBatches(settingsData.batches || []);
+        if (Array.isArray(settingsData.leavePolicy)) {
+          setGlobalLeavePolicy(settingsData.leavePolicy);
+        }
       }
 
-      // Set account type and current user
       setAccountType(userData?.accountType || 'free');
       setCurrentUser(userData);
     } catch (error) {
-      toast.error('Failed to load data');
-      console.error(error);
-      setWorkers([]);
-      setDepartments([]);
-      setBatches([]);
-      setAccountType('free');
-      setCurrentUser(null);
+      console.error('Unexpected error in loadData:', error);
+      toast.error('An unexpected error occurred while loading data');
     } finally {
       setIsLoading(false);
       setIsLoadingDepartments(false);
@@ -458,7 +468,7 @@ const WorkerManagement = () => {
     const trimmedSalary = String(formData.salary).trim();
 
     // Validation checks
-    if (!subdomain || subdomain == 'main') {
+    if (!subdomain) {
       toast.error('Subdomain is missing, check the url');
       return;
     }
@@ -554,7 +564,6 @@ const WorkerManagement = () => {
       }
     }
 
-    // ID Proof validation
     if (!formData.idProofFile) {
       toast.error('ID Proof document is required');
       return;
@@ -687,142 +696,6 @@ const WorkerManagement = () => {
     }
   };
 
-  // Table columns configuration
-  const columns = [
-    {
-      header: 'Name',
-      accessor: 'name',
-      render: (record) => (
-        <div className="flex items-center">
-          {record?.photo && (
-            <img
-              src={record.photo
-                ? record.photo
-                : `https://ui-avatars.com/api/?name=${encodeURIComponent(record.name)}`}
-              alt="Employee"
-              className="w-8 h-8 rounded-full mr-2"
-            />
-          )}
-          <div className="flex flex-col">
-            <span className="font-medium text-gray-900">{record.name}</span>
-            <span className="text-xs text-gray-500">{record.employeeId || 'No ID'}</span>
-          </div>
-        </div>
-      ),
-    },
-    {
-      header: 'Contact',
-      accessor: 'contactNumber',
-      render: (record) => (
-        <div className="flex flex-col">
-          <span className="text-sm">{record.contactNumber || 'N/A'}</span>
-          <span className="text-xs text-gray-400">{record.email || ''}</span>
-        </div>
-      )
-    },
-    {
-      header: 'Work Pass',
-      accessor: 'workPassType',
-      render: (record) => (
-        <div className="flex flex-col">
-          <span className="text-sm font-medium">{record.workPassType || 'N/A'}</span>
-          <span className="text-[10px] text-gray-400">{record.passportNumber || ''}</span>
-        </div>
-      )
-    },
-    {
-      header: 'Pass Expiry',
-      accessor: 'passExpiryDate',
-      render: (record) => {
-        if (!record.passExpiryDate) return <span className="text-gray-400">N/A</span>;
-
-        const expiry = new Date(record.passExpiryDate);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const diffDays = Math.ceil((expiry - today) / (1000 * 60 * 60 * 24));
-
-        let colorClass = 'text-gray-600';
-        let bgClass = 'bg-gray-100';
-
-        if (diffDays < 0) {
-          colorClass = 'text-red-700';
-          bgClass = 'bg-red-100 border border-red-200';
-        } else if (diffDays <= 30) {
-          colorClass = 'text-amber-700';
-          bgClass = 'bg-amber-100 border border-amber-200';
-        }
-
-        return (
-          <div className="flex flex-col">
-            <span className={`px-2 py-0.5 rounded-full text-xs font-medium w-fit ${bgClass} ${colorClass}`}>
-              {expiry.toLocaleDateString()}
-            </span>
-            {diffDays < 0 && <span className="text-[10px] text-red-600 mt-0.5 font-bold uppercase">Expired</span>}
-            {diffDays >= 0 && diffDays <= 30 && <span className="text-[10px] text-amber-600 mt-0.5">Expires in {diffDays}d</span>}
-          </div>
-        );
-      }
-    },
-    {
-      header: 'Department',
-      accessor: 'department',
-      render: (record) => (
-        <div className="flex flex-col">
-          <span className="text-sm">
-            {typeof record.department === 'object'
-              ? record.department.name
-              : (departments.find(dept => dept._id === record.department)?.name || record.department || 'N/A')}
-          </span>
-          <span className="text-[10px] text-gray-400">{record.batch || ''}</span>
-        </div>
-      ),
-    },
-    {
-      header: 'Status',
-      accessor: 'resignationStatus',
-      render: (record) => (
-        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${record.resignationStatus === 'Resigned' ? 'bg-gray-100 text-gray-500' : 'bg-emerald-100 text-emerald-700'}`}>
-          {record.resignationStatus || 'Active'}
-        </span>
-      )
-    },
-    {
-      header: 'Actions',
-      accessor: 'actions',
-      render: (record) => (
-        <div className="flex space-x-2">
-          <button
-            onClick={() => openViewModal(record)}
-            className="p-1.5 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-            title="View Details"
-          >
-            <FaEye />
-          </button>
-          <button
-            onClick={() => openEditModal(record)}
-            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-            title="Edit Employee"
-          >
-            <FaEdit />
-          </button>
-          <button
-            onClick={() => openDeleteModal(record)}
-            className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-            title="Delete Employee"
-          >
-            <FaTrash />
-          </button>
-          <button
-            onClick={() => openFaceCaptureModal(record)}
-            className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
-            title="Face Capture"
-          >
-            <FaCamera />
-          </button>
-        </div>
-      ),
-    },
-  ];
 
   const DetailItem = ({ label, value, isBadge, badgeColor }) => (
     <div className="flex justify-between items-center py-2 border-b border-gray-100 last:border-0 hover:bg-gray-50 transition-colors px-1">
@@ -866,131 +739,198 @@ const WorkerManagement = () => {
   };
 
   return (
-    <div className="p-4 md:p-6">
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center gap-4">
-          <h1 className="text-2xl font-bold">Employee Management</h1>
+    <div className="bg-transparent">
+      {/* HEADER */}
+      <div className="page-header-row flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <h1 className="text-[18px] font-semibold text-slate-900 mb-0">Employee</h1>
           {accountType === 'premium' ? (
-            <span className="px-3 py-1 bg-gradient-to-r from-yellow-400 to-yellow-600 text-white text-xs font-bold rounded-full shadow-sm">
-              PREMIUM PLAN
+            <span className="px-2 py-0.5 bg-amber-50 text-amber-600 text-[11px] font-semibold rounded-full">
+              Pro
             </span>
           ) : (
-            <span className="px-3 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-full border border-gray-200">
-              FREE PLAN
+            <span className="px-2 py-0.5 bg-slate-50 text-slate-500 text-[11px] font-semibold rounded-full">
+              Free
             </span>
           )}
         </div>
         <Button
-          variant={accountType === 'free' && workers.length >= 5 ? "danger" : "primary"}
+          variant="primary"
           onClick={accountType === 'free' && workers.length >= 5 ? () => setShowPremiumUpgrade(true) : openAddModal}
-          className={accountType === 'free' && workers.length >= 5 ? "opacity-90 hover:opacity-100" : ""}
+          className="add-btn h-[44px] px-6 rounded-[12px] text-[14px] font-medium"
         >
-          <FaPlus className="mr-2 inline" />
-          {accountType === 'free' && workers.length >= 5 ? 'Limit Reached - Upgrade' : 'Add Employee'}
+          <FaPlus size={14} className="mr-2" /> Add Employee
         </Button>
       </div>
 
-      <Card>
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search Name, ID..."
-                className="form-input w-full md:w-64 pl-10"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Pass:</span>
-              <select
-                className="form-input text-sm py-1.5 h-auto min-w-[120px]"
-                value={passTypeFilter}
-                onChange={(e) => setPassTypeFilter(e.target.value)}
-              >
-                <option value="">All Types</option>
-                <option value="Work Permit">Work Permit</option>
-                <option value="S Pass">S Pass (X-pass)</option>
-                <option value="E Pass">E Pass</option>
-                <option value="TEP">TEP</option>
-              </select>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Expiry:</span>
-              <select
-                className="form-input text-sm py-1.5 h-auto min-w-[120px]"
-                value={expiryFilter}
-                onChange={(e) => setExpiryFilter(e.target.value)}
-              >
-                <option value="">All Expiry</option>
-                <option value="Expired">Expired</option>
-                <option value="Expiring">Expiring (30d)</option>
-                <option value="Valid">Valid</option>
-              </select>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Status:</span>
-              <select
-                className="form-input text-sm py-1.5 h-auto min-w-[120px]"
-                value={resignationFilter}
-                onChange={(e) => setResignationFilter(e.target.value)}
-              >
-                <option value="">All Status</option>
-                <option value="Active">Active</option>
-                <option value="Resigned">Resigned</option>
-              </select>
-            </div>
+      {/* SEARCH AND FILTERS */}
+      <div className="mb-6 space-y-4">
+        <div className="relative w-full">
+          <input
+            type="text"
+            placeholder="Search Name, ID..."
+            className="w-full admin-search-input bg-gray-50 border border-gray-200 rounded-xl py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
           </div>
         </div>
 
-        {/* Employee Count Indicator */}
-        {accountType === 'free' && (
-          <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-100">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <svg className="w-5 h-5 text-[#111111] mr-2" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                </svg>
-                <span className="text-blue-700 font-medium">
-                  Free Account: {workers.length}/5 employees used
-                </span>
-              </div>
-              {workers.length >= 5 && (
-                <span className="text-sm text-red-600 font-medium">
-                  Limit Reached
-                </span>
-              )}
-            </div>
-            <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
-              <div
-                className="bg-black h-2 rounded-full"
-                style={{ width: `${Math.min(100, (workers.length / 5) * 100)}%` }}
-              ></div>
-            </div>
-          </div>
-        )}
+        <div className="flex flex-wrap gap-2 pb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
+          <select
+            className="flex-shrink-0 bg-white border border-gray-200 text-slate-700 text-xs font-semibold py-2 px-3 rounded-full shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none pr-8 relative"
+            value={passTypeFilter}
+            onChange={(e) => setPassTypeFilter(e.target.value)}
+            style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236B7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1em 1em' }}
+          >
+            <option value="">All Passes</option>
+            <option value="Work Permit">Work Permit</option>
+            <option value="S Pass">S Pass (X-pass)</option>
+            <option value="E Pass">E Pass</option>
+            <option value="TEP">TEP</option>
+          </select>
 
-        {isLoading ? (
-          <div className="flex justify-center py-8">
-            <Spinner size="lg" />
+          <select
+            className="flex-shrink-0 bg-white border border-gray-200 text-slate-700 text-xs font-semibold py-2 px-3 rounded-full shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none pr-8 relative"
+            value={expiryFilter}
+            onChange={(e) => setExpiryFilter(e.target.value)}
+            style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236B7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1em 1em' }}
+          >
+            <option value="">All Expiry</option>
+            <option value="Expired">Expired</option>
+            <option value="Expiring">Expiring (30d)</option>
+            <option value="Valid">Valid</option>
+          </select>
+
+          <select
+            className="flex-shrink-0 bg-white border border-gray-200 text-slate-700 text-xs font-semibold py-2 px-3 rounded-full shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none pr-8 relative"
+            value={resignationFilter}
+            onChange={(e) => setResignationFilter(e.target.value)}
+            style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236B7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1em 1em' }}
+          >
+            <option value="">All Status</option>
+            <option value="Active">Active</option>
+            <option value="Resigned">Resigned</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Employee Count Indicator */}
+      {/* Employee Count Indicator */}
+      {accountType === 'free' && (
+        <div className="mb-6 p-4 bg-white rounded-[16px] shadow-[0_5px_15px_rgba(0,0,0,0.02)]">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[12px] font-normal text-slate-500">
+              Free Plan Usage
+            </span>
+            <span className={`text-[12px] font-semibold ${workers.length >= 5 ? 'text-rose-500' : 'text-slate-900'}`}>
+              {workers.length} / 5 Employees
+            </span>
           </div>
-        ) : (
-          <Table
-            columns={columns}
-            data={filteredWorkers}
-            isLoading={isLoading}
-          />
-        )}
-      </Card>
+          <div className="w-full bg-slate-50 rounded-full h-1 overflow-hidden">
+            <div
+              className={`h-full transition-all ${workers.length >= 5 ? 'bg-rose-500' : 'bg-slate-900'}`}
+              style={{ width: `${Math.min(100, (workers.length / 5) * 100)}%` }}
+            ></div>
+          </div>
+        </div>
+      )}
+
+      {/* EMPLOYEE LIST */}
+      {isLoading ? (
+        <div className="flex justify-center py-12">
+          <Spinner size="lg" />
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {filteredWorkers.length === 0 ? (
+            <div className="text-center py-12 bg-white rounded-3xl border border-gray-100 shadow-sm">
+              <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+              </div>
+              <h3 className="text-base font-semibold text-slate-900">No employees found</h3>
+              <p className="text-sm text-slate-500 mt-1">Try adjusting your filters or search term</p>
+            </div>
+          ) : (
+            filteredWorkers.map(worker => {
+              // Calculate status classes
+              const isActive = !worker.resignationStatus || worker.resignationStatus === 'Active';
+              const statusBg = isActive ? 'bg-emerald-50' : 'bg-gray-100';
+              const statusText = isActive ? 'text-emerald-700' : 'text-gray-600';
+              const statusDot = isActive ? 'bg-emerald-500' : 'bg-gray-400';
+
+              return (
+                <div 
+                  key={worker._id}
+                  className="bg-white rounded-[16px] p-4 shadow-[0_5_15_rgba(0,0,0,0.02)] transition-all cursor-pointer group"
+                  onClick={() => openViewModal(worker)}
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="relative">
+                        <img 
+                          src={worker.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(worker.name)}&background=f9fafb&color=0f172a`}
+                          alt={worker.name}
+                          className="w-12 h-12 rounded-xl object-cover shadow-sm"
+                        />
+                        <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full ring-2 ring-white ${statusDot}`}></div>
+                      </div>
+                      <div>
+                        <h3 className="text-[14px] font-semibold text-slate-900">{worker.name}</h3>
+                        <p className="text-[11px] font-normal text-slate-400 mt-0.5">ID: {worker.employeeId || 'N/A'}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center">
+                      <div className={`px-2.5 py-1 rounded-full text-[11px] font-medium ${statusBg} ${statusText}`}>
+                        {worker.resignationStatus || 'Active'}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-50">
+                    <div className="flex flex-col gap-1.5">
+                      <span className="text-[12px] font-normal text-slate-500 truncate max-w-[180px] leading-none">
+                        {worker.department?.name || worker.department || 'No Department'}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[11px] font-medium text-slate-400 bg-slate-50 px-2 py-0.5 rounded-lg">
+                          {worker.workPassType || 'No Pass'}
+                        </span>
+                        {worker.passExpiryDate && (
+                          <span className={`text-[11px] font-medium ${getExpiryStatus(worker.passExpiryDate).color === 'red' ? 'text-rose-500' : getExpiryStatus(worker.passExpiryDate).color === 'amber' ? 'text-amber-500' : 'text-slate-400'}`}>
+                            Exp: {new Date(worker.passExpiryDate).toLocaleDateString(undefined, {month: 'short', year: '2-digit'})}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {/* Action Buttons - 44px Tap Target compliant */}
+                    <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                      <button onClick={(e) => { e.stopPropagation(); openEditModal(worker); }} className="w-11 h-11 flex items-center justify-center text-slate-400 hover:text-slate-900 transition-colors" title="Edit">
+                        <FaEdit size={16} />
+                      </button>
+                      <button onClick={(e) => { e.stopPropagation(); openFaceCaptureModal(worker); }} className="w-11 h-11 flex items-center justify-center text-slate-400 hover:text-emerald-600 transition-colors" title="Face Capture">
+                        <FaCamera size={16} />
+                      </button>
+                      <button onClick={(e) => { e.stopPropagation(); openDeleteModal(worker); }} className="w-11 h-11 flex items-center justify-center text-slate-400 hover:text-rose-600 transition-colors" title="Delete">
+                        <FaTrash size={16} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+      )}
+
+
 
       <Modal
         isOpen={isAddModalOpen}
@@ -1000,7 +940,7 @@ const WorkerManagement = () => {
       >
         <form onSubmit={handleAddWorker} className="space-y-8">
           {/* Basic Info */}
-          <section>
+          <div>
             <h3 className="text-lg font-semibold border-b pb-2 mb-4 text-[#111111]">Basic Info</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="form-group">
@@ -1139,10 +1079,10 @@ const WorkerManagement = () => {
                 </div>
               </div>
             </div>
-          </section>
+          </div>
 
           {/* Employment Info */}
-          <section>
+          <div>
             <h3 className="text-lg font-semibold border-b pb-2 mb-4 text-[#111111]">Employment Info</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="form-group">
@@ -1246,8 +1186,8 @@ const WorkerManagement = () => {
                   required
                 >
                   <option value="">Select Batch</option>
-                  {batches.map((batch) => (
-                    <option key={batch._id} value={batch.batchName}>
+                  {batches.map((batch, index) => (
+                    <option key={batch._id || batch.batchName || index} value={batch.batchName}>
                       {batch.batchName}
                     </option>
                   ))}
@@ -1316,10 +1256,10 @@ const WorkerManagement = () => {
                 </div>
               </div>
             </div>
-          </section>
+          </div>
 
           {/* Work Pass Info */}
-          <section>
+          <div>
             <h3 className="text-lg font-semibold border-b pb-2 mb-4 text-[#111111]">Work Pass Info</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="form-group">
@@ -1375,10 +1315,10 @@ const WorkerManagement = () => {
                 />
               </div>
             </div>
-          </section>
+          </div>
 
           {/* Contact & Address */}
-          <section>
+          <div>
             <h3 className="text-lg font-semibold border-b pb-2 mb-4 text-[#111111]">Contact & Address</h3>
             <div className="form-group">
               <label className="form-label">Residential Address</label>
@@ -1390,10 +1330,10 @@ const WorkerManagement = () => {
                 placeholder="Enter Singapore stay address"
               ></textarea>
             </div>
-          </section>
+          </div>
 
           {/* Emergency Details */}
-          <section>
+          <div>
             <h3 className="text-lg font-semibold border-b pb-2 mb-4 text-[#111111]">Emergency Details</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="form-group">
@@ -1432,10 +1372,10 @@ const WorkerManagement = () => {
                 />
               </div>
             </div>
-          </section>
+          </div>
 
           {/* Bank & Additional */}
-          <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div>
               <h3 className="text-lg font-semibold border-b pb-2 mb-4 text-[#111111]">Bank Details</h3>
               <div className="form-group">
@@ -1464,10 +1404,10 @@ const WorkerManagement = () => {
                 />
               </div>
             </div>
-          </section>
+          </div>
 
           {/* ID Proof Upload - REQUIRED */}
-          <section>
+          <div>
             <h3 className="text-lg font-semibold border-b pb-2 mb-4 text-[#111111] flex items-center gap-2">
               ID Proof
               <span className="text-xs font-normal text-red-500 bg-red-50 px-2 py-0.5 rounded-full border border-red-100">Required</span>
@@ -1523,7 +1463,7 @@ const WorkerManagement = () => {
                 )}
               </div>
             </div>
-          </section>
+          </div>
 
           <div className="flex justify-end mt-6 space-x-2 pb-6">
             <Button variant="outline" onClick={() => setIsAddModalOpen(false)}>
@@ -1544,7 +1484,7 @@ const WorkerManagement = () => {
       >
         <form onSubmit={handleEditWorker} className="space-y-8">
           {/* Basic Info */}
-          <section>
+          <div>
             <h3 className="text-lg font-semibold border-b pb-2 mb-4 text-[#111111]">Basic Info</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="form-group">
@@ -1668,10 +1608,10 @@ const WorkerManagement = () => {
                 </div>
               </div>
             </div>
-          </section>
+          </div>
 
           {/* Employment Info */}
-          <section>
+          <div>
             <h3 className="text-lg font-semibold border-b pb-2 mb-4 text-[#111111]">Employment Info</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="form-group">
@@ -1774,8 +1714,8 @@ const WorkerManagement = () => {
                   onChange={handleChange}
                   required
                 >
-                  {batches.map((batch) => (
-                    <option key={batch._id} value={batch.batchName}>
+                   {batches.map((batch, index) => (
+                    <option key={batch._id || batch.batchName || index} value={batch.batchName}>
                       {batch.batchName}
                     </option>
                   ))}
@@ -1831,10 +1771,10 @@ const WorkerManagement = () => {
                 </div>
               </div>
             </div>
-          </section>
+          </div>
 
           {/* Work Pass Info */}
-          <section>
+          <div>
             <h3 className="text-lg font-semibold border-b pb-2 mb-4 text-[#111111]">Work Pass Info</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="form-group">
@@ -1888,10 +1828,10 @@ const WorkerManagement = () => {
                 />
               </div>
             </div>
-          </section>
+          </div>
 
           {/* Contact & Address */}
-          <section>
+          <div>
             <h3 className="text-lg font-semibold border-b pb-2 mb-4 text-[#111111]">Contact & Address</h3>
             <div className="form-group">
               <label className="form-label">Residential Address</label>
@@ -1902,10 +1842,10 @@ const WorkerManagement = () => {
                 onChange={handleChange}
               ></textarea>
             </div>
-          </section>
+          </div>
 
           {/* Emergency Details */}
-          <section>
+          <div>
             <h3 className="text-lg font-semibold border-b pb-2 mb-4 text-[#111111]">Emergency Details</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="form-group">
@@ -1941,10 +1881,10 @@ const WorkerManagement = () => {
                 />
               </div>
             </div>
-          </section>
+          </div>
 
           {/* Bank & Additional */}
-          <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div>
               <h3 className="text-lg font-semibold border-b pb-2 mb-4 text-[#111111]">Bank Details</h3>
               <div className="form-group">
@@ -1971,10 +1911,10 @@ const WorkerManagement = () => {
                 />
               </div>
             </div>
-          </section>
+          </div>
 
           {/* Custom Leave Allocation */}
-          {/* <section>
+          {/* <div>
             <h3 className="text-lg font-semibold border-b pb-2 mb-4 text-[#111111]">Custom Leave Allocation (Optional)</h3>
             <p className="text-xs text-gray-500 mb-4">Leave fields blank to use the global policy default limits.</p>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
@@ -1993,10 +1933,10 @@ const WorkerManagement = () => {
                 </div>
               ))}
             </div>
-          </section> */}
+          </div> */}
 
           {/* ID Proof Upload */}
-          <section>
+          <div>
             <h3 className="text-lg font-semibold border-b pb-2 mb-4 text-[#111111] flex items-center gap-2">
               ID Proof
               <span className="text-xs font-normal text-gray-500 bg-gray-50 px-2 py-0.5 rounded-full border border-gray-200">Optional — only upload to replace existing</span>
@@ -2051,7 +1991,7 @@ const WorkerManagement = () => {
                 )}
               </div>
             </div>
-          </section>
+          </div>
 
           <div className="flex justify-end mt-6 space-x-2 pb-6">
             <Button variant="outline" onClick={() => setIsEditModalOpen(false)}>
@@ -2120,7 +2060,7 @@ const WorkerManagement = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Personal & Identification */}
               <div className="space-y-6">
-                <section>
+                <div>
                   <h3 className="text-sm font-black text-gray-900 mb-4 flex items-center gap-3 uppercase tracking-widest">
                     <span className="w-2 h-2 bg-blue-600 rounded-full shadow-lg shadow-blue-200"></span>
                     Identity & Personal
@@ -2134,9 +2074,9 @@ const WorkerManagement = () => {
                     <DetailItem label="Pass Type" value={selectedWorker.workPassType} isBadge badgeColor="gray" />
                     <DetailItem label="Passport No" value={selectedWorker.passportNumber} />
                   </div>
-                </section>
+                </div>
 
-                <section>
+                <div>
                   <h3 className="text-sm font-black text-gray-900 mb-4 flex items-center gap-3 uppercase tracking-widest">
                     <span className="w-2 h-2 bg-amber-600 rounded-full shadow-lg shadow-amber-200"></span>
                     Contact & Address
@@ -2151,12 +2091,12 @@ const WorkerManagement = () => {
                       </p>
                     </div>
                   </div>
-                </section>
+                </div>
               </div>
 
               {/* Employment & Emergency */}
               <div className="space-y-6">
-                <section>
+                <div>
                   <h3 className="text-sm font-black text-gray-900 mb-4 flex items-center gap-3 uppercase tracking-widest">
                     <span className="w-2 h-2 bg-emerald-600 rounded-full shadow-lg shadow-emerald-200"></span>
                     Professional Info
@@ -2224,9 +2164,9 @@ const WorkerManagement = () => {
                       </div>
                     )}
                   </div>
-                </section>
+                </div>
 
-                <section>
+                <div>
                   <h3 className="text-sm font-black text-gray-900 mb-4 flex items-center gap-3 uppercase tracking-widest">
                     <span className="w-2 h-2 bg-red-600 rounded-full shadow-lg shadow-red-200"></span>
                     Emergency & Finance
@@ -2243,7 +2183,7 @@ const WorkerManagement = () => {
                       <DetailItem label="Bank Account" value={selectedWorker.bankAccountNumber} />
                     </div>
                   </div>
-                </section>
+                </div>
               </div>
             </div>
           </div>

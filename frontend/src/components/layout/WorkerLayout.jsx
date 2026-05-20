@@ -21,6 +21,7 @@ const WorkerLayout = ({ children }) => {
   const { user, logout } = useAuth();
 
   const [leaveUpdates, setLeaveUpdates] = useState(0);
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const navigate = useNavigate();
   const { subdomain } = useContext(appContext);
 
@@ -72,7 +73,12 @@ const WorkerLayout = ({ children }) => {
       icon: <FaRegCalendarCheck />,
       label: 'Attendance Report'
     },
-
+    {
+      to: '/worker/work-allocation',
+      icon: <FaBook />,
+      label: 'Work Allocation',
+      badge: user?.accountType === 'premium' ? 'PRO' : 'LOCK'
+    },
     {
       to: '/worker/leave-apply',
       icon: <FaCalendarPlus />,
@@ -94,16 +100,17 @@ const WorkerLayout = ({ children }) => {
 
   return (
     // Added w-full overflow-x-hidden to prevent horizontal scrolling
-    <div className="flex bg-transparent w-full overflow-x-hidden">
+    <div className="admin-app-shell flex w-full overflow-x-hidden min-h-screen">
       <Sidebar
         links={sidebarLinks}
         logoText="Employee Dashboard"
         user={user}
         onLogout={handleLogout}
+        onExpandToggle={(expanded) => setIsSidebarExpanded(expanded)}
       />
 
       {/* Main content area - adjusted for sidebar */}
-      <div className="flex-1 md:ml-64 w-full overflow-x-hidden">
+      <div className={`flex-1 transition-all duration-300 ${isSidebarExpanded ? 'md:ml-64' : 'md:ml-[84px]'} w-full overflow-x-hidden admin-main-content`}>
         <main className="p-4 md:p-6 min-h-screen w-full overflow-x-hidden">
           {children}
         </main>

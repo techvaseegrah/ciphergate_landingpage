@@ -27,7 +27,7 @@ const Table = ({
               <th
                 key={index}
                 scope="col"
-                className={`px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 ${column.headerAlign || 'text-center'}`}
+                className={`px-6 py-4 text-[12px] font-bold text-[#475569] border-b border-gray-100 bg-gray-50/50 ${column.headerAlign || 'text-center'}`}
                 style={column.width ? { width: column.width } : {}}
                 title={column.description || column.header}
               >
@@ -64,7 +64,7 @@ const Table = ({
                   return (
                     <td
                       key={`${rowIndex}-${colIndex}`}
-                      className={`px-6 py-4 whitespace-nowrap text-sm text-gray-500 ${column.align || 'text-center'}`}
+                      className={`px-6 py-4 align-middle whitespace-nowrap text-sm text-gray-500 ${column.align || 'text-center'}`}
                       title={column.cellDescription ? column.cellDescription(row, rowIndex) : ''}
                     >
                       {column.render

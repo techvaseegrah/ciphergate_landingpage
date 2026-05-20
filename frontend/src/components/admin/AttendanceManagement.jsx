@@ -1,12 +1,13 @@
 import React, { Fragment, useRef, useState, useEffect, useContext, useCallback } from 'react';
-import { FaDownload, FaPlus, FaExclamationTriangle, FaCamera, FaChevronDown } from 'react-icons/fa';
+import { FaDownload, FaPlus, FaExclamationTriangle, FaCamera, FaChevronDown, FaUserCircle } from 'react-icons/fa';
+import { FiFilter, FiDownload, FiSearch, FiCalendar, FiClock, FiMapPin } from 'react-icons/fi';
 import Button from '../common/Button';
 import Modal from '../common/Modal';
 import Webcam from "react-webcam";
 import jsQR from "jsqr";
 import appContext from '../../context/AppContext';
 import { toast } from 'react-toastify';
-import { putAttendance, getAttendance, getPaginatedAttendance } from '../../services/attendanceService';
+import { putAttendance, getAttendance, getPaginatedAttendance, getWorkerLastAttendance } from '../../services/attendanceService';
 import Table from '../common/Table';
 import Spinner from '../common/Spinner';
 import { Link } from 'react-router-dom';
@@ -23,6 +24,7 @@ const AttendanceManagement = () => {
     const [filterDepartment, setFilterDepartment] = useState('');
     const [filterDate, setFilterDate] = useState('');
     const [filterRfid, setFilterRfid] = useState('');
+    const [showFilters, setShowFilters] = useState(false);
     const webcamRef = useRef(null);
     const inputRef = useRef(null);
     const [isPunching, setIsPunching] = useState(false);
@@ -43,8 +45,10 @@ const AttendanceManagement = () => {
         return unique;
     }, [attendanceData]);
 
-    const fetchAttendanceData = async (page = 1, append = false) => {
-        if (!subdomain || subdomain === 'main') return;
+    const fetchAttendanceData = useCallback(async (page = 1, append = false) => {
+        if (!subdomain) return;
+        
+        let isMounted = true;
         
         try {
             if (append) {
@@ -53,34 +57,43 @@ const AttendanceManagement = () => {
                 setIsLoading(true);
             }
             
-            const data = await getPaginatedAttendance({ subdomain, page, limit: 2 });
+            const data = await getPaginatedAttendance({ subdomain, page, limit: 10 });
+            if (!isMounted) return;
+
             const rawData = Array.isArray(data.attendance) ? data.attendance : [];
             
             if (append) {
-                // Append new data to existing data
                 setAttendanceData(prevData => [...prevData, ...rawData]);
             } else {
-                // Replace existing data
                 setAttendanceData(rawData);
             }
             
             setHasMore(data.hasMore);
             setCurrentPage(page);
         } catch (error) {
-            console.error(error);
-            toast.error("Failed to fetch attendance data.");
+            if (isMounted) {
+                console.error('Attendance fetch error:', error);
+            }
         } finally {
-            setIsLoading(false);
-            setIsFetchingMore(false);
+            if (isMounted) {
+                setIsLoading(false);
+                setIsFetchingMore(false);
+            }
         }
-    };
+
+        return () => { isMounted = false; };
+    }, [subdomain]);
 
     // Load initial data
     useEffect(() => {
-        if (subdomain && subdomain !== 'main') {
+        let isMounted = true;
+        
+        if (subdomain) {
             fetchAttendanceData(1, false);
         }
-    }, [subdomain]);
+        
+        return () => { isMounted = false; };
+    }, [subdomain, fetchAttendanceData]);
 
     // Function to load more data
     const loadMoreAttendance = () => {
@@ -91,10 +104,10 @@ const AttendanceManagement = () => {
 
     // Function to refresh the latest attendance records (for real-time updates)
     const refreshLatestAttendance = useCallback(async () => {
-        if (!subdomain || subdomain === 'main') return;
+        if (!subdomain) return;
         
         try {
-            const data = await getPaginatedAttendance({ subdomain, page: 1, limit: 2 });
+            const data = await getPaginatedAttendance({ subdomain, page: 1, limit: 10 });
             const rawData = Array.isArray(data.attendance) ? data.attendance : [];
             
             // Update only the first page of data to show latest records at the top
@@ -114,9 +127,9 @@ const AttendanceManagement = () => {
         }
     }, [subdomain]);
 
-    const handleSubmit = e => {
+    const handleSubmit = async e => {
         e.preventDefault();
-        if (!subdomain || subdomain === 'main') {
+        if (!subdomain) {
           toast.error('Subdomain not found, check the URL.');
           return;
         }
@@ -125,84 +138,30 @@ const AttendanceManagement = () => {
           return;
         }
         
-        console.log("All attendance data:", attendanceData);
-        console.log("Filtering for RFID:", worker.rfid);
-        
-        // Determine next punch type based on count (new logic)
-        // Odd count (1, 3, 5, ...) = IN punch
-        // Even count (0, 2, 4, 6, ...) = OUT punch
-        let next = 'Punch In';
-        const recs = attendanceData.filter(r => r.rfid === worker.rfid);
-        console.log("Filtered records:", recs);
-        
-        if (recs.length) {
-          // Get today's date in the same format as stored in the database
-          const today = new Date();
-          const todayFormatted = today.toLocaleDateString('en-CA', { 
-            timeZone: 'Asia/Kolkata',
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit'
-          });
-          
-          console.log("Today's date (formatted):", todayFormatted);
-          
-          // Filter records for today only
-          const todayRecs = recs.filter(r => r.date === todayFormatted);
-          console.log("Today's records:", todayRecs);
-          
-          // Count today's punches
-          const todayPunchCount = todayRecs.length;
-          console.log("Today's punch count:", todayPunchCount);
-          
-          // Determine next action based on count
-          // If count is even (0, 2, 4, ...), next should be IN
-          // If count is odd (1, 3, 5, ...), next should be OUT
-          next = (todayPunchCount % 2 === 0) ? 'Punch In' : 'Punch Out';
-          console.log(`Determined next action: ${next} (based on count ${todayPunchCount})`);
-        } else {
-          console.log("No previous records found, defaulting to Punch In");
+        try {
+          const res = await getWorkerLastAttendance(worker.rfid.trim(), subdomain);
+          // res.presence is true if next action is Punch In, false if Punch Out
+          const next = res.presence ? 'Punch In' : 'Punch Out';
+          setConfirmAction(next);
+        } catch (error) {
+          toast.error(error.message || 'Failed to check worker attendance status');
         }
-        
-        console.log("Setting confirm action to:", next);
-        setConfirmAction(next);
       };
       
       const handleCancel = () => setConfirmAction(null);
       
-      // Modified handleConfirm to trigger real-time update
       const handleConfirm = () => {
         setIsPunching(true);
-        console.log("Sending attendance request with RFID:", worker.rfid, "and subdomain:", subdomain);
+        const presenceValue = confirmAction === 'Punch In';
+        console.log("Sending attendance request with RFID:", worker.rfid, "subdomain:", subdomain, "presence:", presenceValue);
         
-        // Determine what type of punch this will be for logging
-        const recs = attendanceData.filter(r => r.rfid === worker.rfid);
-        let punchType = 'IN';
-        if (recs.length) {
-          // Get today's date in the same format as stored in the database
-          const today = new Date();
-          const todayFormatted = today.toLocaleDateString('en-CA', { 
-            timeZone: 'Asia/Kolkata',
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit'
-          });
-          
-          // Filter records for today only
-          const todayRecs = recs.filter(r => r.date === todayFormatted);
-          const todayPunchCount = todayRecs.length;
-          
-          // Determine punch type based on count
-          punchType = (todayPunchCount % 2 === 0) ? 'IN' : 'OUT';
-        }
-        
-        console.log(`This punch will be registered as: ${punchType}`);
-        
-        putAttendance({ rfid: worker.rfid, subdomain })
+        putAttendance({ rfid: worker.rfid.trim(), subdomain, presence: presenceValue })
           .then(res => {
-            console.log("Attendance response:", res);
+            if (res.success === false) {
+                toast.warning(res.message);
+                return;
+            }
             toast.success(res.message || 'Attendance marked successfully!');
-            // Refresh the latest attendance data to show the new record
             setTimeout(() => {
               refreshLatestAttendance();
             }, 500);
@@ -214,7 +173,6 @@ const AttendanceManagement = () => {
           .finally(() => {
             setIsPunching(false);
             setConfirmAction(null);
-            // Always clear the worker RFID after attempting to punch
             setWorker({ rfid: '' });
           });
       };
@@ -275,123 +233,97 @@ const AttendanceManagement = () => {
     const processedAttendance = processAttendanceByDay(filteredAttendance);
 
     function processAttendanceByDay(attendanceData) {
-        // Helper to parse "10:51:40 AM" to seconds from midnight
+        // Helper to parse time string
         function parseTime12hToSeconds(timeStr) {
-            if (typeof timeStr !== 'string') return 0;
-            const [time, modifier] = timeStr.trim().split(' ');
-            if (!time) return 0;
+            if (!timeStr || typeof timeStr !== 'string') return 0;
+            const parts = timeStr.trim().split(' ');
+            if (parts.length < 2) return 0;
+            const [time, modifier] = parts;
             let [hours, minutes, seconds] = time.split(':').map(Number);
-            hours = hours || 0;
-            minutes = minutes || 0;
-            seconds = seconds || 0;
-            if (modifier && modifier.toUpperCase() === 'PM' && hours !== 12) hours += 12;
-            else if (modifier && modifier.toUpperCase() === 'AM' && hours === 12) hours = 0;
-            return hours * 3600 + minutes * 60 + seconds;
+            if (modifier.toUpperCase() === 'PM' && hours !== 12) hours += 12;
+            else if (modifier.toUpperCase() === 'AM' && hours === 12) hours = 0;
+            return hours * 3600 + (minutes || 0) * 60 + (seconds || 0);
         }
 
-        // Helper to parse "HH:mm:ss" duration to seconds
-        function parseDurationToSeconds(durationStr) {
-            if (typeof durationStr !== 'string') return 0;
-            const [hours, minutes, seconds] = durationStr.split(':').map(Number);
-            return (hours || 0) * 3600 + (minutes || 0) * 60 + (seconds || 0);
-        }
-
-        // Helper to format seconds to "HH:mm:ss"
         function formatSecondsToDuration(totalSeconds) {
-            if (isNaN(totalSeconds) || totalSeconds < 0) return '00:00:00';
-            const hours = Math.floor(totalSeconds / 3600);
-            const minutes = Math.floor((totalSeconds % 3600) / 60);
-            const seconds = Math.floor(totalSeconds % 60);
-            return [hours, minutes, seconds].map(v => String(v).padStart(2, '0')).join(':');
+            const h = Math.floor(totalSeconds / 3600);
+            const m = Math.floor((totalSeconds % 3600) / 60);
+            const s = totalSeconds % 60;
+            return [h, m, s].map(v => String(v).padStart(2, '0')).join(':');
         }
 
-        // Step 1: Group all raw punches by employee and date, maintaining order
-        const punchesGroupedByDay = {};
+        // Group by Employee + Date
+        const grouped = {};
         attendanceData.forEach(record => {
-            const dateKey = new Date(record.date).toISOString().split('T')[0];
-            const employeeDateKey = `${record.rfid || 'Unknown'}_${dateKey}`;
-            if (!punchesGroupedByDay[employeeDateKey]) {
-                punchesGroupedByDay[employeeDateKey] = {
-                    ...record, // Copy some basic info
-                    date: dateKey,
-                    rawPunches: [], // Store all punches for this day/worker
-                    inTimes: [], // For display: list of in times
-                    outTimes: [], // For display: list of out times
-                    duration: '00:00:00',
-                    latestTimestamp: new Date(record.createdAt).getTime() // Keep track for sorting final list
-                };
-            }
-            punchesGroupedByDay[employeeDateKey].rawPunches.push(record);
-            punchesGroupedByDay[employeeDateKey].latestTimestamp = Math.max(
-                punchesGroupedByDay[employeeDateKey].latestTimestamp,
-                new Date(record.createdAt).getTime()
-            );
+            const dateKey = record.date;
+            const key = `${record.rfid}_${dateKey}`;
+            if (!grouped[key]) grouped[key] = [];
+            grouped[key].push(record);
         });
 
-        const processedDays = [];
+        const finalRows = [];
 
-        for (const key in punchesGroupedByDay) {
-            const dayData = punchesGroupedByDay[key];
-            // Sort punches chronologically for the day
-            const sortedPunches = dayData.rawPunches.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+        Object.values(grouped).forEach(punches => {
+            if (!punches || punches.length === 0) return;
 
-            let totalDurationSeconds = 0;
-            let lastInTimeSeconds = null; // To track the last "in" punch for pairing
+            // Sort punches for this employee/day chronologically
+            const sorted = punches.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+            
+            const firstPunch = sorted[0];
+            const latestTimestamp = Math.max(...sorted.map(p => new Date(p.createdAt).getTime()));
+            
+            const dayRecord = {
+                ...firstPunch,
+                inTimes: [],
+                outTimes: [],
+                durationSeconds: 0,
+                duration: '00:00:00',
+                latestTimestamp
+            };
 
-            dayData.inTimes = []; // Reset for accurate population below
-            dayData.outTimes = []; // Reset for accurate population below
+            let currentInPunch = null;
 
-            for (let i = 0; i < sortedPunches.length; i++) {
-                const punch = sortedPunches[i];
-                const punchTimeSeconds = parseTime12hToSeconds(punch.time);
-
-                if (punch.presence) { // This is an IN punch
-                    lastInTimeSeconds = punchTimeSeconds;
-                    dayData.inTimes.push({ time: punch.time, isMissed: false }); // Always normal IN for display
-                } else { // This is an OUT punch
-                    let isProblematicOut = false;
-                    if (lastInTimeSeconds !== null) {
-                        // There was a preceding IN punch on this day
-                        if (punchTimeSeconds > lastInTimeSeconds) {
-                            totalDurationSeconds += (punchTimeSeconds - lastInTimeSeconds);
-                            lastInTimeSeconds = null; // Reset after a successful pair
-                        } else {
-                            // Out time is before or same as last in time on the same day (problematic)
-                            isProblematicOut = true;
-                        }
-                    } else {
-                        // Out punch without a preceding IN punch on this day (problematic)
-                        isProblematicOut = true;
+            sorted.forEach(punch => {
+                if (punch.presence) { // IN
+                    if (currentInPunch) {
+                        // Previous IN punch missed its OUT punch
+                        dayRecord.outTimes.push({ time: '-', isMissed: true });
                     }
-                    
-                    // Prioritize backend flag if available, otherwise use heuristic
-                    dayData.outTimes.push({
-                        time: punch.time,
-                        isMissed: punch.isMissedOutPunch || isProblematicOut // Use backend flag or heuristic
-                    });
+                    currentInPunch = punch;
+                    dayRecord.inTimes.push({ time: punch.time, isMissed: false });
+                } else { // OUT
+                    if (currentInPunch) {
+                        // Successful IN-OUT pair
+                        dayRecord.outTimes.push({ time: punch.time, isMissed: false });
+                        const inSec = parseTime12hToSeconds(currentInPunch.time);
+                        const outSec = parseTime12hToSeconds(punch.time);
+                        if (outSec > inSec) {
+                            dayRecord.durationSeconds += (outSec - inSec);
+                        }
+                        currentInPunch = null;
+                    } else {
+                        // OUT without preceding IN (orphan OUT punch)
+                        dayRecord.outTimes.push({ time: punch.time, isMissed: true });
+                    }
                 }
+            });
+
+            if (currentInPunch) {
+                // Last IN punch of the day has no OUT punch
+                dayRecord.outTimes.push({ time: '-', isMissed: true });
             }
 
-            // If an IN punch was the last punch of the day, mark it as missed OUT (for display)
-            // This handles cases where an IN is followed by no OUT on the same day.
-            if (lastInTimeSeconds !== null) {
-                // Assume end of day for missed out punch visual.
-                // This is purely for display and doesn't create a new record in DB here.
-                dayData.outTimes.push({
-                    time: '-', // MODIFIED LINE: Changed 'FORGOTTEN OUT' to '-' or '' for empty default.
-                    isMissed: true // Mark as missed for display
-                });
-                // Also add the duration till a standard end of day for this specific visual placeholder
-                // You might need to refine totalDurationSeconds if you want to reflect this in the duration column
-                // For now, duration calculation below is only for matched pairs.
+            // If there were no IN punches all day
+            if (dayRecord.inTimes.length === 0) {
+                dayRecord.inTimes.push({ time: '-', isMissed: true });
             }
+            
+            dayRecord.duration = formatSecondsToDuration(dayRecord.durationSeconds);
 
-            dayData.duration = formatSecondsToDuration(totalDurationSeconds);
-            processedDays.push(dayData);
-        }
+            finalRows.push(dayRecord);
+        });
 
-        // Sort the final list of processed days by latest activity
-        return processedDays.sort((a, b) => b.latestTimestamp - a.latestTimestamp);
+        return finalRows.sort((a, b) => b.latestTimestamp - a.latestTimestamp);
     }
 
     // Function to download attendance data as CSV
@@ -455,7 +387,7 @@ const AttendanceManagement = () => {
             header: 'Name',
             accessor: 'name',
             render: (record) => (
-                <div className="flex items-center">
+                <div className="flex items-center py-1">
                     {record?.photo && (
                         <img
                             src={record.photo
@@ -474,26 +406,25 @@ const AttendanceManagement = () => {
         {
             header: 'Employee ID',
             accessor: 'rfid',
-            render: (record) => record?.rfid || 'Unknown'
+            render: (record) => <div className="flex items-center py-1">{record?.rfid || 'Unknown'}</div>
         },
         {
             header: 'Department',
             accessor: 'departmentName',
-            render: (record) => record?.departmentName || 'N/A'
+            render: (record) => <div className="flex items-center py-1">{record?.departmentName || 'N/A'}</div>
         },
         {
             header: 'Date',
             accessor: 'date',
-            render: (record) => record.date || 'Unknown'
+            render: (record) => <div className="flex items-center py-1">{record.date || 'Unknown'}</div>
         },
         {
             header: 'In Time',
             accessor: 'inTimes',
             render: (record) => (
-                <div className="text-center">
-                    {record.inTimes.map((inPunch, index) => ( // Changed 'time' to 'inPunch' for clarity
-                        // Access 'inPunch.time' instead of just 'inPunch'
-                        <div key={index} className="text-green-600 text-center">{inPunch.time}</div>
+                <div className="flex flex-col justify-center py-1">
+                    {record.inTimes.map((inPunch, index) => (
+                        <div key={index} className={`py-0.5 ${inPunch.time === '-' ? 'text-gray-500' : 'text-green-600'}`}>{inPunch.time}</div>
                     ))}
                 </div>
             )
@@ -502,18 +433,14 @@ const AttendanceManagement = () => {
             header: 'Out Time',
             accessor: 'outTimes',
             render: (record) => (
-                <div className="text-center">
+                <div className="flex flex-col justify-center py-1">
                     {record.outTimes.map((outPunch, index) => (
                         <div
                             key={index}
-                            // Apply gray color if isMissed is true, otherwise red
-                            // Keep 'text-red-500' if not missed for consistency, as per original.
-                            className={`flex items-center justify-center ${outPunch.isMissed ? 'text-gray-500' : 'text-red-500'}`}
+                            className={`flex items-center py-0.5 ${outPunch.isMissed ? 'text-gray-500' : 'text-red-500'}`}
                         >
-                            {/* MODIFIED LINE: Conditionally render the time */}
                             {outPunch.time !== '-' ? outPunch.time : ''} 
-                            {/* Display triangle icon only if isMissed is true AND it's not just a placeholder hyphen */}
-                            {outPunch.isMissed && outPunch.time !== '-' && ( // Ensure icon only shows with a time, not for empty placeholder
+                            {outPunch.isMissed && outPunch.time !== '-' && (
                                 <FaExclamationTriangle className="ml-2 text-orange-500" title="Missed Out Punch or Incomplete Pair" />
                             )}
                         </div>
@@ -524,138 +451,97 @@ const AttendanceManagement = () => {
         {
             header: 'Duration',
             accessor: 'duration',
-            render: (record) => record.duration || '00:00:00'
+            render: (record) => <div className="flex items-center py-1">{record.duration || '00:00:00'}</div>
         }
     ];
 
     return (
-        <Fragment>
-            <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold">Attendance Management</h1>
-                {/* Desktop buttons - hidden on mobile */}
-                <div className='hidden md:flex space-x-6 justify-center items-center'>
-                    <Button
-                        variant="primary"
-                        className="flex items-center"
+        <div className="bg-transparent space-y-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                <h1 className="text-2xl font-bold text-[#0F172A]">Attendance Management</h1>
+                <div className="flex flex-wrap items-center gap-2">
+                    <Button 
                         onClick={() => setIsModalOpen(true)}
+                        className="h-10 px-4 rounded-xl text-sm font-medium bg-black text-white hover:bg-zinc-800 border-none shadow-sm transition-all flex items-center gap-2"
                     >
-                        <FaPlus className="mr-2" />Attendance
+                        <FaPlus size={10} /> Attendance
                     </Button>
-                    <Button
-                        variant="primary"
-                        className="flex items-center"
+                    <Button 
                         onClick={() => setIsFaceAttendanceOpen(true)}
+                        className="h-10 px-4 rounded-xl text-sm font-medium bg-black text-white hover:bg-zinc-800 border-none shadow-sm transition-all flex items-center gap-2"
                     >
-                        <FaCamera className="mr-2" />Face Attendance
+                        <FaCamera size={12} /> Face Attendance
                     </Button>
-                    <Button
-                        variant="primary"
-                        className="flex items-center"
+                    <Button 
                         onClick={downloadAttendanceCSV}
+                        className="h-10 px-4 rounded-xl text-sm font-medium bg-black text-white hover:bg-zinc-800 border-none shadow-sm transition-all flex items-center gap-2"
                     >
-                        <FaDownload className="mr-2" />Download
+                        <FaDownload size={12} /> Download
                     </Button>
                 </div>
             </div>
 
-            {/* Mobile view buttons - visible only on mobile */}
-            <div className="md:hidden mb-6">
-                <div className="grid grid-cols-3 gap-2">
-                    <Button
-                        variant="primary"
-                        className="flex flex-col items-center justify-center py-3"
-                        onClick={() => setIsModalOpen(true)}
-                    >
-                        <FaPlus className="text-xl mb-1" />
-                        <span className="text-xs">Attendance</span>
-                    </Button>
-                    <Button
-                        variant="primary"
-                        className="flex flex-col items-center justify-center py-3"
-                        onClick={() => setIsFaceAttendanceOpen(true)}
-                    >
-                        <FaCamera className="text-xl mb-1" />
-                        <span className="text-xs">Face</span>
-                    </Button>
-                    <Button
-                        variant="primary"
-                        className="flex flex-col items-center justify-center py-3"
-                        onClick={downloadAttendanceCSV}
-                    >
-                        <FaDownload className="text-xl mb-1" />
-                        <span className="text-xs">Download</span>
-                    </Button>
-                </div>
-            </div>
-
-            <div className='bg-white border rounded-lg p-4'>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                    <input
-                        type="text"
-                        className="form-input"
-                        placeholder="Search by name..."
-                        value={searchName}
-                        onChange={(e) => setSearchName(e.target.value)}
-                    />
-                    <input
-                        type="text"
-                        className="form-input"
-                        placeholder="Filter by RFID..."
-                        value={filterRfid}
-                        onChange={(e) => setFilterRfid(e.target.value)}
-                    />
-                    <input
-                        type="text"
-                        className="form-input"
-                        placeholder="Filter by department..."
-                        value={filterDepartment}
-                        onChange={(e) => setFilterDepartment(e.target.value)}
-                    />
-                    <input
-                        type="date"
-                        className="form-input"
-                        placeholder="Filter by date..."
-                        value={filterDate}
-                        onChange={(e) => setFilterDate(e.target.value)}
-                    />
-                </div>
-
-                {isLoading ? (
-                    <div className="flex justify-center py-8">
-                        <Spinner size="md" variant="default" />
-                    </div>
-                ) : (
-                    <>
-                        <Table
-                            columns={columns}
-                            data={processedAttendance}
-                            noDataMessage="No attendance records found."
+            <div className="bg-white border border-slate-100 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden">
+                <div className="p-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                        <input
+                            type="text"
+                            className="w-full py-3 px-4 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-100 transition-all placeholder:text-slate-400"
+                            placeholder="Search by name..."
+                            value={searchName}
+                            onChange={(e) => setSearchName(e.target.value)}
                         />
-                        
-                        {/* Load More Button */}
-                        {hasMore && (
-                            <div className="flex justify-center mt-6">
-                                <button
-                                    onClick={loadMoreAttendance}
-                                    disabled={isFetchingMore}
-                                    className="flex items-center px-5 py-2 bg-[#111111] text-white rounded-xl shadow-md hover:bg-[#000000] transition-colors disabled:opacity-50"
-                                >
-                                    {isFetchingMore ? (
-                                        <>
-                                            <Spinner size="sm" variant="light" className="mr-2" />
-                                            Loading...
-                                        </>
-                                    ) : (
-                                        <>
-                                            Load More
-                                            <FaChevronDown className="ml-2" />
-                                        </>
-                                    )}
-                                </button>
-                            </div>
-                        )}
-                    </>
-                )}
+                        <input
+                            type="text"
+                            className="w-full py-3 px-4 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-100 transition-all placeholder:text-slate-400"
+                            placeholder="Filter by RFID..."
+                            value={filterRfid}
+                            onChange={(e) => setFilterRfid(e.target.value)}
+                        />
+                        <input
+                            type="text"
+                            className="w-full py-3 px-4 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-100 transition-all placeholder:text-slate-400"
+                            placeholder="Filter by department..."
+                            value={filterDepartment}
+                            onChange={(e) => setFilterDepartment(e.target.value)}
+                        />
+                        <input
+                            type="date"
+                            className="w-full py-3 px-4 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-100 transition-all placeholder:text-slate-400"
+                            value={filterDate}
+                            onChange={(e) => setFilterDate(e.target.value)}
+                        />
+                    </div>
+
+                    <div className="overflow-x-auto">
+                        <Table
+                            columns={columns.map(col => ({
+                                ...col,
+                                header: col.header.toUpperCase(),
+                                headerAlign: 'text-left',
+                                align: 'text-left'
+                            }))}
+                            data={processedAttendance}
+                            loading={isLoading}
+                            noDataMessage="No attendance records found"
+                            striped={false}
+                            hover={true}
+                        />
+                    </div>
+
+                    {hasMore && (
+                        <div className="flex justify-center mt-6">
+                            <button
+                                onClick={loadMoreAttendance}
+                                disabled={isFetchingMore}
+                                className="px-6 py-2.5 bg-slate-900 text-white rounded-xl text-sm font-medium hover:bg-black transition-all disabled:opacity-50"
+                            >
+                                {isFetchingMore ? <Spinner size="sm" /> : 'Load More Records'}
+                            </button>
+                        </div>
+                    )}
+                </div>
+            </div>
 
                 <Modal
                 isOpen={isModalOpen}
@@ -740,8 +626,7 @@ const AttendanceManagement = () => {
                 onAttendanceMarked={refreshLatestAttendance} // Add this callback
             />
         </div>
-    </Fragment>
-);
+    );
 };
 
 export default AttendanceManagement;

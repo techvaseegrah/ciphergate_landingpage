@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const asyncHandler = require('express-async-handler');
+const mongoose = require('mongoose');
 const Worker = require('../models/Worker');
 const Admin = require('../models/Admin');
 
@@ -12,9 +13,12 @@ const protect = asyncHandler(async (req, res, next) => {
 
   try {
     token = req.headers.authorization.split(' ')[1];
+    if (!token || token === 'undefined' || token === 'null') {
+      return res.status(401).json({ message: 'Not authorized, invalid token string' });
+    }
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // Check if it's a client token (special case with fixed ID)
+    // Check if it's a client token or mock admin token (special cases with fixed IDs)
     if (decoded.id === 'client_user' && decoded.role === 'client') {
       req.user = {
         _id: 'client_user',
@@ -22,8 +26,11 @@ const protect = asyncHandler(async (req, res, next) => {
         role: 'client'
       };
     } else {
+      if (!mongoose.Types.ObjectId.isValid(decoded.id)) {
+        return res.status(401).json({ message: 'Not authorized, invalid user ID in token' });
+      }
       // Try to find the user in Admin collection first
-      let user = await Admin.findById(decoded.id).select('-password');
+      let user = await Admin.findById(decoded.id).select('-password').maxTimeMS(5000);
       if (user) {
         // ── Subscription expiry check ──
         if (
@@ -44,7 +51,7 @@ const protect = asyncHandler(async (req, res, next) => {
         req.user.role = 'admin';
       } else {
         // Then try Worker collection
-        user = await Worker.findById(decoded.id).select('-password').populate('department');
+        user = await Worker.findById(decoded.id).select('-password').populate('department').maxTimeMS(5000);
         if (!user) {
           return res.status(401).json({ message: 'User not found' });
         }
@@ -54,7 +61,6 @@ const protect = asyncHandler(async (req, res, next) => {
     }
     next();
   } catch (error) {
-    console.error('Token verification error:', error);
     return res.status(401).json({ message: 'Not authorized, token failed', error: error.message });
   }
 });

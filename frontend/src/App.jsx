@@ -1,6 +1,7 @@
 import React, { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import AdminLayout from './components/layout/AdminLayout';
+import api from './services/api';
 
 // Public pages
 import LandingPage from './pages/LandingPage/LandingPage.jsx';
@@ -34,7 +35,7 @@ import EditAccount from './pages/Client/EditAccount';
 
 
 import QuickTest from './components/common/QuickTest';
-import CustomCursor from './components/common/CustomCursor';
+
 
 // Protected route component
 import PrivateRoute from './components/common/PrivateRoute';
@@ -55,7 +56,8 @@ import InstallPWA from './components/common/InstallPWA';
 function App() {
   const [subdomain, setSubdomain] = useState(() => {
     const stored = localStorage.getItem('tasktracker-subdomain');
-    if (stored) return stored;
+    // Filter out invalid string values that might have been accidentally saved
+    if (stored && stored !== 'undefined' && stored !== 'null') return stored;
 
     // Auto-detect from URL (e.g., companya.ciphergate.in)
     const host = window.location.hostname;
@@ -81,8 +83,7 @@ function App() {
   const fetchGlobalSettings = async (sub) => {
     if (!sub || sub === 'main') return;
     try {
-      const { default: api } = await import('./services/api');
-      const response = await api.get(`/settings/${sub}`);
+      const response = await api.get(`settings/${sub}`);
       if (response.data) {
         setSettings(prev => ({
           ...prev,
@@ -102,12 +103,20 @@ function App() {
   }, [subdomain]);
 
   const getSubdomain = () => {
-    return localStorage.getItem('tasktracker-subdomain') || 'main';
+    const s = localStorage.getItem('tasktracker-subdomain');
+    // Consistently handle invalid strings
+    return (s && s !== 'undefined' && s !== 'null') ? s : 'main';
   };
 
   // Custom function to update subdomain and localStorage
   const updateSubdomain = (newSubdomain) => {
-    const valueToStore = (newSubdomain && newSubdomain !== 'main') ? newSubdomain : null;
+    // Robust check for invalid subdomain values
+    const isValid = newSubdomain && 
+                    newSubdomain !== 'main' && 
+                    newSubdomain !== 'undefined' && 
+                    newSubdomain !== 'null';
+    
+    const valueToStore = isValid ? newSubdomain : null;
 
     if (valueToStore) {
       localStorage.setItem('tasktracker-subdomain', valueToStore);
@@ -123,7 +132,10 @@ function App() {
     // Listen for storage changes from other tabs/windows
     const handleStorageChange = (e) => {
       if (e.key === 'tasktracker-subdomain') {
-        const newValue = e.newValue || 'main';
+        let newValue = e.newValue || 'main';
+        // Clean up incoming storage values
+        if (newValue === 'undefined' || newValue === 'null') newValue = 'main';
+        
         console.log('DEBUG: Storage change detected:', newValue);
         setSubdomain(newValue);
       }
@@ -167,7 +179,6 @@ function App() {
     <appContext.Provider value={contextValue}>
       {/* Updated with consistent theme colors - REMOVED solid bg to show GlobalBackground */}
       <div className="App w-full overflow-x-hidden relative">
-        {location.pathname === '/' && <CustomCursor />}
 
         <InstallPWA />
 

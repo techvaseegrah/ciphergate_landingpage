@@ -134,7 +134,7 @@ const Settings = () => {
 
     // Fetch settings from API
     const fetchSettings = async () => {
-        if (!subdomain || subdomain === 'main') {
+        if (!subdomain) {
             toast.error('Invalid subdomain. Please check the URL.');
             setLoading(false);
             return;
@@ -346,110 +346,17 @@ const Settings = () => {
         checkForChanges(updatedSettings);
     };
 
-    const handleAddOverride = (policyIndex) => {
-        const updatedPolicy = [...settings.leavePolicy];
-        const policy = { ...updatedPolicy[policyIndex] };
-        policy.overrides = [...(policy.overrides || []), { employeeIds: [], days: 0 }];
-        updatedPolicy[policyIndex] = policy;
-        const updatedSettings = { ...settings, leavePolicy: updatedPolicy };
-        setSettings(updatedSettings);
-        checkForChanges(updatedSettings);
-    };
+    // Removed redundant override functions to match original structure
+    // Logic is now handled via handleLeavePolicyChange for scope and assignedEmployees
 
-    const handleRemoveOverride = (policyIndex, overrideIndex) => {
-        const updatedPolicy = [...settings.leavePolicy];
-        const policy = { ...updatedPolicy[policyIndex] };
-        policy.overrides = policy.overrides.filter((_, i) => i !== overrideIndex);
-        updatedPolicy[policyIndex] = policy;
-        const updatedSettings = { ...settings, leavePolicy: updatedPolicy };
-        setSettings(updatedSettings);
-        checkForChanges(updatedSettings);
-    };
-
-    const handleOverrideChange = (policyIndex, overrideIndex, field, value) => {
-        const updatedPolicy = [...settings.leavePolicy];
-        const policy = { ...updatedPolicy[policyIndex] };
-        const updatedOverrides = [...(policy.overrides || [])];
-        updatedOverrides[overrideIndex] = {
-            ...updatedOverrides[overrideIndex],
-            [field]: value
-        };
-        policy.overrides = updatedOverrides;
-        updatedPolicy[policyIndex] = policy;
-        const updatedSettings = { ...settings, leavePolicy: updatedPolicy };
-        setSettings(updatedSettings);
-        checkForChanges(updatedSettings);
-    };
-
-    const handleOverrideEmployeesChange = (policyIndex, overrideIndex, e) => {
-        const options = e.target.options;
-        const selectedValues = [];
-        for (let i = 0; i < options.length; i++) {
-            if (options[i].selected) {
-                selectedValues.push(options[i].value);
-            }
-        }
-        handleOverrideChange(policyIndex, overrideIndex, 'employeeIds', selectedValues);
-    };
-
-    const toggleOverrideEmployee = (policyIndex, overrideIndex, employeeId) => {
-        const updatedPolicy = [...settings.leavePolicy];
-        const policy = { ...updatedPolicy[policyIndex] };
-        const updatedOverrides = [...(policy.overrides || [])];
-        const currentOverride = { ...updatedOverrides[overrideIndex] };
-
-        const currentIds = currentOverride.employeeIds || [];
-        if (currentIds.includes(employeeId)) {
-            currentOverride.employeeIds = currentIds.filter(id => id !== employeeId);
-        } else {
-            currentOverride.employeeIds = [...currentIds, employeeId];
-        }
-
-        updatedOverrides[overrideIndex] = currentOverride;
-        policy.overrides = updatedOverrides;
-        updatedPolicy[policyIndex] = policy;
-        const updatedSettings = { ...settings, leavePolicy: updatedPolicy };
-        setSettings(updatedSettings);
-        checkForChanges(updatedSettings);
-    };
-
-    const toggleAllOverrideEmployees = (policyIndex, overrideIndex, filteredWorkers) => {
-        const updatedPolicy = [...settings.leavePolicy];
-        const policy = { ...updatedPolicy[policyIndex] };
-        const updatedOverrides = [...(policy.overrides || [])];
-        const currentOverride = { ...updatedOverrides[overrideIndex] };
-
-        const currentIds = currentOverride.employeeIds || [];
-        const availableWorkerIds = filteredWorkers.filter(w => {
-            const isSelectedElsewhere = policy.overrides.some((otherOverride, otherIdx) =>
-                otherIdx !== overrideIndex && otherOverride.employeeIds && otherOverride.employeeIds.includes(w._id)
-            );
-            return !isSelectedElsewhere;
-        }).map(w => w._id);
-
-        const allSelected = availableWorkerIds.every(id => currentIds.includes(id)) && availableWorkerIds.length > 0;
-
-        if (allSelected) {
-            currentOverride.employeeIds = currentIds.filter(id => !availableWorkerIds.includes(id));
-        } else {
-            const newSelections = new Set([...currentIds, ...availableWorkerIds]);
-            currentOverride.employeeIds = Array.from(newSelections);
-        }
-
-        updatedOverrides[overrideIndex] = currentOverride;
-        policy.overrides = updatedOverrides;
-        updatedPolicy[policyIndex] = policy;
-        const updatedSettings = { ...settings, leavePolicy: updatedPolicy };
-        setSettings(updatedSettings);
-        checkForChanges(updatedSettings);
-    };
 
     const handleAddLeave = () => {
         const newLeave = {
             type: `custom_${Date.now()}`,
             label: 'New Leave Type',
             defaultDays: 0,
-            overrides: []
+            scope: 'all',
+            assignedEmployees: []
         };
         const updatedSettings = {
             ...settings,
@@ -600,24 +507,25 @@ const Settings = () => {
         setHasChanges(false);
     };
 
-    // Custom toggle component
+    // Custom toggle component - Guaranteed Pill Shape using Inline Styles
     const CustomToggle = ({ checked, onChange, disabled = false }) => (
         <button
             type="button"
-            onClick={onChange}
+            role="switch"
+            aria-checked={checked}
             disabled={disabled}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 ${checked ? 'bg-black' : 'bg-gray-200'
-                } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+            onClick={(e) => { e.preventDefault(); if (!disabled) onChange(); }}
+            className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-slate-900 focus:ring-offset-2 ${checked ? 'bg-slate-900' : 'bg-slate-200'} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
             <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-lg transition-transform ${checked ? 'translate-x-6' : 'translate-x-1'
-                    }`}
+                aria-hidden="true"
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${checked ? 'translate-x-5' : 'translate-x-0'}`}
             />
         </button>
     );
 
     useEffect(() => {
-        if (subdomain && subdomain !== 'main') {
+        if (subdomain) {
             fetchSettings();
         } else {
             setLoading(false);
@@ -627,893 +535,594 @@ const Settings = () => {
 
     if (loading) {
         return (
-            <div className="flex justify-center items-center min-h-64">
+            <div className="flex justify-center items-center min-h-[60vh]">
                 <Spinner size="lg" />
             </div>
         );
     }
 
-
-
     return (
-        <div className="min-h-screen bg-gray-50">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                {/* Header */}
-                <div className="mb-8">
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                        <div className="mb-4 sm:mb-0">
-                            <h1 className="text-3xl font-bold text-gray-900 flex items-center">
-                                <FiSettings className="mr-3 text-black" />
-                                Application Settings
-                            </h1>
-                            <p className="mt-2 text-gray-600">
-                                Configure your application preferences and general settings
-                            </p>
-                        </div>
-                        <div className="flex space-x-3">
-                            <Button
-                                onClick={handleReset}
-                                variant="secondary"
-                                disabled={!hasChanges || saving}
-                                className="flex items-center"
-                            >
-                                <FiRefreshCw className="mr-2 h-4 w-4" />
-                                Reset Changes
-                            </Button>
-                            <Button
-                                onClick={handleSaveSettings}
-                                variant="primary"
-                                disabled={!hasChanges || saving}
-                                className="flex items-center"
-                            >
-                                {saving ? (
-                                    <Spinner size="sm" className="mr-2" />
-                                ) : (
-                                    <FiSave className="mr-2 h-4 w-4" />
-                                )}
-                                Update Settings
-                            </Button>
-                        </div>
+        <div className="min-h-screen bg-transparent pb-20 font-poppins">
+            <div className="max-w-full">
+                {/* Header Section */}
+                <div className="page-header mb-10">
+                    <div>
+                        <h1 className="text-3xl font-semibold text-slate-900 tracking-tight flex items-center gap-3 mb-0">
+                            <FiSettings className="text-slate-500" />
+                            Settings & Preferences
+                        </h1>
+                        <p className="text-sm text-slate-500 mt-2">
+                            Manage organization preferences, policies, and system defaults.
+                        </p>
                     </div>
 
-                    {/* Unsaved changes alert */}
-                    {hasChanges && (
-                        <div className="mt-6 bg-amber-50 border border-amber-200 rounded-lg p-4">
-                            <div className="flex">
-                                <div className="flex-shrink-0">
-                                    <FiAlertTriangle className="h-5 w-5 text-amber-400" />
-                                </div>
-                                <div className="ml-3">
-                                    <h3 className="text-sm font-medium text-amber-800">
-                                        Unsaved Changes Detected
-                                    </h3>
-                                    <div className="mt-2 text-sm text-amber-700">
-                                        <p>You have unsaved changes. Click "Update Settings" to save them or "Reset Changes" to discard them.</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
+                    <div className="header-actions">
+                        <Button
+                            onClick={handleReset}
+                            variant="outline"
+                            disabled={!hasChanges || saving}
+                            className="h-10 px-5 rounded-lg border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors text-sm font-medium"
+                        >
+                            <FiRefreshCw className={`mr-2 h-4 w-4 ${saving ? 'animate-spin' : ''}`} />
+                            Discard Changes
+                        </Button>
+                        <Button
+                            onClick={handleSaveSettings}
+                            disabled={!hasChanges || saving}
+                            className="h-10 px-6 rounded-lg bg-slate-900 text-white hover:bg-slate-800 transition-colors shadow-sm flex items-center text-sm font-medium disabled:opacity-50"
+                        >
+                            {saving ? (
+                                <Spinner size="sm" className="mr-2 border-white/20 border-t-white" />
+                            ) : (
+                                <FiSave className="mr-2 h-4 w-4" />
+                            )}
+                            Save Settings
+                        </Button>
+                    </div>
                 </div>
 
+                {hasChanges && (
+                    <div className="mb-8 p-4 bg-amber-50 rounded-xl border border-amber-200/50 flex items-start gap-4">
+                        <FiAlertTriangle className="h-5 w-5 text-amber-500 mt-0.5 shrink-0" />
+                        <div>
+                            <h3 className="text-sm font-semibold text-amber-800">Unsaved Changes</h3>
+                            <p className="text-sm text-amber-700 mt-1">You have modified settings that haven't been saved yet. Click "Save Settings" to apply them.</p>
+                        </div>
+                    </div>
+                )}
 
-
-                {/* Additional Settings Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                    {/* Localization Settings */}
-                    <Card className="hover:shadow-lg transition-shadow duration-200">
-                        <div className="h-2 bg-gradient-to-r from-blue-400 to-indigo-400" />
-                        <div className="p-6">
-                            <h3 className="text-lg font-semibold mb-6 flex items-center text-gray-900">
-                                <div className="p-2 bg-blue-100 rounded-lg mr-3">
-                                    <FiGlobe className="h-5 w-5 text-blue-600" />
+                <div className="space-y-4">
+                    {/* Localization + Attendance + Payroll — 3 columns */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {/* Localization */}
+                        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+                            <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100">
+                                    <FiGlobe className="text-slate-500 h-4 w-4" />
                                 </div>
-                                Localization Settings
-                            </h3>
-
-                            <div className="space-y-4">
-                                <div className="space-y-2">
-                                    <label className="block text-sm font-medium text-gray-700">Country</label>
-                                    <select
-                                        value={settings.localization?.country}
-                                        onChange={(e) => updateCountry(e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-gray-900 focus:border-gray-900 bg-white"
-                                    >
-                                        {Object.keys(countryCurrencyMap).map(country => (
-                                            <option key={country} value={country}>{country}</option>
-                                        ))}
-                                    </select>
+                                <div>
+                                    <h2 className="text-base font-semibold text-slate-900">Localization</h2>
+                                    <p className="text-xs text-slate-500 mt-0.5">Regional and currency config.</p>
                                 </div>
+                            </div>
+                            <div className="p-5 flex-1">
+                                <label className="block text-sm font-medium text-slate-700 mb-2">Primary Country</label>
+                                <select
+                                    value={settings.localization?.country}
+                                    onChange={(e) => updateCountry(e.target.value)}
+                                    className="w-full h-10 px-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 bg-white text-sm outline-none transition-all appearance-none cursor-pointer"
+                                    style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7' /%3E%3C/svg%3E")`, backgroundPosition: 'right 0.75rem center', backgroundSize: '1.25rem', backgroundRepeat: 'no-repeat' }}
+                                >
+                                    {Object.keys(countryCurrencyMap).map(country => (
+                                        <option key={country} value={country}>{country}</option>
+                                    ))}
+                                </select>
 
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-1">
-                                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Currency</p>
-                                        <p className="text-sm font-semibold text-gray-900">{settings.localization?.currency}</p>
+                                <div className="mt-4 flex gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100/50">
+                                    <div className="flex-1">
+                                        <p className="text-xs font-medium text-slate-500 mb-1">Base Currency</p>
+                                        <p className="text-sm font-semibold text-slate-900">{settings.localization?.currency}</p>
                                     </div>
-                                    <div className="space-y-1">
-                                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Symbol</p>
-                                        <p className="text-sm font-semibold text-gray-900">{settings.localization?.currencySymbol}</p>
+                                    <div className="w-px bg-slate-200/60"></div>
+                                    <div className="flex-1">
+                                        <p className="text-xs font-medium text-slate-500 mb-1">Pricing Symbol</p>
+                                        <p className="text-sm font-semibold text-slate-900">{settings.localization?.currencySymbol}</p>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </Card>
-
-
-                    {/* Attendance Settings */}
-                    <Card className="hover:shadow-lg transition-shadow duration-200">
-                        <div className="h-2 bg-gradient-to-r from-indigo-400 to-purple-400" />
-                        <div className="p-6">
-                            <h3 className="text-lg font-semibold mb-6 flex items-center text-gray-900">
-                                <div className="p-2 bg-indigo-100 rounded-lg mr-3">
-                                    <FiUser className="h-5 w-5 text-indigo-600" />
+                        {/* Attendance Controls */}
+                        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+                            <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100">
+                                    <FiClock className="text-slate-500 h-4 w-4" />
                                 </div>
-                                Attendance Settings
-                            </h3>
-
-                            <div className="space-y-4">
+                                <div>
+                                    <h2 className="text-base font-semibold text-slate-900">Attendance Policies</h2>
+                                </div>
+                            </div>
+                            <div className="p-5 flex-1 space-y-4">
                                 <div className="flex items-center justify-between">
-                                    <div>
-                                        <label className="text-sm font-medium text-gray-700">Consider Overtime</label>
-                                        <p className="text-xs text-gray-500">Include overtime in calculations</p>
+                                    <div className="pr-4">
+                                        <label className="text-sm font-medium text-slate-900 block">Consider Overtime</label>
+                                        <p className="text-xs text-slate-500 mt-1">Include overtime in calculations</p>
                                     </div>
                                     <CustomToggle
                                         checked={settings.considerOvertime}
-                                        onChange={() => handleInputChange({
-                                            target: {
-                                                name: 'considerOvertime',
-                                                type: 'checkbox',
-                                                checked: !settings.considerOvertime
-                                            }
-                                        })}
+                                        onChange={() => handleInputChange({ target: { name: 'considerOvertime', type: 'checkbox', checked: !settings.considerOvertime } })}
                                     />
                                 </div>
-
+                                <div className="h-px bg-slate-100"></div>
                                 <div className="flex items-center justify-between">
-                                    <div>
-                                        <label className="text-sm font-medium text-gray-700">Salary Deduction</label>
-                                        <p className="text-xs text-gray-500">Enable salary deductions for breaks</p>
-                                    </div>
-                                    <CustomToggle
-                                        checked={settings.deductSalary}
-                                        onChange={() => handleInputChange({
-                                            target: {
-                                                name: 'deductSalary',
-                                                type: 'checkbox',
-                                                checked: !settings.deductSalary
-                                            }
-                                        })}
-                                    />
-                                </div>
-
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <label className="text-sm font-medium text-gray-700">Deduct Late Minutes</label>
-                                        <p className="text-xs text-gray-500">Automatically deduct salary for late arrivals</p>
+                                    <div className="pr-4">
+                                        <label className="text-sm font-medium text-slate-900 block">Deduct Late Minutes</label>
+                                        <p className="text-xs text-slate-500 mt-1">Automatically deduct salary for late arrivals</p>
                                     </div>
                                     <CustomToggle
                                         checked={settings.deductLateMinutes}
-                                        onChange={() => handleInputChange({
-                                            target: {
-                                                name: 'deductLateMinutes',
-                                                type: 'checkbox',
-                                                checked: !settings.deductLateMinutes
-                                            }
-                                        })}
+                                        onChange={() => handleInputChange({ target: { name: 'deductLateMinutes', type: 'checkbox', checked: !settings.deductLateMinutes } })}
                                     />
                                 </div>
                             </div>
                         </div>
-                    </Card>
-                </div>
 
-                {/* Location Settings */}
-                <Card className="mb-8 hover:shadow-lg transition-shadow duration-200">
-                    <div className="h-2 bg-gradient-to-r from-teal-400 to-cyan-400" />
-                    <div className="p-6">
-                        <h3 className="text-lg font-semibold mb-6 flex items-center text-gray-900">
-                            <div className="p-2 bg-teal-100 rounded-lg mr-3">
-                                <FiMapPin className="h-5 w-5 text-teal-600" />
-                            </div>
-                            Location Settings
-                        </h3>
-
-                        <div className="space-y-6">
-                            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                                <div>
-                                    <label className="text-sm font-medium text-gray-700">Enable Location Restriction</label>
-                                    <p className="text-xs text-gray-500 mt-1">
-                                        Restrict attendance to a specific location
-                                    </p>
+                        {/* Financial Tools */}
+                        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+                            <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100">
+                                    <FiDollarSign className="text-slate-500 h-4 w-4" />
                                 </div>
+                                <div>
+                                    <h2 className="text-base font-semibold text-slate-900">Payroll Rules</h2>
+                                </div>
+                            </div>
+                            <div className="p-5 flex-1 space-y-4">
+                                <div className="flex items-center justify-between mb-2">
+                                    <div className="pr-4">
+                                        <label className="text-sm font-medium text-slate-900 block">Break Deductions</label>
+                                        <p className="text-xs text-slate-500 mt-1">Enable salary deductions for breaks</p>
+                                    </div>
+                                    <CustomToggle
+                                        checked={settings.deductSalary}
+                                        onChange={() => handleInputChange({ target: { name: 'deductSalary', type: 'checkbox', checked: !settings.deductSalary } })}
+                                    />
+                                </div>
+                                <div className="h-px bg-slate-100"></div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wider">Permission Time (Min)</label>
+                                        <input
+                                            type="number"
+                                            name="permissionTimeMinutes"
+                                            value={settings.permissionTimeMinutes}
+                                            onChange={handleInputChange}
+                                            className="w-full h-11 px-4 border border-slate-200 rounded-xl focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 text-sm outline-none transition-all font-medium"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wider">Break Deduction Target</label>
+                                        <input
+                                            type="number"
+                                            name="salaryDeductionPerBreak"
+                                            value={settings.salaryDeductionPerBreak}
+                                            onChange={handleInputChange}
+                                            className="w-full h-11 px-4 border border-slate-200 rounded-xl focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 text-sm outline-none transition-all font-medium"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Geofencing */}
+                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                        <div className="px-5 py-4 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100">
+                                    <FiMapPin className="text-slate-500 h-4 w-4" />
+                                </div>
+                                <div>
+                                    <h2 className="text-base font-semibold text-slate-900">Location Restrictions</h2>
+                                    <p className="text-xs text-slate-500 mt-0.5">Limit attendance to specific physical boundaries.</p>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <span className={`text-sm font-medium ${settings.attendanceLocation.enabled ? 'text-slate-900' : 'text-slate-500'}`}>
+                                    {settings.attendanceLocation.enabled ? 'Active' : 'Inactive'}
+                                </span>
                                 <CustomToggle
                                     checked={settings.attendanceLocation.enabled}
                                     onChange={() => handleLocationChange('enabled', !settings.attendanceLocation.enabled)}
                                 />
                             </div>
+                        </div>
 
-                            {settings.attendanceLocation.enabled && (
-                                <>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div className="space-y-2">
-                                            <label className="block text-sm font-medium text-gray-700">
-                                                Latitude
-                                            </label>
+                        {settings.attendanceLocation.enabled && (
+                            <div className="p-5 bg-slate-50/50">
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+                                    {[
+                                        { label: 'Latitude', name: 'latitude' },
+                                        { label: 'Longitude', name: 'longitude' },
+                                        { label: 'Radius (Meters)', name: 'radius' }
+                                    ].map((field) => (
+                                        <div key={field.name}>
+                                            <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wider">{field.label}</label>
                                             <input
                                                 type="number"
-                                                step="any"
-                                                value={settings.attendanceLocation.latitude}
-                                                onChange={(e) => handleLocationChange('latitude', parseFloat(e.target.value) || 0)}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-gray-900 focus:border-gray-900"
+                                                value={settings.attendanceLocation[field.name]}
+                                                onChange={(e) => handleLocationChange(field.name, Number(e.target.value))}
+                                                className="w-full h-11 px-4 border border-slate-200 rounded-xl focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 bg-white text-sm outline-none transition-all font-medium"
                                             />
                                         </div>
-
-                                        <div className="space-y-2">
-                                            <label className="block text-sm font-medium text-gray-700">
-                                                Longitude
-                                            </label>
-                                            <input
-                                                type="number"
-                                                step="any"
-                                                value={settings.attendanceLocation.longitude}
-                                                onChange={(e) => handleLocationChange('longitude', parseFloat(e.target.value) || 0)}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-gray-900 focus:border-gray-900"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-gray-700">
-                                            Radius (meters)
-                                        </label>
-                                        <input
-                                            type="number"
-                                            min="10"
-                                            max="1000"
-                                            value={settings.attendanceLocation.radius}
-                                            onChange={(e) => handleLocationChange('radius', parseInt(e.target.value) || 100)}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-gray-900 focus:border-gray-900"
-                                        />
-                                        <p className="text-xs text-gray-500">
-                                            Workers must be within this radius to mark attendance (10-1000 meters)
-                                        </p>
-                                    </div>
-
-                                    <div className="pt-4">
+                                    ))}
+                                    <div>
                                         <Button
                                             onClick={handleCaptureLocation}
-                                            variant="secondary"
-                                            className="flex items-center"
+                                            className="w-full h-11 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl font-medium flex items-center justify-center transition-colors text-sm shadow-sm"
                                         >
-                                            <FiMapPin className="mr-2 h-4 w-4" />
-                                            Capture Current Location
+                                            <FiMapPin className="mr-2 h-4 w-4 text-slate-400" />
+                                            Capture Location
                                         </Button>
-                                        <p className="text-xs text-gray-500 mt-2">
-                                            Your browser will ask for location permission.{' '}
-                                            {currentLocation ? (
-                                                <span>
-                                                    Current location: {currentLocation.latitude.toFixed(6)}, {currentLocation.longitude.toFixed(6)}
-                                                    {currentLocation.accuracy && ` (±${Math.round(currentLocation.accuracy)}m)`}
-                                                </span>
-                                            ) : (
-                                                <span>
-                                                    Location set to: {settings.attendanceLocation.latitude.toFixed(6)}, {settings.attendanceLocation.longitude.toFixed(6)}
-                                                </span>
-                                            )}
-                                        </p>
                                     </div>
-
-                                    <div className="pt-2 bg-blue-50 p-3 rounded-lg">
-                                        <p className="text-xs text-blue-700">
-                                            <strong>Tip:</strong> Enable location restriction to ensure workers can only mark attendance when they are physically present at the designated location.
-                                        </p>
-                                    </div>
-                                </>
-                            )}
-                        </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
-                </Card>
 
-                {/* Leave Configuration */}
-                <Card className="mb-8 hover:shadow-lg transition-shadow duration-200">
-                    <div className="h-2 bg-gradient-to-r from-orange-400 to-red-400" />
-                    <div className="p-6">
-                        <h3 className="text-lg font-semibold mb-6 flex items-center text-gray-900">
-                            <div className="p-2 bg-orange-100 rounded-lg mr-3">
-                                <FiUser className="h-5 w-5 text-orange-600" />
-                            </div>
-                            Leave Settings
-                        </h3>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="space-y-2">
-                                <label className="block text-sm font-medium text-gray-700">
-                                    Leave Eligibility After Joining
-                                </label>
-                                <input
-                                    type="number"
-                                    name="leaveEligibilityValue"
-                                    value={settings.leaveEligibilityValue}
-                                    onChange={handleInputChange}
-                                    min="0"
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-gray-900 focus:border-gray-900"
-                                />
-                                <p className="text-xs text-gray-500">
-                                    Number of days or months before eligible
-                                </p>
-                            </div>
-
-                            <div className="space-y-2">
-                                <label className="block text-sm font-medium text-gray-700">
-                                    Eligibility Unit
-                                </label>
-                                <select
-                                    name="leaveEligibilityUnit"
-                                    value={settings.leaveEligibilityUnit}
-                                    onChange={handleInputChange}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-gray-900 focus:border-gray-900"
-                                >
-                                    <option value="months">Months</option>
-                                    <option value="days">Days</option>
-                                </select>
-                                <p className="text-xs text-gray-500">
-                                    Unit for eligibility duration
-                                </p>
-                            </div>
-                        </div>
-
-                        <div className="mt-8 pt-6 border-t border-gray-100">
-                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
+                    {/* Leave Policy Table */}
+                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                        <div className="px-5 py-4 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div>
                                 <div className="flex items-center gap-3">
-                                    <h4 className="text-md font-semibold text-gray-800">Leave Policy Configuration</h4>
-                                    {hasChanges && (
-                                        <span className="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded flex items-center gap-1 shadow-sm">
-                                            <FiAlertTriangle size={10} /> Unsaved changes
-                                        </span>
-                                    )}
+                                    <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100">
+                                        <FiUser className="text-slate-500 h-4 w-4" />
+                                    </div>
+                                    <h2 className="text-base font-semibold text-slate-900">Leave Policies</h2>
+                                </div>
+                                <p className="text-sm text-slate-500 mt-2">Configure leave types and employee eligibility.</p>
+                            </div>
+                            <div className="flex flex-wrap items-center gap-4">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-sm font-medium text-slate-600">Eligibility Period:</span>
+                                    <input
+                                        type="number"
+                                        value={settings.leaveEligibilityValue}
+                                        onChange={(e) => handleInputChange({ target: { name: 'leaveEligibilityValue', value: Number(e.target.value) } })}
+                                        className="w-16 h-9 px-2 text-center border border-slate-200 rounded-md focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 outline-none text-sm font-medium"
+                                    />
+                                    <select
+                                        value={settings.leaveEligibilityUnit}
+                                        onChange={(e) => handleInputChange({ target: { name: 'leaveEligibilityUnit', value: e.target.value } })}
+                                        className="h-9 px-3 py-1 border border-slate-200 rounded-md focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 bg-white text-sm outline-none font-medium appearance-none"
+                                        style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7' /%3E%3C/svg%3E")`, backgroundPosition: 'right 0.5rem center', backgroundSize: '1rem', backgroundRepeat: 'no-repeat', paddingRight: '2rem' }}
+                                    >
+                                        <option value="months">Months</option>
+                                        <option value="days">Days</option>
+                                        <option value="years">Years</option>
+                                    </select>
                                 </div>
                                 <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
                                     onClick={handleAddLeave}
-                                    className="flex items-center gap-1 shadow-sm border border-gray-300 bg-white hover:bg-gray-50 text-gray-700"
+                                    variant="outline"
+                                    className="h-9 px-4 rounded-md border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors text-sm font-medium flex items-center shadow-sm"
                                 >
-                                    <FiPlus /> Add Leave Type
+                                    <FiPlus className="mr-1.5 h-3.5 w-3.5" /> New Category
                                 </Button>
                             </div>
+                        </div>
 
-                            <div className="overflow-x-auto rounded-lg border border-gray-200 shadow-sm bg-white">
-                                <table className="min-w-full divide-y divide-gray-200">
-                                    <thead className="bg-gray-50 sticky top-0 z-10">
-                                        <tr>
-                                            <th scope="col" className="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-1/4">Leave Type</th>
-                                            <th scope="col" className="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-24">Global Default</th>
-                                            <th scope="col" className="px-5 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider w-24">Doc Required</th>
-                                            <th scope="col" className="px-5 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Overrides</th>
-                                            <th scope="col" className="px-2 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider w-12"></th>
-                                        </tr>
-                                    </thead>
-                                    {Array.isArray(settings.leavePolicy) && settings.leavePolicy.map((leave, index) => (
-                                        <tbody key={leave.type || index} className="bg-white divide-y divide-gray-200 border-b-8 border-gray-50">
-                                            <tr className="hover:bg-blue-50/20 transition-colors duration-150 group">
-                                                <td className="px-5 py-3 align-top">
-                                                    <div className="pt-1 flex flex-col">
-                                                        <input
-                                                            type="text"
-                                                            value={leave.label || ''}
-                                                            onChange={(e) => handleLeavePolicyChange(index, 'label', e.target.value)}
-                                                            className="w-full bg-transparent border border-transparent focus:border-blue-500 hover:border-gray-300 focus:bg-white focus:ring-0 p-1.5 font-semibold text-gray-900 shadow-sm rounded-sm transition-all md:text-sm text-base placeholder-gray-300"
-                                                            placeholder="Leave name..."
-                                                        />
-                                                        {leave.overrides && leave.overrides.length > 0 && (
-                                                            <span className="text-[10px] font-medium text-blue-600 bg-blue-50 uppercase tracking-wider px-2 py-0.5 rounded-full mt-1.5 self-start shadow-sm border border-blue-100">
-                                                                {leave.overrides.length} Custom Rule(s) Active
-                                                            </span>
-                                                        )}
-                                                    </div>
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left border-collapse min-w-[800px]">
+                                <thead>
+                                    <tr className="bg-slate-50/50 border-b border-slate-200">
+                                        <th className="px-8 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Policy Name</th>
+                                        <th className="px-4 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Annual Quota</th>
+                                        <th className="px-4 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">Docs Reg.</th>
+                                        <th className="px-4 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">Scope</th>
+                                        <th className="px-8 py-3.5 w-16"></th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100">
+                                    {settings.leavePolicy.map((leave, index) => (
+                                        <Fragment key={leave.type || index}>
+                                            <tr className="hover:bg-slate-50/30 transition-colors group">
+                                                <td className="px-8 py-4">
+                                                    <input
+                                                        type="text"
+                                                        value={leave.label || ''}
+                                                        onChange={(e) => handleLeavePolicyChange(index, 'label', e.target.value)}
+                                                        className="w-full bg-transparent border border-transparent hover:border-slate-200 focus:border-slate-900 focus:ring-0 px-2 py-1.5 rounded-md text-sm font-medium text-slate-900 transition-all outline-none"
+                                                        placeholder="Leave name..."
+                                                    />
                                                 </td>
-                                                <td className="px-5 py-3 align-top">
-                                                    <div className="relative flex items-center pt-1 w-full max-w-[120px]">
+                                                <td className="px-4 py-4">
+                                                    <div className="flex items-center gap-2">
                                                         <input
                                                             type="number"
                                                             value={leave.defaultDays ?? 0}
                                                             onChange={(e) => handleLeavePolicyChange(index, 'defaultDays', Number(e.target.value))}
-                                                            min="0"
-                                                            className="w-16 px-2 py-1.5 text-sm border border-gray-300 rounded shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                                            className="w-16 h-9 text-center border border-slate-200 rounded-md focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 transition-all text-sm font-medium outline-none"
                                                         />
-                                                        <span className="ml-1.5 text-xs font-medium text-gray-500">days</span>
+                                                        <span className="text-xs text-slate-500">days</span>
                                                     </div>
                                                 </td>
-                                                <td className="px-5 py-3 align-top text-center">
-                                                    <div className="pt-1 flex justify-center">
+                                                <td className="px-4 py-4">
+                                                    <div className="flex justify-center">
                                                         <CustomToggle
                                                             checked={leave.documentRequired || false}
                                                             onChange={() => handleLeavePolicyChange(index, 'documentRequired', !leave.documentRequired)}
                                                         />
                                                     </div>
                                                 </td>
-                                                <td className="px-5 py-3 align-top text-center">
-                                                    <div className="pt-1">
-                                                        <Button
-                                                            type="button"
-                                                            variant="outline"
-                                                            size="sm"
-                                                            onClick={() => handleAddOverride(index)}
-                                                            className="text-xs bg-white border border-gray-300 shadow-sm hover:bg-gray-50 text-gray-800 font-semibold px-3 py-1.5 mx-auto flex items-center justify-center transition-all focus:ring-2 focus:ring-blue-100"
+                                                <td className="px-4 py-4">
+                                                    <div className="flex flex-col items-center gap-1.5 relative">
+                                                        <select
+                                                            value={leave.scope || 'all'}
+                                                            onChange={(e) => handleLeavePolicyChange(index, 'scope', e.target.value)}
+                                                            className="h-9 px-3 border border-slate-200 rounded-md bg-transparent focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 text-sm font-medium outline-none appearance-none min-w-[140px]"
+                                                            style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7' /%3E%3C/svg%3E")`, backgroundPosition: 'right 0.5rem center', backgroundSize: '1rem', backgroundRepeat: 'no-repeat', paddingRight: '2rem' }}
                                                         >
-                                                            <FiPlus className="mr-1.5" /> Overrides
-                                                        </Button>
+                                                            <option value="all">All Employees</option>
+                                                            <option value="specific">Specific Assign</option>
+                                                        </select>
+                                                        {leave.scope === 'specific' && (
+                                                            <span className="text-[10px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded absolute -bottom-5">
+                                                                {(leave.assignedEmployees || []).length} Assigned
+                                                            </span>
+                                                        )}
                                                     </div>
                                                 </td>
-                                                <td className="px-2 py-3 align-top text-right">
-                                                    <div className="pt-1 pr-2 flex justify-end">
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => handleRemoveLeave(index)}
-                                                            className="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all p-1.5 rounded hover:bg-red-50 focus:opacity-100 ring-1 ring-transparent hover:ring-red-100"
-                                                            title="Delete Leave Type"
-                                                        >
-                                                            <FiTrash2 size={16} />
-                                                        </button>
-                                                    </div>
+                                                <td className="px-8 py-4 text-right">
+                                                    <button
+                                                        onClick={() => handleRemoveLeave(index)}
+                                                        className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors opacity-0 group-hover:opacity-100"
+                                                        title="Delete category"
+                                                    >
+                                                        <FiTrash2 size={16} />
+                                                    </button>
                                                 </td>
                                             </tr>
-                                            {/* Expandable Section for Overrides */}
-                                            {leave.overrides && leave.overrides.length > 0 && (
+                                            {leave.scope === 'specific' && (
                                                 <tr>
-                                                    <td colSpan="4" className="bg-gray-50/50 px-5 py-4 border-b border-gray-200">
-                                                        <div className="pl-4 border-l-2 border-blue-400 space-y-3">
-                                                            <h5 className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">Policy Overrides</h5>
-                                                            {leave.overrides.map((override, oIdx) => (
-                                                                <div key={oIdx} className="flex flex-col sm:flex-row items-start gap-5 p-4 bg-white rounded-lg border border-gray-200 shadow-sm relative pr-24 hover:border-blue-200 transition-colors">
-                                                                    <button
-                                                                        type="button"
-                                                                        onClick={() => handleRemoveOverride(index, oIdx)}
-                                                                        className="absolute top-4 right-4 text-red-500 hover:text-red-700 hover:bg-red-50 text-xs font-semibold px-2 py-1 rounded border border-transparent hover:border-red-200 flex items-center transition-all bg-white"
+                                                    <td colSpan="5" className="bg-slate-50 px-8 py-6 border-b border-slate-100 shadow-inner">
+                                                        <div className="flex flex-col gap-4">
+                                                            <div className="flex items-center justify-between">
+                                                                <h5 className="text-xs font-semibold text-slate-700 uppercase tracking-widest pl-1">Assign Personnel to {leave.label}</h5>
+                                                                <div className="flex gap-2">
+                                                                    <button 
+                                                                        onClick={() => handleLeavePolicyChange(index, 'assignedEmployees', workers.map(w => w._id))}
+                                                                        className="text-xs font-semibold text-slate-600 hover:text-slate-900 border border-slate-200 bg-white px-2 py-1 rounded"
                                                                     >
-                                                                        <FiTrash2 size={13} className="mr-1" /> Remove
+                                                                        Select all
                                                                     </button>
-
-                                                                    <div className="flex-1 w-full sm:w-auto">
-                                                                        <div className="w-full flex justify-between items-center mb-1.5">
-                                                                            <label className="text-xs font-bold text-gray-700">Override Group {oIdx + 1}: Select Employees</label>
-                                                                        </div>
-
-                                                                        <div className="w-full border border-gray-300 rounded shadow-sm bg-white flex flex-col">
-                                                                            <div className="p-2 border-b border-gray-100 bg-gray-50 flex items-center">
-                                                                                <input
-                                                                                    type="text"
-                                                                                    placeholder="Search employees..."
-                                                                                    value={overrideSearch[`${index}-${oIdx}`] || ''}
-                                                                                    onChange={(e) => setOverrideSearch({ ...overrideSearch, [`${index}-${oIdx}`]: e.target.value })}
-                                                                                    className="w-full text-xs px-2 py-1.5 border border-gray-200 rounded focus:ring-blue-500 focus:border-blue-500 outline-none"
-                                                                                />
-                                                                            </div>
-
-                                                                            <div className="min-h-[120px] max-h-[180px] overflow-y-auto w-full custom-scrollbar flex flex-col p-1.5 space-y-0.5">
-                                                                                {(() => {
-                                                                                    const searchStr = (overrideSearch[`${index}-${oIdx}`] || '').toLowerCase();
-                                                                                    const filteredWorkers = workers.filter(w =>
-                                                                                        w.name.toLowerCase().includes(searchStr) ||
-                                                                                        (w.employeeId && w.employeeId.toLowerCase().includes(searchStr)) ||
-                                                                                        (w.username && w.username.toLowerCase().includes(searchStr))
-                                                                                    );
-                                                                                    return filteredWorkers.length > 0 ? (
-                                                                                        <Fragment>
-                                                                                            <div className="flex justify-between items-center px-1 pb-1 mb-1 border-b border-gray-100">
-                                                                                                <span className="text-[10px] uppercase font-semibold text-gray-400">
-                                                                                                    {override.employeeIds?.length || 0} Selected
-                                                                                                </span>
-                                                                                                <button
-                                                                                                    type="button"
-                                                                                                    onClick={() => toggleAllOverrideEmployees(index, oIdx, filteredWorkers)}
-                                                                                                    className="text-[10px] font-semibold text-blue-600 hover:text-blue-800 focus:outline-none"
-                                                                                                >
-                                                                                                    Toggle All Visible
-                                                                                                </button>
-                                                                                            </div>
-                                                                                            {filteredWorkers.map(w => {
-                                                                                                const isChecked = override.employeeIds?.includes(w._id);
-                                                                                                const isSelectedElsewhere = leave.overrides.some((otherOverride, otherIdx) =>
-                                                                                                    otherIdx !== oIdx && otherOverride.employeeIds && otherOverride.employeeIds.includes(w._id)
-                                                                                                );
-                                                                                                const isDisabled = isSelectedElsewhere;
-                                                                                                return (
-                                                                                                    <label
-                                                                                                        key={w._id}
-                                                                                                        className={`flex items-center px-2 py-1.5 rounded transition-colors text-xs ${isDisabled ? 'opacity-60 bg-gray-50 cursor-not-allowed' : 'cursor-pointer hover:bg-blue-50'} ${isChecked ? 'bg-blue-50/50' : ''}`}
-                                                                                                    >
-                                                                                                        <input
-                                                                                                            type="checkbox"
-                                                                                                            checked={isChecked}
-                                                                                                            disabled={isDisabled}
-                                                                                                            onChange={() => toggleOverrideEmployee(index, oIdx, w._id)}
-                                                                                                            className="h-3.5 w-3.5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mr-2.5 cursor-pointer disabled:cursor-not-allowed"
-                                                                                                        />
-                                                                                                        <div className="flex-1 min-w-0 flex items-center justify-between">
-                                                                                                            <span className={`block truncate ${isChecked ? 'font-medium text-blue-800' : 'text-gray-700'}`}>
-                                                                                                                {w.name} {w.employeeId ? `(${w.employeeId})` : ''}
-                                                                                                            </span>
-                                                                                                            {isDisabled && (
-                                                                                                                <span className="text-[9px] font-medium text-gray-400 bg-white border border-gray-200 px-1.5 py-0.5 rounded shadow-sm whitespace-nowrap ml-2">
-                                                                                                                    In Use
-                                                                                                                </span>
-                                                                                                            )}
-                                                                                                        </div>
-                                                                                                    </label>
-                                                                                                );
-                                                                                            })}
-                                                                                        </Fragment>
-                                                                                    ) : (
-                                                                                        <span className="text-xs text-gray-500 italic p-3 block text-center">No employees found.</span>
-                                                                                    );
-                                                                                })()}
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div className="w-full sm:w-32">
-                                                                        <label className="block text-xs font-bold text-gray-700 mb-1.5">Override Days</label>
-                                                                        <div className="relative flex items-center">
-                                                                            <input
-                                                                                type="number"
-                                                                                value={override.days ?? 0}
-                                                                                onChange={(e) => handleOverrideChange(index, oIdx, 'days', Number(e.target.value))}
-                                                                                min="0"
-                                                                                className="w-16 px-2.5 py-2 text-sm border border-gray-300 rounded shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                                                                            />
-                                                                            <span className="ml-2 text-sm text-gray-600 font-medium">days</span>
-                                                                        </div>
-                                                                    </div>
+                                                                    <button 
+                                                                        onClick={() => handleLeavePolicyChange(index, 'assignedEmployees', [])}
+                                                                        className="text-xs font-semibold text-slate-600 hover:text-slate-900 border border-slate-200 bg-white px-2 py-1 rounded"
+                                                                    >
+                                                                        Clear all
+                                                                    </button>
                                                                 </div>
-                                                            ))}
+                                                            </div>
+                                                            <div className="flex flex-wrap gap-2 max-h-[160px] overflow-y-auto">
+                                                                {workers.map((worker) => {
+                                                                    const isSelected = (leave.assignedEmployees || []).includes(worker._id);
+                                                                    return (
+                                                                        <button
+                                                                            key={worker._id}
+                                                                            onClick={() => {
+                                                                                const current = leave.assignedEmployees || [];
+                                                                                const updated = isSelected
+                                                                                    ? current.filter(id => id !== worker._id)
+                                                                                    : [...current, worker._id];
+                                                                                handleLeavePolicyChange(index, 'assignedEmployees', updated);
+                                                                            }}
+                                                                            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors border flex items-center gap-2 ${
+                                                                                isSelected
+                                                                                    ? 'bg-slate-900 text-white border-slate-900'
+                                                                                    : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
+                                                                            }`}
+                                                                        >
+                                                                            <img 
+                                                                                src={worker.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(worker.name)}`} 
+                                                                                className="w-4 h-4 rounded-full" 
+                                                                                alt=""
+                                                                            />
+                                                                            {worker.name}
+                                                                        </button>
+                                                                    )
+                                                                })}
+                                                            </div>
                                                         </div>
                                                     </td>
                                                 </tr>
                                             )}
-                                        </tbody>
+                                        </Fragment>
                                     ))}
-                                </table>
-                            </div>
-
-                            {/* Mobile specific hints if needed */}
-                            <div className="md:hidden mt-3 mb-1 text-xs text-center text-gray-400">
-                                Scroll horizontally to view more fields
-                            </div>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
-                </Card>
 
-                {/* Financial Settings */}
-                <Card className="mb-8 hover:shadow-lg transition-shadow duration-200">
-                    <div className="h-2 bg-gradient-to-r from-emerald-400 to-teal-400" />
-                    <div className="p-6">
-                        <h3 className="text-lg font-semibold mb-6 flex items-center text-gray-900">
-                            <div className="p-2 bg-emerald-100 rounded-lg mr-3">
-                                <FiDollarSign className="h-5 w-5 text-emerald-600" />
-                            </div>
-                            Financial Configuration
-                        </h3>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="space-y-2">
-                                <label className="block text-sm font-medium text-gray-700">
-                                    Permission Time (Minutes)
-                                </label>
-                                <input
-                                    type="number"
-                                    name="permissionTimeMinutes"
-                                    value={settings.permissionTimeMinutes}
-                                    onChange={handleInputChange}
-                                    min="0"
-                                    max="60"
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-gray-900 focus:border-gray-900"
-                                />
-                                <p className="text-xs text-gray-500">
-                                    Default break permission time allowed per employee
-                                </p>
-                            </div>
-
-                            <div className="space-y-2">
-                                <label className="block text-sm font-medium text-gray-700">
-                                    Salary Deduction per Break ({settings.localization?.currencySymbol || '₹'})
-                                </label>
-                                <input
-                                    type="number"
-                                    name="salaryDeductionPerBreak"
-                                    value={settings.salaryDeductionPerBreak}
-                                    onChange={handleInputChange}
-                                    min="0"
-                                    step="0.01"
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-gray-900 focus:border-gray-900"
-                                />
-                                <p className="text-xs text-gray-500">
-                                    Amount deducted for each unauthorized break
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </Card>
-
-                {/* Work Schedule Configuration */}
-                <div className="mb-8">
-                    <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
-                        <FiClock className="mr-2 text-gray-600" />
-                        Work Schedule Configuration
-                    </h2>
-
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        {/* Batches Configuration */}
-                        <Card className="hover:shadow-lg transition-shadow duration-200">
-                            <div className="h-2 bg-gradient-to-r from-blue-400 to-indigo-400" />
-                            <div className="p-6">
-                                <div className="flex items-center justify-between mb-6">
-                                    <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                                        <div className="p-2 bg-blue-100 rounded-lg mr-3">
-                                            <FiUser className="h-5 w-5 text-black" />
-                                        </div>
-                                        Work Batches
-                                    </h3>
+                    {/* Operational Limits / Scheduling Grid */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pb-10">
+                        {/* Batches */}
+                        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+                            <div className="px-8 py-6 border-b border-slate-100 flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100">
+                                        <FiClock className="text-slate-500 h-4 w-4" />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-lg font-semibold text-slate-900">Workflow Batches</h2>
+                                    </div>
                                 </div>
-                                {/* Batches List */}
-                                {settings.batches && settings.batches.map((batch, index) => (
-                                    <div key={index} className="batch-item border p-4 mb-4 rounded">
-                                        <div className="flex justify-between items-center mb-3">
-                                            <h4 className="font-semibold">Batch {index + 1}</h4>
-                                            <button
-                                                onClick={() => handleRemoveBatch(index)}
-                                                className="text-red-500 hover:text-red-700"
-                                            >
-                                                Remove
-                                            </button>
-                                        </div>
-                                        {/* Batch Name */}
-                                        <div className="mb-3">
-                                            <label className="block text-sm font-medium mb-1">Batch Name</label>
+                                <Button
+                                    onClick={handleAddBatch}
+                                    variant="outline"
+                                    className="h-8 px-3 rounded-md border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors text-xs font-semibold flex items-center shadow-sm shrink-0"
+                                >
+                                    <FiPlus className="mr-1.5 h-3.5 w-3.5" /> Add Batch
+                                </Button>
+                            </div>
+                            <div className="p-8 space-y-6 bg-slate-50/50 flex-1">
+                                {settings.batches.map((batch, index) => (
+                                    <div key={index} className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm relative group/batch transition-all hover:border-slate-300">
+                                        <button
+                                            onClick={() => handleRemoveBatch(index)}
+                                            className="absolute top-4 right-4 p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors opacity-0 group-hover/batch:opacity-100"
+                                        >
+                                            <FiTrash2 size={16} />
+                                        </button>
+                                        
+                                        <div className="mb-5 pr-8">
+                                            <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wider pl-1">Batch Identifier</label>
                                             <input
                                                 type="text"
                                                 value={batch.batchName}
                                                 onChange={(e) => handleBatchChange(index, 'batchName', e.target.value)}
-                                                className="w-full p-2 border rounded"
-                                                placeholder="Enter batch name"
+                                                className="w-full bg-transparent border-b border-transparent hover:border-slate-200 focus:border-slate-900 focus:ring-0 p-0 text-base font-semibold text-slate-900 outline-none transition-all placeholder-slate-300"
+                                                placeholder="e.g., Morning Shift"
                                             />
                                         </div>
-                                        {/* Working Hours */}
-                                        <div className="grid grid-cols-2 gap-4 mb-3">
+                                        
+                                        <div className="grid grid-cols-2 gap-4 mb-6">
                                             <div>
-                                                <label className="block text-sm font-medium mb-1">From</label>
+                                                <label className="block text-[10px] font-semibold text-slate-500 mb-1 uppercase tracking-wider pl-1">Shift Start</label>
                                                 <input
                                                     type="time"
                                                     value={batch.from}
                                                     onChange={(e) => handleBatchChange(index, 'from', e.target.value)}
-                                                    className="w-full p-2 border rounded"
+                                                    className="w-full h-10 px-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 text-sm font-medium outline-none"
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium mb-1">To</label>
+                                                <label className="block text-[10px] font-semibold text-slate-500 mb-1 uppercase tracking-wider pl-1">Shift End</label>
                                                 <input
                                                     type="time"
                                                     value={batch.to}
                                                     onChange={(e) => handleBatchChange(index, 'to', e.target.value)}
-                                                    className="w-full p-2 border rounded"
+                                                    className="w-full h-10 px-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 text-sm font-medium outline-none"
                                                 />
                                             </div>
                                         </div>
-                                        {/* Lunch Hours */}
-                                        <div className="grid grid-cols-2 gap-4 mb-3">
-                                            <div>
-                                                <label className="block text-sm font-medium mb-1">Lunch From</label>
-                                                <input
-                                                    type="time"
-                                                    value={batch.lunchFrom}
-                                                    onChange={(e) => handleBatchChange(index, 'lunchFrom', e.target.value)}
-                                                    className="w-full p-2 border rounded"
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="block text-sm font-medium mb-1">Lunch To</label>
-                                                <input
-                                                    type="time"
-                                                    value={batch.lunchTo}
-                                                    onChange={(e) => handleBatchChange(index, 'lunchTo', e.target.value)}
-                                                    className="w-full p-2 border rounded"
-                                                />
-                                            </div>
-                                        </div>
-                                        {/* Consider Work at Lunch Toggle */}
-                                        <div className="flex items-center justify-between">
-                                            <div>
-                                                <label className="block text-sm font-medium">Consider Work at Lunch</label>
-                                                <p className="text-xs text-gray-500">Allow employees to work during lunch hours</p>
-                                            </div>
-                                            <label className="switch">
-                                                <input
-                                                    type="checkbox"
+
+                                        <div className="pt-5 border-t border-slate-100">
+                                            <div className="flex items-center justify-between mb-4">
+                                                <div>
+                                                    <span className="text-sm font-medium text-slate-900 block">Lunch Break Rules</span>
+                                                    <span className="text-xs text-slate-500">Apply deductions automatically</span>
+                                                </div>
+                                                <CustomToggle
                                                     checked={batch.isLunchConsider}
-                                                    onChange={(e) => handleBatchChange(index, 'isLunchConsider', e.target.checked)}
+                                                    onChange={() => handleBatchChange(index, 'isLunchConsider', !batch.isLunchConsider)}
                                                 />
-                                                <span className="slider round"></span>
-                                            </label>
+                                            </div>
+
+                                            {batch.isLunchConsider && (
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <div>
+                                                        <label className="block text-[10px] font-semibold text-slate-500 mb-1 uppercase tracking-wider pl-1">Lunch Start</label>
+                                                        <input
+                                                            type="time"
+                                                            value={batch.lunchFrom || '12:00'}
+                                                            onChange={(e) => handleBatchChange(index, 'lunchFrom', e.target.value)}
+                                                            className="w-full h-10 px-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 text-sm font-medium outline-none cursor-pointer"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-[10px] font-semibold text-slate-500 mb-1 uppercase tracking-wider pl-1">Lunch End</label>
+                                                        <input
+                                                            type="time"
+                                                            value={batch.lunchTo || '13:00'}
+                                                            onChange={(e) => handleBatchChange(index, 'lunchTo', e.target.value)}
+                                                            className="w-full h-10 px-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 text-sm font-medium outline-none cursor-pointer"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 ))}
-                                <button
-                                    onClick={handleAddBatch}
-                                    className="bg-gray-900 text-white px-4 py-2 rounded hover:bg-black"
-                                >
-                                    Add New Batch
-                                </button>
                             </div>
-                        </Card>
+                        </div>
 
-                        {/* Intervals Configuration */}
-                        <Card className="hover:shadow-lg transition-shadow duration-200">
-                            <div className="h-2 bg-gradient-to-r from-purple-400 to-pink-400" />
-                            <div className="p-6">
-                                <div className="flex items-center justify-between mb-6">
-                                    <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                                        <div className="p-2 bg-purple-100 rounded-lg mr-3">
-                                            <FiClock className="h-5 w-5 text-gray-900" />
-                                        </div>
-                                        Break Intervals
-                                    </h3>
+                        {/* Intervals */}
+                        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+                            <div className="px-8 py-6 border-b border-slate-100 flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100">
+                                        <FiClock className="text-slate-500 h-4 w-4" />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-lg font-semibold text-slate-900">Break Intervals</h2>
+                                    </div>
                                 </div>
-                                {/* Intervals List */}
-                                {settings.intervals && settings.intervals.map((interval, index) => (
-                                    <div key={index} className="interval-item border p-4 mb-4 rounded">
-                                        <div className="flex justify-between items-center mb-3">
-                                            <h4 className="font-semibold">Interval {index + 1}</h4>
-                                            <button
-                                                onClick={() => handleRemoveInterval(index)}
-                                                className="text-red-500 hover:text-red-700"
-                                            >
-                                                Remove
-                                            </button>
-                                        </div>
-                                        {/* Interval Name */}
-                                        <div className="mb-3">
-                                            <label className="block text-sm font-medium mb-1">Interval Name</label>
+                                <Button
+                                    onClick={handleAddInterval}
+                                    variant="outline"
+                                    className="h-8 px-3 rounded-md border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors text-xs font-semibold flex items-center shadow-sm shrink-0"
+                                >
+                                    <FiPlus className="mr-1.5 h-3.5 w-3.5" /> Add Interval
+                                </Button>
+                            </div>
+                            <div className="p-8 space-y-6 bg-slate-50/50 flex-1">
+                                {settings.intervals.map((interval, index) => (
+                                    <div key={index} className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm relative group/interval transition-all hover:border-slate-300">
+                                        <button
+                                            onClick={() => handleRemoveInterval(index)}
+                                            className="absolute top-4 right-4 p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors opacity-0 group-hover/interval:opacity-100"
+                                        >
+                                            <FiTrash2 size={16} />
+                                        </button>
+                                        
+                                        <div className="mb-5 pr-8">
+                                            <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wider pl-1">Interval Identifier</label>
                                             <input
                                                 type="text"
                                                 value={interval.intervalName}
                                                 onChange={(e) => handleIntervalChange(index, 'intervalName', e.target.value)}
-                                                className="w-full p-2 border rounded"
-                                                placeholder="Enter interval name"
+                                                className="w-full bg-transparent border-b border-transparent hover:border-slate-200 focus:border-slate-900 focus:ring-0 p-0 text-base font-semibold text-slate-900 outline-none transition-all placeholder-slate-300"
+                                                placeholder="e.g., Tea Break"
                                             />
                                         </div>
-                                        {/* Interval Times */}
-                                        <div className="grid grid-cols-2 gap-4 mb-3">
+
+                                        <div className="grid grid-cols-2 gap-4 mb-5">
                                             <div>
-                                                <label className="block text-sm font-medium mb-1">From</label>
+                                                <label className="block text-[10px] font-semibold text-slate-500 mb-1 uppercase tracking-wider pl-1">Pause From</label>
                                                 <input
                                                     type="time"
                                                     value={interval.from}
                                                     onChange={(e) => handleIntervalChange(index, 'from', e.target.value)}
-                                                    className="w-full p-2 border rounded"
+                                                    className="w-full h-10 px-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 text-sm font-medium outline-none"
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium mb-1">To</label>
+                                                <label className="block text-[10px] font-semibold text-slate-500 mb-1 uppercase tracking-wider pl-1">Resume At</label>
                                                 <input
                                                     type="time"
                                                     value={interval.to}
                                                     onChange={(e) => handleIntervalChange(index, 'to', e.target.value)}
-                                                    className="w-full p-2 border rounded"
+                                                    className="w-full h-10 px-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 text-sm font-medium outline-none"
                                                 />
                                             </div>
                                         </div>
-                                        {/* Consider Work at Breaks Toggle */}
-                                        <div className="flex items-center justify-between">
+
+                                        <div className="pt-5 border-t border-slate-100 flex items-center justify-between">
                                             <div>
-                                                <label className="block text-sm font-medium">Consider Work at Breaks</label>
-                                                <p className="text-xs text-gray-500">Allow employees to work during break time</p>
+                                                <span className="text-sm font-medium text-slate-900 block">Exempt from Pay</span>
+                                                <span className="text-xs text-slate-500">Do not pay during this interval</span>
                                             </div>
-                                            <label className="switch">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={interval.isBreakConsider}
-                                                    onChange={(e) => handleIntervalChange(index, 'isBreakConsider', e.target.checked)}
-                                                />
-                                                <span className="slider round"></span>
-                                            </label>
+                                            <CustomToggle
+                                                checked={interval.isBreakConsider}
+                                                onChange={() => handleIntervalChange(index, 'isBreakConsider', !interval.isBreakConsider)}
+                                            />
                                         </div>
                                     </div>
                                 ))}
-                                <button
-                                    onClick={handleAddInterval}
-                                    className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-                                >
-                                    Add New Interval
-                                </button>
-                            </div>
-                        </Card>
-                    </div>
-                </div>
-
-                {/* Settings Summary */}
-                <Card className="bg-gradient-to-br from-gray-50 to-gray-100">
-                    <div className="p-6">
-                        <h3 className="text-lg font-semibold mb-6 text-gray-900">Configuration Summary</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-
-
-                            <div className="bg-white p-4 rounded-lg shadow-sm">
-                                <h4 className="font-medium text-gray-700 mb-3 flex items-center">
-                                    <FiDollarSign className="mr-2 h-4 w-4" />
-                                    Financial Settings
-                                </h4>
-                                <div className="space-y-2 text-sm">
-                                    <div className="flex justify-between">
-                                        <span>Permission Time:</span>
-                                        <span className="font-medium">{settings.permissionTimeMinutes} min</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span>Deduction Amount:</span>
-                                        <span className="font-medium">{formatCurrency(settings.salaryDeductionPerBreak, settings)}</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span>Consider Overtime:</span>
-                                        <span className={settings.considerOvertime ? 'text-green-600 font-medium' : 'text-gray-600'}>
-                                            {settings.considerOvertime ? '✓ Yes' : '✗ No'}
-                                        </span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span>Salary Deduction:</span>
-                                        <span className={settings.deductSalary ? 'text-green-600 font-medium' : 'text-gray-600'}>
-                                            {settings.deductSalary ? '✓ Enabled' : '✗ Disabled'}
-                                        </span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span>Deduct Late Minutes:</span>
-                                        <span className={settings.deductLateMinutes ? 'text-green-600 font-medium' : 'text-gray-600'}>
-                                            {settings.deductLateMinutes ? '✓ Enabled' : '✗ Disabled'}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="bg-white p-4 rounded-lg shadow-sm">
-                                <h4 className="font-medium text-gray-700 mb-3 flex items-center">
-                                    <FiMapPin className="mr-2 h-4 w-4" />
-                                    Location Settings
-                                </h4>
-                                <div className="space-y-2 text-sm">
-                                    <div className="flex justify-between">
-                                        <span>Location Restriction:</span>
-                                        <span className={settings.attendanceLocation.enabled ? 'text-green-600 font-medium' : 'text-gray-600'}>
-                                            {settings.attendanceLocation.enabled ? '✓ Enabled' : '✗ Disabled'}
-                                        </span>
-                                    </div>
-                                    {settings.attendanceLocation.enabled && (
-                                        <>
-                                            <div className="flex justify-between">
-                                                <span>Latitude:</span>
-                                                <span className="font-medium">{settings.attendanceLocation.latitude.toFixed(6)}</span>
-                                            </div>
-                                            <div className="flex justify-between">
-                                                <span>Longitude:</span>
-                                                <span className="font-medium">{settings.attendanceLocation.longitude.toFixed(6)}</span>
-                                            </div>
-                                            {currentLocation && (
-                                                <div className="flex justify-between">
-                                                    <span>Current Location:</span>
-                                                    <span className="font-medium">
-                                                        {currentLocation.latitude.toFixed(6)}, {currentLocation.longitude.toFixed(6)}
-                                                        {currentLocation.accuracy && ` (±${Math.round(currentLocation.accuracy)}m)`}
-                                                    </span>
-                                                </div>
-                                            )}
-                                            <div className="flex justify-between">
-                                                <span>Radius:</span>
-                                                <span className="font-medium">{settings.attendanceLocation.radius}m</span>
-                                            </div>
-                                        </>
-                                    )}
-                                </div>
                             </div>
                         </div>
                     </div>
-                </Card>
+                </div>
             </div>
         </div>
     );

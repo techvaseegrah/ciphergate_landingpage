@@ -61,20 +61,20 @@ const ParallaxImage = ({ scrollYProgress }) => {
     >
       <div className="w-full px-2 sm:px-6">
         <motion.div className="text-center mb-8 md:mb-16">
-          <h2 className="text-xl sm:text-3xl md:text-5xl font-light text-[#111] tracking-tighter md:tracking-widest uppercase mb-4 leading-[1.1]">
+          <h2 className="title-gradient text-xl sm:text-3xl md:text-5xl font-light text-white tracking-tighter md:tracking-widest uppercase mb-4 leading-[1.1]">
             Presence is not performance. <br className="sm:hidden" />
             <span className="text-rose-gold-animate font-medium tracking-tight">We track both.</span>
           </h2>
         </motion.div>
 
         <motion.div
-          className="w-full max-w-6xl bg-white border border-gray-200 p-2 sm:p-6 md:p-10 relative mx-auto"
+          className="w-full max-w-6xl bg-[#000000] border border-[#222] p-2 sm:p-6 md:p-10 relative mx-auto"
           style={{ scale }}
         >
           <div className="grid grid-cols-12 gap-4 sm:gap-8 md:gap-12">
             {/* LEFT SIDEBAR SECTION */}
             <div className="col-span-12 lg:col-span-3 space-y-3 sm:space-y-6">
-              <div className="p-3 sm:p-6 bg-[#fafafa] border border-gray-100 min-h-[90px] sm:min-h-[120px]">
+              <div className="p-3 sm:p-6 bg-[#000000] border border-[#222] min-h-[90px] sm:min-h-[120px]">
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={currentTimezoneIndex}
@@ -85,7 +85,7 @@ const ParallaxImage = ({ scrollYProgress }) => {
                     className="flex flex-col"
                   >
                     <p className="text-[#888] text-[9px] uppercase tracking-[0.2em] font-medium mb-3">{timezones[currentTimezoneIndex].label}</p>
-                    <h2 className="text-xl md:text-3xl font-light text-[#111] tracking-wider">
+                    <h2 className="title-gradient text-xl md:text-3xl font-light text-white tracking-wider">
                       {currentTime.toLocaleTimeString('en-US', {
                         timeZone: timezones[currentTimezoneIndex].timeZone,
                         hour: '2-digit',
@@ -100,30 +100,30 @@ const ParallaxImage = ({ scrollYProgress }) => {
               <div
                 onMouseEnter={() => setIsHoveringTask(true)}
                 onMouseLeave={() => setIsHoveringTask(false)}
-                className="p-3 sm:p-6 bg-white border border-gray-100 relative overflow-hidden cursor-pointer transition-all duration-400 hover:border-[#111] group"
+                className="p-3 sm:p-6 bg-[#000000] border border-[#222] relative overflow-hidden cursor-pointer transition-all duration-400 hover:border-gray-600 group"
                 data-cursor-text="MANAGE TASK"
               >
                 <div className="flex justify-between items-end mb-4">
                   <div>
                     <p className="text-[#888] text-[9px] font-medium uppercase tracking-[0.2em] mb-2">Daily Task</p>
-                    <h3 className="text-2xl sm:text-3xl font-light text-[#111]">12<span className="text-gray-400 text-lg">/15</span></h3>
+                    <h3 className="text-2xl sm:text-3xl font-light text-white">12<span className="text-gray-400 text-lg">/15</span></h3>
                   </div>
-                  <span className="text-[#111] text-xs font-semibold tracking-widest">80%</span>
+                  <span className="text-white text-xs font-semibold tracking-widest">80%</span>
                 </div>
                 <div className="w-full h-[1px] bg-gray-200 overflow-hidden relative">
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: '80%' }}
-                    className="absolute top-0 left-0 h-full bg-[#111]"
+                    className="absolute top-0 left-0 h-full bg-[#000000]"
                   />
                 </div>
-                <p className="text-[9px] text-[#888] mt-4 font-light tracking-[0.1em] uppercase group-hover:text-[#111] transition-colors">Hover to manage</p>
+                <p className="text-[9px] text-[#888] mt-4 font-light tracking-[0.1em] uppercase group-hover:text-white transition-colors">Hover to manage</p>
               </div>
 
               <div
                 onMouseEnter={() => setIsHoveringSalary(true)}
                 onMouseLeave={() => setIsHoveringSalary(false)}
-                className="p-3 sm:p-6 bg-[#111] border border-[#111] relative overflow-hidden group cursor-pointer transition-all duration-400"
+                className="p-3 sm:p-6 bg-[#000000] border border-gray-600 relative overflow-hidden group cursor-pointer transition-all duration-400"
                 data-cursor-text="PAYROLL"
               >
                 <div className="flex justify-between items-start mb-4">
@@ -143,7 +143,7 @@ const ParallaxImage = ({ scrollYProgress }) => {
                     <span className="text-white">75%</span>
                   </div>
                   <div className="w-full h-[1px] bg-gray-800 relative">
-                    <motion.div animate={{ x: ['-100%', '0%'] }} transition={{ duration: 3, repeat: Infinity, ease: "linear" }} className="absolute top-0 left-0 h-full w-full bg-white" />
+                    <motion.div animate={{ x: ['-100%', '0%'] }} transition={{ duration: 3, repeat: Infinity, ease: "linear" }} className="absolute top-0 left-0 h-full w-full bg-[#000000]" />
                   </div>
                   <p className="text-[8px] sm:text-[9px] text-gray-400 font-light tracking-[0.1em] uppercase">Hover to view</p>
                 </div>
@@ -151,15 +151,15 @@ const ParallaxImage = ({ scrollYProgress }) => {
             </div>
 
             {/* RIGHT MAIN TABLE SECTION */}
-            <div className="col-span-12 lg:col-span-9 bg-[#fafafa] border border-gray-200 p-2 sm:p-6 md:p-8 flex flex-col relative overflow-hidden">
+            <div className="col-span-12 lg:col-span-9 bg-[#000000] border border-[#222] p-2 sm:p-6 md:p-8 flex flex-col relative overflow-hidden">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 sm:mb-8">
-                <h4 className="text-[11px] md:text-lg font-light tracking-[0.1em] md:tracking-[0.2em] text-[#111] uppercase">Recent Logs</h4>
+                <h4 className="text-[11px] md:text-lg font-light tracking-[0.1em] md:tracking-[0.2em] text-white uppercase">Recent Logs</h4>
 
                 <div className="flex items-center gap-1.5 sm:gap-4 w-full sm:w-auto">
                   <button
                     onMouseEnter={() => setIsHoveringRFID(true)}
                     onMouseLeave={() => setIsHoveringRFID(false)}
-                    className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 sm:gap-3 bg-white hover:bg-[#111] hover:text-white text-[#111] border border-gray-200 hover:border-[#111] px-2 sm:px-6 py-2.5 sm:py-3 transition-all duration-400 font-medium text-[8px] sm:text-[9px] uppercase tracking-[0.1em] sm:tracking-[0.2em]"
+                    className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 sm:gap-3 bg-[#000000] hover:bg-[#000000] hover:text-white text-white border border-[#222] hover:border-gray-600 px-2 sm:px-6 py-2.5 sm:py-3 transition-all duration-400 font-medium text-[8px] sm:text-[9px] uppercase tracking-[0.1em] sm:tracking-[0.2em]"
                   >
                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="square" strokeLinejoin="miter" strokeWidth="1.5" d="M12 4v16m8-8H4" />
@@ -169,7 +169,7 @@ const ParallaxImage = ({ scrollYProgress }) => {
                   <button
                     onMouseEnter={() => setIsHoveringFace(true)}
                     onMouseLeave={() => setIsHoveringFace(false)}
-                    className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 sm:gap-3 bg-white hover:bg-[#111] hover:text-white text-[#111] border border-gray-200 hover:border-[#111] px-2 sm:px-6 py-2.5 sm:py-3 transition-all duration-400 font-medium text-[8px] sm:text-[9px] uppercase tracking-[0.1em] sm:tracking-[0.2em]"
+                    className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 sm:gap-3 bg-[#000000] hover:bg-[#000000] hover:text-white text-white border border-[#222] hover:border-gray-600 px-2 sm:px-6 py-2.5 sm:py-3 transition-all duration-400 font-medium text-[8px] sm:text-[9px] uppercase tracking-[0.1em] sm:tracking-[0.2em]"
                   >
                     <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M4 5a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-1.586a1 1 0 01-.707-.293l-1.121-1.121A2 2 0 0011.172 3H8.828a2 2 0 00-1.414.586L6.293 4.707A1 1 0 015.586 5H4zm6 9a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
@@ -182,7 +182,7 @@ const ParallaxImage = ({ scrollYProgress }) => {
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="text-[8px] sm:text-[9px] font-medium text-gray-400 tracking-[0.05em] sm:tracking-[0.15em] uppercase border-b border-gray-200">
+                    <tr className="text-[8px] sm:text-[9px] font-medium text-gray-400 tracking-[0.05em] sm:tracking-[0.15em] uppercase border-b border-[#222]">
                       <th className="pb-3 md:pb-4 px-1.5 sm:px-4 font-medium">Name</th>
                       <th className="pb-3 md:pb-4 px-1.5 sm:px-4 font-medium hidden sm:table-cell">ID</th>
                       <th className="pb-3 md:pb-4 px-1.5 sm:px-4 font-medium hidden md:table-cell">Dept</th>
@@ -194,10 +194,10 @@ const ParallaxImage = ({ scrollYProgress }) => {
                   </thead>
                   <tbody>
                     {attendanceLogs.map((log, i) => (
-                      <tr key={i} className="border-b border-gray-100 last:border-0 hover:bg-white transition-colors">
+                      <tr key={i} className="border-b border-[#222] last:border-0 hover:bg-[#000000] transition-colors">
                         <td className="py-2.5 md:py-4 px-1.5 sm:px-4 flex items-center gap-1.5 sm:gap-4" data-cursor-text="PROFILE">
                           <img src={log.img} className="w-4 h-4 sm:w-6 sm:h-6" alt="" />
-                          <span className="text-[9px] sm:text-xs font-light text-[#111] tracking-tight truncate max-w-[50px] sm:max-w-none">{log.name}</span>
+                          <span className="text-[9px] sm:text-xs font-light text-white tracking-tight truncate max-w-[50px] sm:max-w-none">{log.name}</span>
                         </td>
                         <td className="py-2.5 md:py-4 px-1.5 sm:px-4 text-[9px] sm:text-xs font-light text-gray-500 hidden sm:table-cell">{log.id}</td>
                         <td className="py-2.5 md:py-4 px-1.5 sm:px-4 text-[9px] sm:text-xs font-light text-gray-500 hidden md:table-cell">{log.dept}</td>
@@ -218,7 +218,7 @@ const ParallaxImage = ({ scrollYProgress }) => {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0 }}
-                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[60] bg-[#111] text-white px-8 py-4 text-[10px] uppercase tracking-[0.2em] border border-gray-800 shadow-2xl"
+                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[60] bg-[#000000] text-white px-8 py-4 text-[10px] uppercase tracking-[0.2em] border border-gray-800 shadow-2xl"
                   >
                     RFID Synced
                   </motion.div>
@@ -231,7 +231,7 @@ const ParallaxImage = ({ scrollYProgress }) => {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0 }}
-                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[60] bg-[#111] text-white px-8 py-4 text-[10px] uppercase tracking-[0.2em] border border-gray-800 shadow-2xl"
+                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[60] bg-[#000000] text-white px-8 py-4 text-[10px] uppercase tracking-[0.2em] border border-gray-800 shadow-2xl"
                   >
                     Biometrics Synced
                   </motion.div>
@@ -245,11 +245,11 @@ const ParallaxImage = ({ scrollYProgress }) => {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="absolute inset-0 z-50 bg-[#fafafa] p-8 md:p-12 flex flex-col overflow-y-auto custom-scrollbar border border-gray-200"
+                    className="absolute inset-0 z-50 bg-[#000000] p-8 md:p-12 flex flex-col overflow-y-auto custom-scrollbar border border-[#222]"
                   >
-                    <div className="flex justify-between items-start mb-10 border-b border-gray-200 pb-6">
-                      <h2 className="text-xl font-light tracking-[0.2em] text-[#111] uppercase">Payroll Report</h2>
-                      <button onClick={() => setIsHoveringSalary(false)} className="text-gray-400 hover:text-[#111] transition-colors">
+                    <div className="flex justify-between items-start mb-10 border-b border-[#222] pb-6">
+                      <h2 className="title-gradient text-xl font-light tracking-[0.2em] text-white uppercase">Payroll Report</h2>
+                      <button onClick={() => setIsHoveringSalary(false)} className="text-gray-400 hover:text-white transition-colors">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="square" strokeLinejoin="miter" strokeWidth="1" d="M6 18L18 6M6 6l12 12" /></svg>
                       </button>
                     </div>
@@ -258,27 +258,27 @@ const ParallaxImage = ({ scrollYProgress }) => {
                       {/* Top Section */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                         <div className="space-y-4">
-                          <p className="text-xs font-light text-[#111] tracking-wide"><span className="text-gray-400 uppercase tracking-[0.1em] text-[9px] block mb-1">Position</span> Developer</p>
-                          <p className="text-xs font-light text-[#111] tracking-wide"><span className="text-gray-400 uppercase tracking-[0.1em] text-[9px] block mb-1">Employee</span> Infant</p>
-                          <p className="text-xs font-light text-[#111] tracking-wide"><span className="text-gray-400 uppercase tracking-[0.1em] text-[9px] block mb-1">ID</span> LF3643</p>
+                          <p className="text-xs font-light text-white tracking-wide"><span className="text-gray-400 uppercase tracking-[0.1em] text-[9px] block mb-1">Position</span> Developer</p>
+                          <p className="text-xs font-light text-white tracking-wide"><span className="text-gray-400 uppercase tracking-[0.1em] text-[9px] block mb-1">Employee</span> Infant</p>
+                          <p className="text-xs font-light text-white tracking-wide"><span className="text-gray-400 uppercase tracking-[0.1em] text-[9px] block mb-1">ID</span> LF3643</p>
                         </div>
                         <div className="space-y-4">
-                          <p className="text-xs font-light text-[#111] tracking-wide"><span className="text-gray-400 uppercase tracking-[0.1em] text-[9px] block mb-1">Base Salary</span> {formatCurrency(7000.00, settings)}</p>
-                          <p className="text-xs font-light text-[#111] tracking-wide"><span className="text-gray-400 uppercase tracking-[0.1em] text-[9px] block mb-1">Earned</span> {formatCurrency(3727.34, settings)}</p>
-                          <p className="text-lg font-medium text-[#111] tracking-wide py-2 border-t border-gray-200"><span className="text-gray-400 uppercase tracking-[0.1em] text-[9px] block mb-1">Net Pay</span> {formatCurrency(3727.34, settings)}</p>
+                          <p className="text-xs font-light text-white tracking-wide"><span className="text-gray-400 uppercase tracking-[0.1em] text-[9px] block mb-1">Base Salary</span> {formatCurrency(7000.00, settings)}</p>
+                          <p className="text-xs font-light text-white tracking-wide"><span className="text-gray-400 uppercase tracking-[0.1em] text-[9px] block mb-1">Earned</span> {formatCurrency(3727.34, settings)}</p>
+                          <p className="text-lg font-medium text-white tracking-wide py-2 border-t border-[#222]"><span className="text-gray-400 uppercase tracking-[0.1em] text-[9px] block mb-1">Net Pay</span> {formatCurrency(3727.34, settings)}</p>
                         </div>
                       </div>
 
                       {/* Stats Grid */}
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-y-10 gap-x-6 border-t border-gray-200 pt-10">
-                        <div><p className="text-[9px] font-medium text-gray-400 tracking-[0.1em] uppercase mb-2">Period Days</p><p className="text-sm font-light text-[#111]">31</p></div>
-                        <div><p className="text-[9px] font-medium text-gray-400 tracking-[0.1em] uppercase mb-2">Working Days</p><p className="text-sm font-light text-[#111]">27</p></div>
-                        <div><p className="text-[9px] font-medium text-gray-400 tracking-[0.1em] uppercase mb-2">Absent Days</p><p className="text-sm font-light text-[#111]">9</p></div>
-                        <div><p className="text-[9px] font-medium text-gray-400 tracking-[0.1em] uppercase mb-2">Holidays</p><p className="text-sm font-light text-[#111]">0</p></div>
-                        <div><p className="text-[9px] font-medium text-gray-400 tracking-[0.1em] uppercase mb-2">Sundays</p><p className="text-sm font-light text-[#111]">4</p></div>
-                        <div><p className="text-[9px] font-medium text-gray-400 tracking-[0.1em] uppercase mb-2">Actual Days</p><p className="text-sm font-light text-[#111]">18</p></div>
-                        <div><p className="text-[9px] font-medium text-gray-400 tracking-[0.1em] uppercase mb-2">Total Hours</p><p className="text-sm font-light text-[#111]">136.31h</p></div>
-                        <div><p className="text-[9px] font-medium text-gray-400 tracking-[0.1em] uppercase mb-2">Attendance Rate</p><p className="text-sm font-light text-[#111]">66.67%</p></div>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-y-10 gap-x-6 border-t border-[#222] pt-10">
+                        <div><p className="text-[9px] font-medium text-gray-400 tracking-[0.1em] uppercase mb-2">Period Days</p><p className="text-sm font-light text-white">31</p></div>
+                        <div><p className="text-[9px] font-medium text-gray-400 tracking-[0.1em] uppercase mb-2">Working Days</p><p className="text-sm font-light text-white">27</p></div>
+                        <div><p className="text-[9px] font-medium text-gray-400 tracking-[0.1em] uppercase mb-2">Absent Days</p><p className="text-sm font-light text-white">9</p></div>
+                        <div><p className="text-[9px] font-medium text-gray-400 tracking-[0.1em] uppercase mb-2">Holidays</p><p className="text-sm font-light text-white">0</p></div>
+                        <div><p className="text-[9px] font-medium text-gray-400 tracking-[0.1em] uppercase mb-2">Sundays</p><p className="text-sm font-light text-white">4</p></div>
+                        <div><p className="text-[9px] font-medium text-gray-400 tracking-[0.1em] uppercase mb-2">Actual Days</p><p className="text-sm font-light text-white">18</p></div>
+                        <div><p className="text-[9px] font-medium text-gray-400 tracking-[0.1em] uppercase mb-2">Total Hours</p><p className="text-sm font-light text-white">136.31h</p></div>
+                        <div><p className="text-[9px] font-medium text-gray-400 tracking-[0.1em] uppercase mb-2">Attendance Rate</p><p className="text-sm font-light text-white">66.67%</p></div>
                       </div>
                     </div>
                   </motion.div>
@@ -288,16 +288,16 @@ const ParallaxImage = ({ scrollYProgress }) => {
               {/* TASK MANAGEMENT OVERLAY */}
               <AnimatePresence>
                 {isHoveringTask && (
-                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 z-50 bg-[#fafafa] p-8 md:p-12 flex flex-col border border-gray-200">
-                    <h2 className="text-xl font-light tracking-[0.2em] text-[#111] uppercase mb-10 border-b border-gray-200 pb-6">Task Journal</h2>
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 z-50 bg-[#000000] p-8 md:p-12 flex flex-col border border-[#222]">
+                    <h2 className="title-gradient text-xl font-light tracking-[0.2em] text-white uppercase mb-10 border-b border-[#222] pb-6">Task Journal</h2>
                     <div className="flex-1 space-y-4 overflow-y-auto pr-4 custom-scrollbar">
                       {[{ topic: 'ஸ்டிக்கர் ஒட்டினேன்', pts: 1 }, { topic: 'பார்கோடு ஒட்டினேன்', pts: 0 }, { topic: 'மிசின் சுத்தம் செய்தேன்', pts: 2 }].map((item, idx) => (
-                        <div key={idx} className="bg-white border border-gray-200 p-5 flex justify-between items-center transition-colors hover:border-[#111]">
+                        <div key={idx} className="bg-[#000000] border border-[#222] p-5 flex justify-between items-center transition-colors hover:border-gray-600">
                           <div className="flex flex-col">
-                            <span className="text-xs font-light text-[#111] tracking-wide mb-1 opacity-80">{item.topic}</span>
+                            <span className="text-xs font-light text-white tracking-wide mb-1 opacity-80">{item.topic}</span>
                             <span className="text-[9px] font-medium text-gray-400 uppercase tracking-[0.1em]">{item.pts} points</span>
                           </div>
-                          <button className="text-[9px] font-medium tracking-[0.2em] uppercase text-[#111] border-b border-transparent hover:border-[#111] transition-colors pb-1">Details</button>
+                          <button className="text-[9px] font-medium tracking-[0.2em] uppercase text-white border-b border-transparent hover:border-gray-600 transition-colors pb-1">Details</button>
                         </div>
                       ))}
                     </div>
@@ -308,13 +308,13 @@ const ParallaxImage = ({ scrollYProgress }) => {
           </div>
 
           {/* RECOGNITION WIDGET */}
-          <motion.div animate={{ y: [0, -10, 0] }} transition={{ duration: 4, repeat: Infinity }} className="absolute -bottom-6 -right-6 bg-white p-6 border border-gray-200 hidden md:flex items-center gap-6 pointer-events-none shadow-xl">
-            <div className="w-10 h-10 border border-gray-200 flex items-center justify-center relative overflow-hidden">
-              <svg className="w-5 h-5 text-[#111]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="square" strokeLinejoin="miter" strokeWidth="1" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /><path strokeLinecap="square" strokeLinejoin="miter" strokeWidth="1" d="M3 7V5h2M17 3h2v2M21 17v2h-2M7 21H5v-2" /></svg>
-              <motion.div animate={{ top: ['-20%', '120%'] }} transition={{ duration: 2, repeat: Infinity, ease: "linear" }} className="absolute left-0 w-full h-[1px] bg-[#111] opacity-50" />
+          <motion.div animate={{ y: [0, -10, 0] }} transition={{ duration: 4, repeat: Infinity }} className="absolute -bottom-6 -right-6 bg-[#000000] p-6 border border-[#222] hidden md:flex items-center gap-6 pointer-events-none shadow-xl">
+            <div className="w-10 h-10 border border-[#222] flex items-center justify-center relative overflow-hidden">
+              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="square" strokeLinejoin="miter" strokeWidth="1" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /><path strokeLinecap="square" strokeLinejoin="miter" strokeWidth="1" d="M3 7V5h2M17 3h2v2M21 17v2h-2M7 21H5v-2" /></svg>
+              <motion.div animate={{ top: ['-20%', '120%'] }} transition={{ duration: 2, repeat: Infinity, ease: "linear" }} className="absolute left-0 w-full h-[1px] bg-[#000000] opacity-50" />
             </div>
             <div className="text-left">
-              <p className="text-[#111] font-light text-xs tracking-[0.1em] uppercase mb-1">Face Capture</p>
+              <p className="text-white font-light text-xs tracking-[0.1em] uppercase mb-1">Face Capture</p>
               <p className="text-gray-400 text-[9px] font-medium tracking-[0.2em] uppercase">Active Sync</p>
             </div>
           </motion.div>

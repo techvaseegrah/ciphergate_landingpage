@@ -1,8 +1,8 @@
 // attendance _31/client/src/components/admin/SalaryManagement.jsx
 import React, { useState, useEffect, useContext } from 'react';
 import { toast } from 'react-toastify';
-import { FaDonate, FaFileInvoiceDollar, FaFilePdf, FaTrash } from 'react-icons/fa';
-import { FiRefreshCcw } from "react-icons/fi";
+import { FaDonate, FaFileInvoiceDollar, FaFilePdf, FaTrash, FaMoneyBillWave } from 'react-icons/fa';
+import { FiUsers, FiLayers, FiActivity, FiCalendar, FiClock, FiCheckCircle, FiAlertCircle, FiChevronRight, FiBell, FiRefreshCcw, FiUser } from 'react-icons/fi';
 import { getWorkers } from '../../services/workerService';
 import { getDepartments } from '../../services/departmentService';
 import Card from '../common/Card';
@@ -797,27 +797,27 @@ const SalaryManagement = () => {
             header: 'Actions',
             accessor: 'actions',
             render: (worker) => (
-                <div className="flex space-x-2">
-                    <button
-                        onClick={() => openEditModal(worker)}
-                        className="p-1 text-black hover:text-blue-800"
-                        title="Give Bonus"
-                    >
-                        <FaDonate className='text-xl' />
-                    </button>
+                <div className="flex items-center gap-3">
                     <button
                         onClick={() => handleViewReport(worker)}
-                        className="p-1 text-green-600 hover:text-green-800"
-                        title="View Report"
+                        className="text-slate-900 hover:scale-110 transition-transform"
+                        title="View Salary Report"
                     >
-                        <FaFileInvoiceDollar className='text-xl' />
+                        <FaFileInvoiceDollar size={18} />
+                    </button>
+                    <button
+                        onClick={() => openEditModal(worker)}
+                        className="text-emerald-600 hover:scale-110 transition-transform"
+                        title="Give Bonus"
+                    >
+                        <FaFileInvoiceDollar size={18} />
                     </button>
                     <button
                         onClick={() => handleRemoveBonus(worker)}
-                        className="p-1 text-red-600 hover:text-red-800"
+                        className="text-red-500 hover:scale-110 transition-transform"
                         title="Remove Bonus"
                     >
-                        <FaTrash className='text-xl' />
+                        <FaTrash size={16} />
                     </button>
                 </div>
             )
@@ -825,79 +825,74 @@ const SalaryManagement = () => {
     ];
 
     return (
-        <div>
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-                <h1 className="text-2xl font-bold">Salary Management</h1>
-                <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 w-full sm:w-auto">
+        <div className="bg-transparent">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                <h1 className="text-2xl font-bold text-[#0F172A]">Salary Management</h1>
+                
+                <div className="flex flex-wrap items-center gap-2">
                     <Button
-                        variant="secondary"
-                        className='flex items-center justify-center'
+                        variant="outline"
                         onClick={openFineModal}
+                        className="h-10 px-4 rounded-xl text-sm font-medium border-slate-200 text-slate-600 bg-slate-50 hover:bg-slate-100 transition-all"
                     >
                         Add Fine
                     </Button>
                     <Button
-                        variant="secondary"
-                        className='flex items-center justify-center bg-orange-600 text-white border-orange-700 hover:bg-orange-700 shadow-sm transition-all'
                         onClick={() => {
                             setIsDeductionModalOpen(true);
                             setSelectedDeductionWorker(null);
                             setDeductionSearchTerm('');
                             setDeductionFormData({ amount: '', date: new Date().toISOString().slice(0, 10), reason: '', deductionType: 'Other' });
                         }}
+                        className="h-10 px-4 rounded-xl text-sm font-medium bg-[#F97316] text-white hover:bg-[#EA580C] border-none shadow-sm transition-all"
                     >
                         Add Deduction
                     </Button>
                     <Button
-                        variant="secondary"
-                        className='flex items-center justify-center bg-green-600 text-white border-green-700 hover:bg-green-700 shadow-sm transition-all'
                         onClick={() => {
                             setIsIncrementModalOpen(true);
                             setSelectedIncrementWorker(null);
                             setIncrementFormData({ incrementAmount: '', reason: '', performanceRating: '' });
                         }}
+                        className="h-10 px-4 rounded-xl text-sm font-medium bg-[#10B981] text-white hover:bg-[#059669] border-none shadow-sm transition-all"
                     >
                         Performance Increment
                     </Button>
                     <Button
-                        variant="primary"
-                        className='flex items-center justify-center'
                         onClick={handleSalaryReset}
+                        className="h-10 px-4 rounded-xl text-sm font-medium bg-black text-white hover:bg-zinc-800 border-none shadow-sm transition-all flex items-center gap-2"
+                        title="Reset Salaries"
                     >
-                        <FiRefreshCcw className="mr-2" /> Reset Salary
+                        <FiRefreshCcw size={14} /> Reset Salary
                     </Button>
                     <Button
-                        variant="outline"
-                        className='flex items-center justify-center bg-teal-600 text-white border-teal-700 hover:bg-teal-700 shadow-sm transition-all'
                         onClick={() => setShowFineFilter(!showFineFilter)}
+                        className="h-10 px-4 rounded-xl text-sm font-medium bg-[#134E4A] text-white hover:bg-[#115E59] border-none shadow-sm transition-all"
                     >
-                        {showFineFilter ? 'Hide' : 'Show'} Fine Filter
+                        {showFineFilter ? 'Hide Filter' : 'Show Fine Filter'}
                     </Button>
                 </div>
             </div>
 
             {/* FINE FILTER SECTION */}
             {showFineFilter && (
-                <Card className="mb-8 border-t-4 border-teal-600">
+                <div className="bg-white border border-[#E2E8F0] rounded-2xl p-6 mb-8 shadow-sm animate-in fade-in slide-in-from-top-2">
                     <div className="flex justify-between items-center mb-6">
-                        <h2 className="text-xl font-bold text-gray-800">Fine Filter</h2>
-                        <button
-                            className="text-blue-600 font-medium text-sm hover:underline"
-                            onClick={() => setShowFineFilter(false)}
-                        >
-                            Hide Fine Filter
+                        <h2 className="text-lg font-bold text-[#0F172A]">Penalty Filter</h2>
+                        <button onClick={() => setShowFineFilter(false)} className="text-slate-400 hover:text-slate-600">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
                         </button>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8 items-end">
-                        <div className="form-group mb-0">
-                            <label className="form-label text-sm font-semibold">Filter Mode</label>
-                            <select
-                                className="form-input"
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-end">
+                        <div className="space-y-1.5">
+                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-1">Filter Mode</label>
+                            <select 
+                                className="form-input bg-slate-50 border-slate-100 rounded-xl text-sm"
                                 value={fineFilterMode}
                                 onChange={(e) => setFineFilterMode(e.target.value)}
                             >
-                                <option value="all">All Fines</option>
+                                <option value="all">All Penalties</option>
                                 <option value="month">By Month</option>
                                 <option value="week">This Week</option>
                                 <option value="range">By Date Range</option>
@@ -906,36 +901,27 @@ const SalaryManagement = () => {
 
                         {fineFilterMode === 'month' && (
                             <>
-                                <div className="form-group mb-0">
-                                    <label className="form-label text-sm font-semibold">Month</label>
-                                    <select
-                                        className="form-input"
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-1">Month</label>
+                                    <select 
+                                        className="form-input bg-slate-50 border-slate-100 rounded-xl text-sm"
                                         value={fineFilterMonth}
                                         onChange={(e) => setFineFilterMonth(e.target.value)}
                                     >
-                                        <option value={1}>January</option>
-                                        <option value={2}>February</option>
-                                        <option value={3}>March</option>
-                                        <option value={4}>April</option>
-                                        <option value={5}>May</option>
-                                        <option value={6}>June</option>
-                                        <option value={7}>July</option>
-                                        <option value={8}>August</option>
-                                        <option value={9}>September</option>
-                                        <option value={10}>October</option>
-                                        <option value={11}>November</option>
-                                        <option value={12}>December</option>
+                                        {Array.from({length: 12}, (_, i) => (
+                                            <option key={i+1} value={i+1}>{new Date(2000, i).toLocaleString('default', {month: 'long'})}</option>
+                                        ))}
                                     </select>
                                 </div>
-                                <div className="form-group mb-0">
-                                    <label className="form-label text-sm font-semibold">Year</label>
-                                    <select
-                                        className="form-input"
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-1">Year</label>
+                                    <select 
+                                        className="form-input bg-slate-50 border-slate-100 rounded-xl text-sm"
                                         value={fineFilterYear}
                                         onChange={(e) => setFineFilterYear(e.target.value)}
                                     >
-                                        {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - 2 + i).map(year => (
-                                            <option key={year} value={year}>{year}</option>
+                                        {Array.from({length: 5}, (_, i) => new Date().getFullYear() - 2 + i).map(y => (
+                                            <option key={y} value={y}>{y}</option>
                                         ))}
                                     </select>
                                 </div>
@@ -944,176 +930,151 @@ const SalaryManagement = () => {
 
                         {fineFilterMode === 'range' && (
                             <>
-                                <div className="form-group mb-0">
-                                    <label className="form-label text-sm font-semibold">From Date</label>
-                                    <input
-                                        type="date"
-                                        className="form-input"
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-1">From</label>
+                                    <input 
+                                        type="date" 
+                                        className="form-input bg-slate-50 border-slate-100 rounded-xl text-sm"
                                         value={fineFilterRange.fromDate}
-                                        onChange={(e) => setFineFilterRange(prev => ({ ...prev, fromDate: e.target.value }))}
+                                        onChange={(e) => setFineFilterRange(p => ({...p, fromDate: e.target.value}))}
                                     />
                                 </div>
-                                <div className="form-group mb-0">
-                                    <label className="form-label text-sm font-semibold">To Date</label>
-                                    <input
-                                        type="date"
-                                        className="form-input"
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-1">To</label>
+                                    <input 
+                                        type="date" 
+                                        className="form-input bg-slate-50 border-slate-100 rounded-xl text-sm"
                                         value={fineFilterRange.toDate}
-                                        onChange={(e) => setFineFilterRange(prev => ({ ...prev, toDate: e.target.value }))}
+                                        onChange={(e) => setFineFilterRange(p => ({...p, toDate: e.target.value}))}
                                     />
                                 </div>
                             </>
                         )}
 
-                        <div className="flex space-x-2">
-                            <Button
-                                variant="primary"
-                                className="bg-teal-700 hover:bg-teal-800 text-white w-full h-[42px]"
-                                onClick={() => loadData()} // This refreshes but logic already in useEffect
-                            >
-                                Apply Filter
-                            </Button>
-                        </div>
+                        <Button 
+                            variant="primary" 
+                            className="bg-[#0F172A] hover:bg-black h-[42px] rounded-xl"
+                            onClick={() => loadData()}
+                        >
+                            Apply Filter
+                        </Button>
                     </div>
 
-                    <p className="text-gray-700 font-bold mb-4">Penalties Summary</p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                        <div className="bg-blue-50 p-4 rounded-lg border border-blue-100 shadow-sm">
-                            <p className="text-sm font-medium text-blue-800 mb-1">Total Fines</p>
-                            <p className="text-2xl font-bold text-blue-900">{filteredFinesList.length}</p>
-                            <p className="text-sm text-blue-700 mt-1">{formatCurrency(filteredFinesList.reduce((sum, f) => sum + (f.amount || 0), 0), settings)}</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8">
+                        <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total Fines</p>
+                            <p className="text-2xl font-bold text-[#0F172A]">{formatCurrency(filteredFinesList.reduce((sum, f) => sum + (f.amount || 0), 0), settings)}</p>
+                            <p className="text-xs text-slate-500 mt-1">{filteredFinesList.length} records</p>
                         </div>
-                        <div className="bg-orange-50 p-4 rounded-lg border border-orange-100 shadow-sm">
-                            <p className="text-sm font-medium text-orange-800 mb-1">Total Deductions</p>
-                            <p className="text-2xl font-bold text-orange-900">{filteredDeductionsList.length}</p>
-                            <p className="text-sm text-orange-700 mt-1">{formatCurrency(filteredDeductionsList.reduce((sum, f) => sum + (f.amount || 0), 0), settings)}</p>
+                        <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total Deductions</p>
+                            <p className="text-2xl font-bold text-[#0F172A]">{formatCurrency(filteredDeductionsList.reduce((sum, f) => sum + (f.amount || 0), 0), settings)}</p>
+                            <p className="text-xs text-slate-500 mt-1">{filteredDeductionsList.length} records</p>
                         </div>
-                        <div className="bg-red-50 p-4 rounded-lg border border-red-100 shadow-sm">
-                            <p className="text-sm font-medium text-red-800 mb-1">Grand Total</p>
-                            <p className="text-2xl font-bold text-red-900">
+                        <div className="bg-slate-900 p-4 rounded-2xl border border-slate-800">
+                            <p className="text-[10px] font-bold text-slate-300 uppercase tracking-widest mb-1">Grand Total</p>
+                            <p className="text-2xl font-bold text-white">
                                 {formatCurrency(filteredFinesList.reduce((sum, f) => sum + (f.amount || 0), 0) +
                                     filteredDeductionsList.reduce((sum, f) => sum + (f.amount || 0), 0), settings)}
                             </p>
-                        </div>
-                        <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-100 shadow-sm">
-                            <p className="text-sm font-medium text-yellow-800 mb-1">Unique Workers</p>
-                            <p className="text-2xl font-bold text-yellow-900">
-                                {new Set([...filteredFinesList, ...filteredDeductionsList].map(f => f.workerRawId)).size}
-                            </p>
+                            <p className="text-xs text-slate-400 mt-1">Unique Workers: {new Set([...filteredFinesList, ...filteredDeductionsList].map(f => f.workerRawId)).size}</p>
                         </div>
                     </div>
+                </div>
+            )}
 
-                    <div className="flex justify-between items-center mb-4">
-                        <p className="text-gray-700 font-bold">Recent Records</p>
+            {combinedPenaltiesList.length > 0 && (
+                <div className="mb-10">
+                    <div className="flex justify-between items-center mb-4 px-1">
+                        <h2 className="text-lg font-semibold text-[#0F172A]">Recent History</h2>
                     </div>
-
-                    <div className="overflow-x-auto rounded-lg border border-gray-100 shadow-sm">
-                        <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-[#fbfeff]">
-                                <tr>
-                                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Employee</th>
-                                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Type</th>
-                                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</th>
-                                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Amount</th>
-                                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Reason</th>
-                                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody className="bg-white divide-y divide-gray-100">
-                                {combinedPenaltiesList.slice(0, visibleFinesCount).map((item) => (
-                                    <tr key={item._id} className="hover:bg-gray-50">
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="flex items-center">
-                                                <img
-                                                    src={item.workerPhoto || `https://ui-avatars.com/api/?name=${encodeURIComponent(item.workerName)}`}
-                                                    className="w-10 h-10 rounded-full mr-3 border-2 border-gray-100"
-                                                    alt={item.workerName}
-                                                />
-                                                <div>
-                                                    <div className="text-sm font-bold text-gray-900">{item.workerName}</div>
-                                                    <div className="text-xs text-gray-500">{item.workerId}</div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className={`px-2 py-1 text-[10px] font-bold rounded-full uppercase ${item.penaltyType === 'Fine'
-                                                ? 'bg-red-100 text-red-700'
-                                                : 'bg-orange-100 text-orange-700'
-                                                }`}>
-                                                {item.penaltyType}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
-                                            {new Date(item.date).toLocaleDateString()}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-red-600">
-                                            {formatCurrency(item.amount, settings)}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                            {item.reason}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <button
-                                                onClick={async () => {
-                                                    if (item.penaltyType === 'Fine') {
-                                                        await handleDeleteFine(item.workerRawId, item._id);
-                                                    } else {
-                                                        if (window.confirm('Are you sure you want to delete this deduction?')) {
-                                                            try {
-                                                                await deleteDeduction(item.workerRawId, item._id);
-                                                                toast.success('Deduction deleted');
-                                                                loadData();
-                                                            } catch (err) {
-                                                                toast.error(err.message || 'Failed to delete');
-                                                            }
-                                                        }
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {combinedPenaltiesList.slice(0, visibleFinesCount).map((item) => (
+                            <div key={item._id} className="bg-white border border-[#E2E8F0] rounded-2xl p-4 flex items-center justify-between shadow-sm hover:shadow-md transition-all group">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center overflow-hidden">
+                                        <img 
+                                            src={item.workerPhoto || `https://ui-avatars.com/api/?name=${encodeURIComponent(item.workerName)}&background=f1f5f9&color=64748b`} 
+                                            alt="" 
+                                            className="w-full h-full object-cover" 
+                                        />
+                                    </div>
+                                    <div>
+                                        <h4 className="font-bold text-[#0F172A] leading-tight">{item.workerName}</h4>
+                                        <p className="text-[10px] text-slate-500 font-bold uppercase mt-0.5 tracking-wider">
+                                            {item.penaltyType} • {new Date(item.date).toLocaleDateString()}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-4">
+                                    <div className="text-right">
+                                        <p className="font-bold text-red-500">-{formatCurrency(item.amount, settings)}</p>
+                                        <p className="text-[10px] text-[#64748B] max-w-[100px] truncate">{item.reason}</p>
+                                    </div>
+                                    <button
+                                        onClick={async (e) => {
+                                            e.stopPropagation();
+                                            if (item.penaltyType === 'Fine') {
+                                                await handleDeleteFine(item.workerRawId, item._id);
+                                            } else {
+                                                if (window.confirm('Are you sure you want to delete this deduction?')) {
+                                                    try {
+                                                        await deleteDeduction(item.workerRawId, item._id);
+                                                        toast.success('Deduction deleted');
+                                                        loadData();
+                                                    } catch (err) {
+                                                        toast.error(err.message || 'Failed to delete');
                                                     }
-                                                }}
-                                                className="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-50 transition-colors"
-                                            >
-                                                <FaTrash />
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                                }
+                                            }
+                                        }}
+                                        className="p-2 text-slate-300 group-hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors"
+                                    >
+                                        <FaTrash size={14} />
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
                     </div>
-
                     {combinedPenaltiesList.length > visibleFinesCount && (
-                        <div className="mt-6 flex justify-center">
-                            <button
-                                className="px-6 py-2 border-2 border-teal-600 text-teal-600 font-bold rounded-lg hover:bg-teal-50 transition-all shadow-sm"
-                                onClick={() => setVisibleFinesCount(prev => prev + 10)}
-                            >
-                                View More
-                            </button>
+                        <div className="mt-4 flex justify-center">
+                            <Button variant="outline" className="text-xs py-2 px-6 border-slate-200" onClick={() => setVisibleFinesCount(prev => prev + 10)}>
+                                View More Records
+                            </Button>
                         </div>
                     )}
-                </Card>
-            )}
-            <Card>
-                <div className="mb-4">
-                    <input
-                        type="text"
-                        className="form-input"
-                        placeholder="Search by name or department..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
                 </div>
-                {isLoading ? (
-                    <div className="flex justify-center py-8">
-                        <Spinner size="lg" />
+            )}
+
+            <div className="bg-white border border-slate-100 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden">
+                <div className="p-6">
+                    <div className="relative mb-6">
+                        <input
+                            type="text"
+                            className="w-full py-3.5 pl-5 pr-12 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-100 transition-all placeholder:text-slate-400"
+                            placeholder="Search by name or department..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
                     </div>
-                ) : (
-                    <Table
-                        columns={columns}
-                        data={filteredWorkers}
-                        noDataMessage="No employees found."
-                    />
-                )}
-            </Card>
+
+                    <div className="overflow-x-auto">
+                        <Table
+                            columns={columns.map(col => ({
+                                ...col,
+                                header: col.header.toUpperCase(),
+                                headerAlign: 'text-left',
+                                align: 'text-left'
+                            }))}
+                            data={filteredWorkers}
+                            loading={isLoading}
+                            noDataMessage="No employees found"
+                            striped={false}
+                            hover={true}
+                        />
+                    </div>
+                </div>
+            </div>
             <Modal
                 isOpen={isEditModalOpen}
                 onClose={() => setIsEditModalOpen(false)}
@@ -1381,132 +1342,119 @@ const SalaryManagement = () => {
                     )}
                     {reportData && (
                         <div>
-                            <Card className="mb-6">
-                                <h3 className="text-xl font-semibold mb-4">Summary</h3>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <p><strong>Employee Name:</strong> {selectedWorker?.name}</p>
-                                        <p><strong>Employee ID:</strong> {selectedWorker?.rfid}</p>
-                                    </div>
-                                    <div>
-                                        <p><strong>Original Salary:</strong> {formatCurrency(reportData.report.summary.originalSalary, settings)}</p>
-                                        <p><strong>Actual Earned Salary:</strong> {formatCurrency(reportData.report.summary.finalSalary, settings)}</p>
-                                        {/* ADD FINE INFORMATION TO THE SUMMARY */}
-                                        {reportData.totalFinesAmount > 0 && (
-                                            <p><strong>Total Fines:</strong> <span className="text-red-600">{formatCurrency(reportData.totalFinesAmount, settings)}</span></p>
-                                        )}
-                                        {reportData.totalDeductionsAmount > 0 && (
-                                            <p><strong>Other Deductions:</strong> <span className="text-orange-600">{formatCurrency(reportData.totalDeductionsAmount, settings)}</span></p>
-                                        )}
-                                        {reportData.totalBonusAmount > 0 && (
-                                            <p><strong>Bonus Amount Applied:</strong> <span className="text-green-600">{formatCurrency(reportData.totalBonusAmount, settings)}</span></p>
-                                        )}
-                                        <p><strong>Total Final Salary:</strong> <span className="font-bold">{formatCurrency(reportData.finalSalaryWithFines, settings)}</span></p>
+                             <Card className="mb-6 p-0 overflow-hidden border-slate-200">
+                                <div className="bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
+                                    <h3 className="text-lg font-bold text-slate-900">Salary Summary</h3>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-white px-2 py-1 rounded-md border border-slate-100 shadow-sm">
+                                            {selectedWorker?.name}
+                                        </span>
                                     </div>
                                 </div>
-                                <hr className="my-4" />
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                                    <div>
-                                        <p><strong>Total Days in Period:</strong></p>
-                                        <span className="font-bold">{reportData.report.summary.totalDaysInPeriod || 0}</span>
-                                    </div>
-                                    <div>
-                                        <p><strong>Total Working Days:</strong></p>
-                                        <span className="font-bold">{reportData.report.summary.totalWorkingDaysInPeriod || 0}</span>
-                                    </div>
-                                    <div>
-                                        <p><strong>Total Absent Days:</strong></p>
-                                        <span className="font-bold">{reportData.report.summary.totalAbsentDays || 0}</span>
-                                    </div>
-                                    <div>
-                                        <p><strong>Total Holidays:</strong></p>
-                                        <span className="font-bold">{reportData.report.summary.totalHolidaysInPeriod || 0}</span>
-                                    </div>
-                                    <div>
-                                        <p><strong>Total Sundays:</strong></p>
-                                        <span className="font-bold">{reportData.report.summary.totalSundaysInPeriod || 0}</span>
-                                    </div>
-                                    <div>
-                                        <p><strong>Actual Working Days:</strong></p>
-                                        <span className="font-bold">{reportData.report.summary.actualWorkingDays || 0}</span>
-                                    </div>
-                                    <div>
-                                        <p><strong>Total Working Hours:</strong></p>
-                                        <span className="font-bold">{(reportData.report.totalWorkingHours || 0).toFixed(2)} hrs</span>
-                                    </div>
-                                    <div>
-                                        <p><strong>Total Permission Time:</strong></p>
-                                        <span className="font-bold">{reportData.report.totalPermissionTime || 0} mins</span>
-                                    </div>
-                                    <div>
-                                        <p><strong>Absent Deduction:</strong></p>
-                                        <span className="font-bold">{formatCurrency(reportData.report.summary.absentDeduction, settings)}</span>
-                                    </div>
-                                    <div>
-                                        <p><strong>Permission Deduction:</strong></p>
-                                        <span className="font-bold">{formatCurrency(reportData.report.summary.permissionDeduction, settings)}</span>
-                                    </div>
-                                    <div>
-                                        <p><strong>Total Deductions:</strong></p>
-                                        <span className="font-bold">{formatCurrency(reportData.report.totalSalaryDeduction, settings)}</span>
-                                    </div>
-                                    <div>
-                                        <p><strong>Attendance Rate:</strong></p>
-                                        <span className="font-bold">{reportData.report.summary.attendanceRate?.toFixed(2) || '0.00'}%</span>
-                                    </div>
-                                    <div>
-                                        <p><strong>Per Minute Salary:</strong></p>
-                                        <span className="font-bold">{formatCurrency(reportData.report.summary.perMinuteSalary || 0, settings)}</span>
-                                    </div>
-                                    {/* Display bonus information */}
-                                    {reportData.totalBonusAmount > 0 && (
-                                        <>
-                                            <div>
-                                                <p><strong>Bonus Amount Applied:</strong></p>
-                                                <span className="font-bold text-green-600">{formatCurrency(reportData.totalBonusAmount, settings)}</span>
-                                            </div>
-                                            {reportData.bonuses.map((bonus, index) => (
-                                                <div key={index}>
-                                                    <p><strong>Bonus Period {index + 1}:</strong></p>
-                                                    <span className="font-bold">{new Date(bonus.fromDate).toLocaleDateString()} to {new Date(bonus.toDate).toLocaleDateString()}</span>
+                                
+                                <div className="p-6">
+                                    {/* Top Section: Core Earnings */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                                        <div className="space-y-4">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-500 shadow-inner">
+                                                    <FiUser size={24} />
                                                 </div>
-                                            ))}
-                                        </>
-                                    )}
-                                    {/* Display fine information */}
-                                    {reportData.totalFinesAmount > 0 && (
-                                        <div>
-                                            <p><strong>Total Fines:</strong></p>
-                                            <span className="font-bold text-red-600">{formatCurrency(reportData.totalFinesAmount, settings)}</span>
-                                        </div>
-                                    )}
-                                    {/* Display manual deduction information */}
-                                    {reportData.totalDeductionsAmount > 0 && (
-                                        <div>
-                                            <p><strong>Other Deductions:</strong></p>
-                                            <span className="font-bold text-orange-600">{formatCurrency(reportData.totalDeductionsAmount, settings)}</span>
-                                        </div>
-                                    )}
-                                    {/* Overtime summary */}
-                                    {reportData.overtime && reportData.overtime.totalOvertimeHours > 0 && (
-                                        <>
-                                            <div>
-                                                <p><strong>Overtime Hours:</strong></p>
-                                                <span className="font-bold text-purple-600">{reportData.overtime.totalOvertimeHours} hrs</span>
+                                                <div>
+                                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Employee Details</p>
+                                                    <h4 className="text-lg font-bold text-slate-900">{selectedWorker?.name}</h4>
+                                                    <p className="text-sm text-slate-500">ID: {selectedWorker?.rfid || 'N/A'}</p>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <p><strong>Overtime Pay (1.5x):</strong></p>
-                                                <span className="font-bold text-purple-600">{formatCurrency(reportData.overtime.totalOvertimePay, settings)}</span>
+                                            
+                                            <div className="grid grid-cols-2 gap-4 pt-2">
+                                                <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Original Base</p>
+                                                    <p className="font-bold text-slate-700">{formatCurrency(reportData.report.summary.originalSalary, settings)}</p>
+                                                </div>
+                                                <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Earned Base</p>
+                                                    <p className="font-bold text-slate-700">{formatCurrency(reportData.report.summary.finalSalary, settings)}</p>
+                                                </div>
                                             </div>
-                                        </>
-                                    )}
-                                    {/* Final salary with overtime */}
-                                    {reportData.finalSalaryWithOvertime !== undefined && (
-                                        <div className="col-span-2">
-                                            <p><strong>🏆 Final Salary (incl. Overtime):</strong></p>
-                                            <span className="font-bold text-lg text-blue-700">{formatCurrency(reportData.finalSalaryWithOvertime, settings)}</span>
                                         </div>
-                                    )}
+
+                                        <div className="bg-slate-900 rounded-2xl p-6 text-white shadow-xl shadow-slate-900/20 relative overflow-hidden group">
+                                            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                                                <FaMoneyBillWave size={80} />
+                                            </div>
+                                            <p className="text-[11px] font-bold uppercase tracking-[0.2em] mb-2 relative z-10" 
+                                               style={{ opacity: 1, visibility: 'visible', color: '#f8fafc' }}>Final Payout</p>
+                                            <div className="flex items-baseline gap-1 relative z-10" 
+                                                 style={{ opacity: 1, visibility: 'visible' }}>
+                                                <h2 className="text-5xl font-black tracking-tight block" 
+                                                    style={{ opacity: 1, visibility: 'visible', color: '#ffffff', WebkitTextFillColor: '#ffffff' }}>
+                                                    {formatCurrency(reportData.finalSalaryWithOvertime || reportData.finalSalaryWithFines, settings)}
+                                                </h2>
+                                            </div>
+                                            
+                                            <div className="mt-4 pt-4 border-t border-white/10 flex flex-wrap gap-3">
+                                                {reportData.totalBonusAmount > 0 && (
+                                                    <div className="flex items-center gap-1.5 bg-emerald-500/20 text-emerald-300 text-[10px] font-bold px-2.5 py-1 rounded-full border border-emerald-500/30">
+                                                        + {formatCurrency(reportData.totalBonusAmount, settings)} Bonus
+                                                    </div>
+                                                )}
+                                                {reportData.totalFinesAmount > 0 && (
+                                                    <div className="flex items-center gap-1.5 bg-red-500/20 text-red-300 text-[10px] font-bold px-2.5 py-1 rounded-full border border-red-500/30">
+                                                        - {formatCurrency(reportData.totalFinesAmount, settings)} Fine
+                                                    </div>
+                                                )}
+                                                {reportData.overtime && reportData.overtime.totalOvertimeHours > 0 && (
+                                                    <div className="flex items-center gap-1.5 bg-indigo-500/20 text-indigo-300 text-[10px] font-bold px-2.5 py-1 rounded-full border border-indigo-500/30">
+                                                        + {formatCurrency(reportData.overtime.totalOvertimePay, settings)} OT
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Metrics Grid */}
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6 py-6 border-t border-slate-100">
+                                        <div>
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total Days</p>
+                                            <p className="text-xl font-bold text-slate-900">{reportData.report.summary.totalDaysInPeriod || 0}</p>
+                                            <p className="text-[10px] text-slate-500">{reportData.report.summary.totalSundaysInPeriod || 0} Sundays</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Working Days</p>
+                                            <p className="text-xl font-bold text-slate-900">{reportData.report.summary.totalWorkingDaysInPeriod || 0}</p>
+                                            <p className="text-[10px] text-slate-500">Holidays: {reportData.report.summary.totalHolidaysInPeriod || 0}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Actual Worked</p>
+                                            <p className="text-xl font-bold text-slate-900">{reportData.report.summary.actualWorkingDays || 0}</p>
+                                            <p className="text-[10px] text-red-500">Absent: {reportData.report.summary.totalAbsentDays || 0}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Attendance</p>
+                                            <p className="text-xl font-bold text-emerald-600">{reportData.report.summary.attendanceRate?.toFixed(1) || '0.0'}%</p>
+                                            <p className="text-[10px] text-slate-500">Rate</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6 py-6 border-t border-slate-100">
+                                        <div>
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total Hours</p>
+                                            <p className="text-lg font-bold text-slate-900">{(reportData.report.totalWorkingHours || 0).toFixed(1)} hrs</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total Deductions</p>
+                                            <p className="text-lg font-bold text-red-600">-{formatCurrency(reportData.report.totalSalaryDeduction + (reportData.totalDeductionsAmount || 0), settings)}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">OT Hours</p>
+                                            <p className="text-lg font-bold text-indigo-600">{reportData.overtime?.totalOvertimeHours || 0} hrs</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Day Rate</p>
+                                            <p className="text-lg font-bold text-slate-900">{formatCurrency(reportData.report.summary.perDaySalary || 0, settings)}</p>
+                                        </div>
+                                    </div>
                                 </div>
                             </Card>
                             {/* ADD FINES DISPLAY SECTION */}

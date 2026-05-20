@@ -1,6 +1,7 @@
 import { useState, useEffect, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FaUsers, FaCalendarAlt, FaArrowRight, FaEllipsisV, FaBuilding, FaChartLine, FaMoneyBillWave } from 'react-icons/fa';
+import { FaUsers, FaCalendarAlt, FaArrowRight, FaEllipsisV, FaBuilding, FaChartLine, FaMoneyBillWave, FaRegBell, FaRegCalendarCheck } from 'react-icons/fa';
+import { FiUsers, FiLayers, FiActivity, FiCalendar, FiClock, FiCheckCircle, FiAlertCircle, FiChevronRight, FiBell, FiRefreshCcw } from 'react-icons/fi';
 import { getWorkers } from '../../services/workerService';
 import { getAllLeaves } from '../../services/leaveService';
 import { getDepartments } from '../../services/departmentService';
@@ -13,49 +14,93 @@ import appContext from '../../context/AppContext';
 import { useAuth } from '../../hooks/useAuth';
 import PricingModal from '../common/PricingModal';
 import { formatCurrency } from '../../utils/formatUtils';
+import { motion } from 'framer-motion';
 
-// Helper component for Circular Progress
-const CircularProgress = ({ percentage, size = 60, strokeWidth = 6 }) => {
-  const radius = (size - strokeWidth) / 2;
-  const circumference = radius * 2 * Math.PI;
-  const offset = circumference - (percentage / 100) * circumference;
-
-  let color = '#ef4444'; // Red for < 50%
-  if (percentage >= 100) color = '#10b981'; // Green for 100%
-  else if (percentage >= 50) color = '#f59e0b'; // Orange for 50-99%
-
+// Precision SaaS Stat Card - Rebuilt for Mobile Performance
+const StatCard = ({ title, value, icon: Icon, variant = "white", trend = "+12%", isMobile = false }) => {
+  const isNegative = trend.startsWith('-');
+  const isDark = variant === "dark";
+  
   return (
-    <div className="relative flex items-center justify-center shrink-0" style={{ width: size, height: size }}>
-      <svg width={size} height={size} className="transform -rotate-90">
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          stroke="#f3f4f6"
-          strokeWidth={strokeWidth}
-          fill="transparent"
-        />
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          stroke={color}
-          strokeWidth={strokeWidth}
-          fill="transparent"
-          strokeDasharray={circumference}
-          strokeDashoffset={isNaN(offset) ? circumference : offset}
-          strokeLinecap="round"
-          className="transition-all duration-500 ease-in-out"
-        />
-      </svg>
-      <span className="absolute text-[12px] font-bold text-gray-800">{Math.round(percentage || 0)}%</span>
-    </div>
+    <motion.div 
+      whileHover={{ y: -5, scale: 1.02, boxShadow: "0 20px 40px rgba(0,0,0,0.1)" }}
+      whileTap={{ scale: 0.98 }}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className={`flex flex-col justify-between p-4 rounded-[20px] transition-all duration-300 min-h-[110px] cursor-pointer w-full box-border ${
+        isDark ? 'bg-slate-900 !shadow-lg shadow-slate-900/10' : 'bg-white shadow-sm !border-0'
+      }`}
+      style={{ boxSizing: 'border-box' }}
+    >
+      <div className="flex justify-between items-start mb-3">
+        <p className={`text-[12px] font-medium leading-relaxed ${isDark ? 'text-white/80' : 'text-slate-400'}`}>
+          {title}
+        </p>
+        <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl flex items-center justify-center transition-colors ${
+          isDark ? 'bg-white/10 text-white' : 'bg-slate-50 text-slate-400'
+        }`}>
+          <Icon size={18} className="opacity-50" />
+        </div>
+      </div>
+
+      <div className="flex-1 flex items-center mb-[8px]">
+        <motion.div 
+          key={value}
+          initial={{ opacity: 0, scale: 0.5 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className={`text-[28px] font-bold tracking-tighter leading-none ${isDark ? 'text-white' : 'text-slate-900'}`}
+        >
+          {value ?? 0}
+        </motion.div>
+      </div>
+      
+      <div className="flex items-center mt-2.5">
+        <div 
+          className={`px-2 py-0.5 rounded-lg text-[11px] font-bold leading-relaxed flex items-center gap-1 ${
+            isDark 
+              ? (isNegative ? 'bg-rose-500/20 text-rose-300' : 'bg-emerald-500/20 text-emerald-300') 
+              : (isNegative ? 'bg-rose-50 text-rose-600' : 'bg-emerald-50 text-emerald-600')
+          }`}
+        >
+          {isNegative ? '↓' : '↑'}{trend.replace(/[+-]/, '')}
+        </div>
+      </div>
+    </motion.div>
   );
 };
+
+// Refined Progress Component - SaaS Edition
+const PillProgress = ({ label, percentage, color = "bg-emerald-500", icon: Icon }) => (
+  <div className="bg-white rounded-[24px] p-[20px] border border-slate-200 flex flex-col gap-5 group transition-all duration-300 hover:border-slate-300 shadow-sm">
+    <div className="flex items-center justify-between">
+      <div className="flex items-center gap-4">
+        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${color.replace('500', '50')} ${color.replace('bg-', 'text-')}`}>
+          <Icon size={18} />
+        </div>
+        <div>
+          <p className="text-[14px] font-semibold text-slate-900">{label}</p>
+          <p className="text-[11px] font-medium text-slate-400 mt-0.5">Performance Score</p>
+        </div>
+      </div>
+      <div className="text-right">
+        <p className="text-[16px] font-bold text-slate-900">{percentage}%</p>
+      </div>
+    </div>
+    <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+      <motion.div 
+        initial={{ width: 0 }}
+        animate={{ width: `${percentage}%` }}
+        transition={{ duration: 1, ease: "circOut" }}
+        className={`h-full ${color} rounded-full`}
+      />
+    </div>
+  </div>
+);
 
 const Dashboard = () => {
   const navigate = useNavigate();
 
+  const [isMobile, setIsMobile] = useState(false);
   const [stats, setStats] = useState({
     workers: 0,
     leaves: {
@@ -203,370 +248,408 @@ const Dashboard = () => {
     loadDashboardData();
   }, [subdomain]);  // Added subdomain to dependency array
 
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    handleResize(); // Initial check
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-screen bg-[#f3f4f6]">
+      <div className="flex justify-center items-center h-screen bg-[#F8FAFC]">
         <Spinner size="lg" />
       </div>
     );
   }
 
-  // Helper component for Stat Cards
-  const StatCard = ({ title, value, icon: Icon, colorClass, link }) => (
-    <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-      <div className="flex justify-between items-start">
-        <div>
-          <h3 className="text-gray-500 text-sm font-medium mb-2">{title}</h3>
-          <p className="text-3xl font-bold text-gray-800">{value}</p>
-        </div>
-        <div className={`p-3 rounded-2xl ${colorClass} bg-opacity-10`}>
-          <Icon className={`text-xl ${colorClass.replace('bg-', 'text-')}`} />
-        </div>
-      </div>
-      {link && (
-        <Link to={link} className="flex items-center text-xs font-semibold text-gray-400 mt-4 hover:text-[#111111]">
-          View details <FaArrowRight className="ml-1 text-[10px]" />
-        </Link>
-      )}
-    </div>
-  );
+  
 
   return (
-    <div className="bg-transparent min-h-screen p-2">
-      <div className="flex justify-between items-start mb-8">
-        <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-800">My Dashboard</h1>
-            {/* Mobile Tag: Next to title - Matches layout style */}
-            {user?.accountType !== 'premium' && (
-              <button
-                onClick={() => setIsPricingModalOpen(true)}
-                className="md:hidden flex items-center gap-1.5 bg-white/80 backdrop-blur-md px-3 py-1.5 rounded-full border border-gray-200 shadow-sm active:scale-95 transition-all mt-1"
-              >
-                <span className="text-[9px] font-bold text-gray-500 uppercase tracking-wider">Free Plan</span>
-                <span className="text-[8px] bg-teal-500 text-white px-1 py-0.5 rounded font-bold animate-pulse">UPGRADE</span>
-              </button>
-            )}
-          </div>
-          <p className="text-gray-500 text-sm mt-1">Overview of your administration</p>
-        </div>
-        {/* Note: Desktop Upgrade tag is handled by AdminLayout to avoid duplication */}
-      </div>
-
-      {/* Stats Grid - Clean Style */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <StatCard
-          title="Total Employees"
-          value={stats.workers}
-          icon={FaUsers}
-          colorClass="bg-gray-900"
-          link="/admin/workers"
-        />
-
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Main Content Area - Departments Section */}
-        <div className="lg:col-span-2">
-          {/* Overall Attendance Card - New */}
-          <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 mb-6 flex items-center justify-between">
+    <>
+      <div className="bg-[#f8fafc] min-h-screen flex flex-col">
+        {/* Page Header - Anti-Gravity Spacing */}
+        <div className="pt-4 pb-2 px-4 max-w-[1600px] mx-auto font-poppins w-full">
+          <div className="page-header-row flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <div>
-              <h2 className="text-xl font-bold text-gray-800">Overall Attendance</h2>
-              <div className="flex items-center gap-3 mt-1">
-                <p className="text-sm text-gray-500">Today's overview</p>
-                <span className="text-[10px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter bg-gray-100 text-gray-600">
-                  {totalPunchedIn} / {totalEmployees} IN
-                </span>
+              <div className="flex items-center gap-2 mb-1">
+                <h1 className="text-[18px] sm:text-[24px] font-bold text-slate-900 tracking-tight">Overview</h1>
+                <div className="flex items-center gap-1.5 bg-emerald-50 text-emerald-600 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-100 shrink-0 leading-relaxed">
+                  <div className="w-1 h-1 bg-emerald-500 rounded-full animate-pulse"></div>
+                  LIVE
+                </div>
               </div>
+              <p className="text-slate-400 text-[12px] sm:text-[14px] font-medium leading-snug truncate mb-0">
+                Managing <span className="text-slate-900 font-bold">{stats.workers} Professionals</span>
+              </p>
             </div>
-            <CircularProgress percentage={overallPercentage} size={80} strokeWidth={8} />
+            <div className="flex items-center justify-start gap-2 w-full sm:w-auto mt-3 sm:mt-0 mb-0">
+               <Link 
+                to="/admin/workers"
+                className="h-[44px] bg-slate-900 text-white rounded-[12px] text-[13px] font-semibold hover:bg-black transition-all shadow-lg shadow-slate-900/10 flex items-center justify-center px-4 whitespace-nowrap active:scale-95"
+               >
+                 Manage Team
+               </Link>
+               <div className="flex-none">
+                 <button 
+                  onClick={loadDashboardData}
+                  className="w-11 h-11 bg-white text-slate-600 rounded-full hover:bg-slate-50 transition-all flex items-center justify-center shadow-sm active:scale-95 border border-slate-200 p-0"
+                  title="Refresh Data"
+                 >
+                   <FiRefreshCcw size={18} />
+                 </button>
+               </div>
+            </div>
           </div>
+        </div>
 
-          {/* Departments Section */}
-          <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 mb-6">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-gray-800">Departments</h2>
-            </div>
-
-            <div className="overflow-x-auto">
-              {departments.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {departments.map((department) => {
+        {/* Metrics Grid */}
+        <div className="px-4 max-w-[1600px] mx-auto mb-3 w-full relative">
+          <div className="grid grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-[12px] sm:gap-4 pt-2" style={{gridAutoRows: '1fr'}}>
+            <StatCard
+              title="Total Workforce"
+              value={stats.workers}
+              icon={FiUsers}
+              link="/admin/workers"
+              variant="dark"
+              trend="+5%"
+              isMobile={true}
+            />
+            <StatCard
+              title="Departments"
+              value={departments.length}
+              icon={FiLayers}
+              link="/admin/departments"
+              trend="+2%"
+              isMobile={true}
+            />
+            <StatCard
+              title="Attendance"
+              value={`${Math.round(overallPercentage)}%`}
+              icon={FiActivity}
+              link="/admin/attendance"
+              trend="+12%"
+              isMobile={true}
+            />
+            <StatCard
+              title="Pending"
+              value={stats.leaves.pending}
+              icon={FiCalendar}
+              link="/admin/leaves"
+              trend="-3%"
+              isMobile={true}
+            />
+          </div>
+        </div>        {/* Bento Grid Insights - High-Efficiency Multi-Column Layout */}
+        <div className="px-4 max-w-[1600px] mx-auto grid grid-cols-1 xl:grid-cols-3 gap-4 font-poppins pb-10 flex-1 w-full items-stretch">
+           
+           {/* Primary Bento Card: Department Health (Spans 2 columns on desktop) */}
+           <div className="xl:col-span-2 bg-white rounded-[24px] p-5 shadow-sm !border-0 flex flex-col hover:shadow-md transition-all h-full">
+              <div className="flex items-center justify-between mb-8 !border-0">
+                 <div>
+                    <h2 className="text-[18px] md:text-[20px] font-bold text-slate-900 tracking-tight leading-relaxed">Department Health</h2>
+                 </div>
+                 <button className="text-[12px] font-bold text-slate-900 bg-slate-50 px-4 py-2 rounded-xl hover:bg-slate-100 transition-all active:scale-95 border-0 leading-relaxed">
+                    View All
+                 </button>
+              </div>
+              
+              <motion.div 
+                initial="hidden"
+                animate="visible"
+                variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-[14px] flex-1"
+              >
+                 {departments.map((department) => {
                     const deptPercentage = department.workerCount > 0
                       ? (department.punchedInCount / department.workerCount) * 100
                       : 0;
 
                     return (
-                      <div
-                        key={department._id}
-                        className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow"
-                      >
-                        <div className="flex justify-between items-center">
-                          <div
-                            className="flex items-center cursor-pointer hover:bg-gray-50 p-2 rounded-xl transition-colors"
-                            onClick={() => handleViewEmployees(department)}
-                          >
-                            <div className="bg-blue-50 p-3 rounded-xl mr-4">
-                              <FaBuilding className="text-blue-600" />
-                            </div>
-                            <div>
-                              <h3 className="font-bold text-gray-800 hover:text-blue-600 transition-colors">
-                                {department.name}
-                              </h3>
-                              <div className="flex items-center gap-3">
-                                <p className="text-sm text-gray-500">
-                                  {department.workerCount || 0} Employee{(department.workerCount || 0) !== 1 ? 's' : ''}
-                                </p>
-                                <span className={`text-[10px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter ${department.punchedInCount === department.workerCount && department.workerCount > 0
-                                  ? 'bg-emerald-500 text-white shadow-sm font-bold'
-                                  : 'bg-gray-100 text-gray-600'
-                                  }`}>
-                                  <>{department.punchedInCount} / {department.workerCount} IN</>
-                                </span>
-                              </div>
-                            </div>
+                       <motion.div 
+                        key={department._id} 
+                        variants={{ hidden: { opacity: 0, scale: 0.95 }, visible: { opacity: 1, scale: 1 } }}
+                        whileHover={{ scale: 1.03, boxShadow: "0 10px 25px rgba(0,0,0,0.05)" }}
+                        whileTap={{ scale: 0.98 }}
+                        className="p-4 bg-slate-50/50 rounded-[24px] border border-transparent hover:border-slate-200 hover:bg-white transition-all cursor-pointer group flex flex-col h-full"
+                        onClick={() => handleViewEmployees(department)}
+                       >
+                          <div className="flex items-start justify-between mb-4">
+                             <div className="flex items-center gap-2.5">
+                                <div className="w-9 h-9 bg-white text-slate-900 rounded-xl flex items-center justify-center shadow-md group-hover:!bg-slate-900 group-hover:text-white transition-all">
+                                   <FiLayers size={16} />
+                                </div>
+                                <div className="min-w-0">
+                                   <h4 className="text-[14px] font-bold text-slate-900 truncate tracking-tight mb-0.5 leading-relaxed">{department.name}</h4>
+                                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight mt-1 leading-relaxed">{department.workerCount} Professionals</p>
+                                </div>
+                             </div>
+                             <div className="text-right">
+                                <p className="text-[16px] font-bold text-slate-900 tracking-tight leading-none">{Math.round(deptPercentage)}%</p>
+                                <p className="text-[8px] text-slate-400 font-bold uppercase tracking-widest mt-1">Cap.</p>
+                             </div>
                           </div>
-                          <CircularProgress percentage={deptPercentage} />
-                        </div>
-                      </div>
+                          
+                          {/* Removed progress bar line as requested */}
+                       </motion.div>
                     );
-                  })}
-                </div>
-              ) : (
-                <div className="text-center py-8 text-gray-400">
-                  No departments found.
-                </div>
-              )}
-            </div>
-          </div>
+                 })}
+                 {departments.length === 0 && (
+                   <div className="col-span-2 flex items-center justify-center text-slate-300 italic py-20">
+                     <p className="text-sm font-medium">No active departments found</p>
+                   </div>
+                 )}
+              </motion.div>
+           </div>
 
-          {/* Secondary Stats (Leaves) */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex items-center justify-between">
-              <div>
-                <h4 className="text-gray-500 text-sm font-medium">Pending Leaves</h4>
-                <h2 className="text-3xl font-bold text-gray-800 mt-2">{stats.leaves.pending}</h2>
-              </div>
-              <div className="h-12 w-12 bg-yellow-100 rounded-full flex items-center justify-center text-yellow-600">
-                <FaCalendarAlt />
-              </div>
-            </div>
-            <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex items-center justify-between">
-              <div>
-                <h4 className="text-gray-500 text-sm font-medium">Approved Leaves</h4>
-                <h2 className="text-3xl font-bold text-gray-800 mt-2">{stats.leaves.approved}</h2>
-              </div>
-              <div className="h-12 w-12 bg-green-100 rounded-full flex items-center justify-center text-green-600">
-                <FaCalendarAlt />
-              </div>
-            </div>
-          </div>
-        </div>
+           {/* Secondary Bento Stack: Presence & Activity */}
+           <div className="flex flex-col gap-5 h-full">
+              {/* Presence Bento Card */}
+              <motion.div 
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  whileHover={{ scale: 1.02 }}
+                  className="bg-white rounded-[24px] p-8 shadow-sm border border-slate-50 relative overflow-hidden group min-h-[180px] flex flex-col justify-center hover:border-slate-200 transition-all cursor-pointer"
+               >
+                 <div className="absolute -top-4 -right-4 p-4 opacity-5 group-hover:rotate-12 transition-transform duration-500 text-slate-900">
+                    <FiActivity size={120} />
+                 </div>
+                 <h2 className="text-[15px] font-extrabold text-slate-400 mb-4 relative z-10 leading-relaxed">Active Presence</h2>
+                 <div className="flex items-end gap-2 mb-6 relative z-10">
+                    <p className="text-6xl font-bold tracking-tighter text-slate-900">{totalPunchedIn}</p>
+                    <p className="text-2xl font-medium text-slate-300 mb-2">/ {totalEmployees}</p>
+                 </div>
+                 <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden mb-3 relative z-10">
+                    <motion.div 
+                       initial={{ width: 0 }}
+                       animate={{ width: `${(totalPunchedIn/totalEmployees)*100}%` }}
+                       transition={{ duration: 1.5, ease: "circOut" }}
+                       className="h-full bg-slate-900"
+                    />
+                 </div>
+                 <div className="flex justify-between items-center relative z-10">
+                    <p className="text-[11px] font-bold text-slate-400 leading-relaxed">{(totalPunchedIn/totalEmployees*100 || 0).toFixed(0)}% Personnel Online</p>
+                    <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.3)]"></div>
+                 </div>
+              </motion.div>
 
-        {/* Right Column / Promo Card Style */}
-        <div className="lg:col-span-1">
-          <div className="bg-gradient-to-br from-[#80d8d0] to-[#111111] rounded-3xl p-8 text-white relative overflow-hidden shadow-lg h-full min-h-[300px] flex flex-col justify-between">
-            {/* Decoratiive circles */}
-            <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full -mr-10 -mt-10"></div>
-            <div className="absolute bottom-0 left-0 w-24 h-24 bg-white opacity-10 rounded-full -ml-10 -mb-10"></div>
-
-            <div className="relative z-10">
-              <h2 className="text-2xl font-bold mb-2">Needs Attention!</h2>
-              <p className="text-teal-50 text-sm mb-6 opacity-90">
-                You have pending items requiring your approval.
-              </p>
-
-              <div className="space-y-4">
-                {stats.leaves.pending > 0 && (
-                  <div className="bg-white p-3 rounded-xl border border-gray-200">
-                    <p className="text-sm font-medium mb-2 text-gray-800">Leave Requests</p>
-                    <p className="text-xs text-gray-600 mb-2">{stats.leaves.pending} pending</p>
-
-                    {/* Display pending leave requests */}
-                    {pendingLeaves.map((leave) => (
-                      <div key={leave._id} className="mt-2 pt-2 border-t border-gray-100">
-                        <p className="text-xs font-medium truncate text-gray-800">{leave.worker?.name || 'Unknown Employee'}</p>
-                        <p className="text-xs text-gray-600 truncate">
-                          {new Date(leave.startDate).toLocaleDateString()} - {new Date(leave.endDate).toLocaleDateString()}
-                        </p>
-                      </div>
-                    ))}
-
-                    {stats.leaves.pending > 3 && (
-                      <p className="text-xs text-gray-600 mt-1">+{stats.leaves.pending - 3} more</p>
+              {/* Activity Bento Card */}
+              <motion.div 
+                whileHover={{ scale: 1.02 }}
+                className="bg-white rounded-[24px] p-7 shadow-sm border border-slate-50 flex-1 flex flex-col hover:border-slate-200 transition-all cursor-pointer"
+              >
+                 <div className="flex items-center justify-between mb-8">
+                    <h2 className="text-[16px] font-extrabold text-slate-900 tracking-tight">Live Activity</h2>
+                    <span className="text-[12px] font-bold text-slate-400 leading-relaxed">Recent Events</span>
+                 </div>
+                 
+                 <div className="space-y-5 flex-1">
+                    {pendingLeaves.length > 0 ? (
+                       pendingLeaves.map((leave) => (
+                          <div key={leave._id} className="flex items-center gap-4 group cursor-pointer">
+                             <div className="relative flex-shrink-0">
+                                <img 
+                                   className="w-11 h-11 rounded-2xl object-cover shadow-md group-hover:scale-110 transition-transform duration-300" 
+                                   src={leave.worker?.photo || `https://ui-avatars.com/api/?name=${leave.worker?.name}&background=f9fafb&color=0f172a&bold=true`} 
+                                   alt="" 
+                                />
+                                <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-white rounded-full flex items-center justify-center shadow-lg">
+                                   <div className="w-2.5 h-2.5 bg-amber-400 rounded-full"></div>
+                                </div>
+                             </div>
+                             <div className="flex-1 min-w-0">
+                                <h4 className="text-[14px] font-bold text-slate-900 truncate tracking-tight mb-0.5">{leave.worker?.name}</h4>
+                                <p className="text-[11px] font-bold text-slate-400 truncate uppercase tracking-tight">{leave.leaveType} Request</p>
+                             </div>
+                             <div className="text-right">
+                                <p className="text-[10px] font-bold text-slate-200 group-hover:text-slate-900 transition-colors">
+                                   {new Date(leave.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                </p>
+                             </div>
+                          </div>
+                       ))
+                    ) : (
+                       <div className="flex flex-col items-center justify-center flex-1 text-slate-300 py-10">
+                          <FiBell size={40} className="mb-4 opacity-20" />
+                          <p className="text-[13px] font-bold opacity-50">System Idle</p>
+                       </div>
                     )}
-                  </div>
-                )}
-
-                {stats.leaves.pending === 0 && (
-                  <div className="bg-white p-3 rounded-xl border border-gray-200 flex items-center">
-                    <p className="text-sm text-gray-800">All caught up!</p>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <Link
-              to="/admin/leaves"
-              className="relative z-10 mt-8 w-full bg-white text-[#111111] py-3 rounded-xl font-bold text-center hover:bg-teal-50 transition-colors shadow-md"
-            >
-              Check Approvals
-            </Link>
-          </div>
+                 </div>
+                 
+                 <Link to="/admin/leaves" className="mt-8 pt-6 border-t border-slate-50 text-center text-[12px] font-bold text-slate-400 hover:text-slate-900 transition-all flex items-center justify-center gap-2 uppercase tracking-widest">
+                    View Audit Logs <FiChevronRight size={14} />
+                 </Link>
+               </motion.div>
+           </div>
         </div>
       </div>
-
       <PricingModal
-        isOpen={isPricingModalOpen}
-        onClose={() => setIsPricingModalOpen(false)}
-      />
-
-      {/* Employees Modal */}
-      <Modal
-        isOpen={viewEmployeesModalOpen}
-        onClose={() => setViewEmployeesModalOpen(false)}
-        title="Department Employees"
-      >
-        {viewingDepartmentEmployees.length === 0 ? (
-          <p className="text-gray-500 text-center py-4">No employees found in this department.</p>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {viewingDepartmentEmployees.map((emp, idx) => (
-              <div
-                key={idx}
-                className="flex items-center space-x-4 bg-gray-50 p-3 rounded p-4 shadow-sm cursor-pointer hover:bg-gray-100 transition-colors"
-                onClick={() => {
-                  setViewEmployeesModalOpen(false);
-                  fetchEmployeeSummary(emp);
-                }}
-              >
-                <img
-                  src={emp.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(emp.name)}`}
-                  alt={emp.name}
-                  className="w-12 h-12 rounded-full ring-2 ring-white shadow-sm"
-                />
-                <div className="flex-1">
-                  <span className="text-md font-semibold text-gray-800 block">{emp.name}</span>
-                  <div className="mt-1 flex items-center">
-                    <span className={`inline-flex items-center gap-1.5 text-[10px] font-black px-2 py-1 rounded-lg uppercase tracking-wider shadow-sm border ${emp.status === 'Present' ? 'bg-emerald-50 border-emerald-200 text-emerald-700' :
-                      emp.status === 'On Leave' ? 'bg-amber-50 border-amber-200 text-amber-700' :
-                        'bg-rose-50 border-rose-200 text-rose-700'
-                      }`}>
-                      <span className={`w-1.5 h-1.5 rounded-full animate-pulse ${emp.status === 'Present' ? 'bg-emerald-500' :
-                        emp.status === 'On Leave' ? 'bg-amber-500' :
-                          'bg-rose-500'
-                        }`}></span>
-                      {emp.status}
-                    </span>
-                  </div>
-                </div>
+          isOpen={isPricingModalOpen}
+          onClose={() => setIsPricingModalOpen(false)}
+        />
+        {/* Department Roster Modal */}
+        <Modal
+          isOpen={viewEmployeesModalOpen}
+          onClose={() => setViewEmployeesModalOpen(false)}
+          title="Unit Roster"
+          size="md"
+        >
+          <div className="space-y-4">
+            {viewingDepartmentEmployees.length === 0 ? (
+              <div className="text-center py-16 bg-[#F9FAFB] rounded-[32px] shadow-inner">
+                 <FiUsers className="mx-auto text-slate-300 text-3xl mb-4" />
+                 <p className="text-[14px] font-normal text-slate-400">No Personnel Assigned</p>
               </div>
-            ))}
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {viewingDepartmentEmployees.map((emp, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-center gap-4 bg-white p-5 rounded-[24px] shadow-[0_5px_15px_rgba(0,0,0,0.03)] hover:shadow-[0_10px_25px_rgba(0,0,0,0.05)] cursor-pointer transition-all duration-300 group"
+                    onClick={() => { setViewEmployeesModalOpen(false); fetchEmployeeSummary(emp); }}
+                  >
+                    <img
+                      src={emp.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(emp.name)}&background=f9fafb&color=64748b&bold=true`}
+                      alt={emp.name}
+                      className="w-12 h-12 rounded-2xl shadow-sm group-hover:scale-105 transition-transform object-cover"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <span className="text-[15px] font-semibold text-slate-900 block truncate tracking-tight">{emp.name}</span>
+                      <div className="mt-1 flex items-center gap-2">
+                        <div className={`w-2 h-2 rounded-full ${emp.status === 'Present' ? 'bg-emerald-500' : 'bg-rose-500'}`}></div>
+                        <span className={`text-[12px] font-normal ${emp.status === 'Present' ? 'text-emerald-600' : 'text-rose-600'}`}>
+                          {emp.status}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-        )}
-      </Modal>
+        </Modal>
 
-      {/* Employee Performance & Earnings Modal */}
-      <Modal
-        isOpen={isEmployeeDetailsModalOpen}
-        onClose={() => setIsEmployeeDetailsModalOpen(false)}
-        title={selectedEmployee ? `${selectedEmployee.name}'s Performance & Earnings` : 'Employee Details'}
-        size="lg"
-      >
-        {isSummaryLoading ? (
-          <div className="flex justify-center py-12">
-            <Spinner size="lg" />
-          </div>
-        ) : employeeSummary && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-2xl border border-blue-100 shadow-sm transition-all hover:shadow-md">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 bg-blue-500 rounded-lg text-white shadow-sm">
-                    <FaChartLine />
-                  </div>
-                  <h3 className="font-bold text-gray-800 uppercase tracking-wider text-xs">Attendance</h3>
-                </div>
-                <div className="space-y-4">
-                  <div className="flex justify-between items-end">
-                    <span className="text-gray-500 text-[10px] font-black uppercase">This Month</span>
-                    <span className="text-2xl font-black text-indigo-700">{employeeSummary.monthly.performance.toFixed(1)}%</span>
-                  </div>
-                  <div className="flex justify-between items-end opacity-80">
-                    <span className="text-gray-500 text-[10px] font-black uppercase">Yearly Avg</span>
-                    <span className="text-lg font-bold text-gray-800">{employeeSummary.yearly.performance.toFixed(1)}%</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-gradient-to-br from-emerald-50 to-teal-50 p-6 rounded-2xl border border-emerald-100 shadow-sm transition-all hover:shadow-md">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 bg-emerald-500 rounded-lg text-white shadow-sm">
-                    <FaMoneyBillWave />
-                  </div>
-                  <h3 className="font-bold text-gray-800 uppercase tracking-wider text-xs">Earnings</h3>
-                </div>
-                <div className="space-y-4">
-                  <div className="flex justify-between items-end">
-                    <span className="text-gray-500 text-[10px] font-black uppercase">Earned Month</span>
-                    <span className="text-2xl font-black text-emerald-700">{formatCurrency(employeeSummary.monthly.earnings, settings)}</span>
-                  </div>
-                  <div className="flex justify-between items-end opacity-80">
-                    <span className="text-gray-500 text-[10px] font-black uppercase">Yearly Total</span>
-                    <span className="text-lg font-bold text-gray-800">{formatCurrency(employeeSummary.yearly.earnings, settings)}</span>
-                  </div>
-                </div>
-              </div>
+        {/* Employee Summary Details Modal */}
+        <Modal
+          isOpen={isEmployeeDetailsModalOpen}
+          onClose={() => setIsEmployeeDetailsModalOpen(false)}
+          title={selectedEmployee ? selectedEmployee.name : 'Personnel Profile'}
+          size="lg"
+        >
+          {isSummaryLoading ? (
+            <div className="flex flex-col items-center justify-center py-24 gap-6">
+              <Spinner size="lg" />
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] animate-pulse">Compiling Metrics...</p>
             </div>
-
-            <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="p-2 bg-amber-500 rounded-lg text-white shadow-sm">
-                  <FaCalendarAlt />
+          ) : employeeSummary && (
+            <div className="space-y-8 pb-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                {/* Performance Analytics Card */}
+                <div className="bg-[#F9FAFB] p-8 rounded-[32px] relative overflow-hidden group hover:bg-white hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-500">
+                  <div className="absolute -top-4 -right-4 p-12 opacity-[0.03] group-hover:opacity-[0.08] transition-all group-hover:scale-110">
+                     <FiActivity size={120} />
+                  </div>
+                  <div className="flex items-center gap-4 mb-10">
+                    <div className="w-12 h-12 bg-slate-900 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-slate-900/20">
+                      <FiActivity size={20} />
+                    </div>
+                    <div>
+                       <h3 className="font-semibold text-slate-900 text-base tracking-tight">Attendance</h3>
+                       <p className="font-normal text-slate-500 text-[12px]">Historical Trend</p>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                      <p className="text-5xl font-semibold text-slate-900 tracking-tighter">{employeeSummary.monthly.performance.toFixed(1)}%</p>
+                      <p className="text-[13px] font-normal text-emerald-600 flex items-center gap-2">
+                        <span className="w-2 h-2 bg-emerald-500 rounded-full"></span> This Month
+                      </p>
+                  </div>
+                  <div className="mt-8 pt-8 border-t border-slate-200/50 flex justify-between items-center">
+                      <span className="text-[12px] font-normal text-slate-400">Yearly Benchmark</span>
+                      <span className="text-base font-semibold text-slate-900 tracking-tight">{employeeSummary.yearly.performance.toFixed(1)}%</span>
+                  </div>
                 </div>
-                <h3 className="font-bold text-gray-800 uppercase tracking-wider text-xs">6 Months Trend</h3>
+
+                {/* Financial Analytics Card */}
+                <div className="bg-slate-900 p-8 rounded-[32px] relative overflow-hidden group shadow-2xl shadow-slate-900/30 hover:shadow-slate-900/50 transition-all duration-500">
+                  <div className="absolute -top-4 -right-4 p-12 opacity-[0.05] group-hover:opacity-[0.12] transition-all group-hover:scale-110 text-white">
+                     <FaMoneyBillWave size={120} />
+                  </div>
+                  <div className="flex items-center gap-4 mb-10">
+                    <div className="w-12 h-12 bg-emerald-500 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
+                      <FaMoneyBillWave size={20} />
+                    </div>
+                    <div>
+                       <h3 className="font-semibold text-white text-base tracking-tight">Earnings</h3>
+                       <p className="font-normal text-slate-400 text-[12px]">Compensations</p>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                      <p className="text-5xl font-semibold text-white tracking-tighter">{formatCurrency(employeeSummary.monthly.earnings, settings)}</p>
+                      <p className="text-[13px] font-normal text-emerald-400">Net Payout (Monthly)</p>
+                  </div>
+                  <div className="mt-8 pt-8 border-t border-slate-800 flex justify-between items-center">
+                      <span className="text-[12px] font-normal text-slate-500">Annual Total</span>
+                      <span className="text-base font-semibold text-emerald-400 tracking-tight">{formatCurrency(employeeSummary.yearly.earnings, settings)}</span>
+                  </div>
+                </div>
               </div>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-50">
-                      <th className="text-left pb-3">Month</th>
-                      <th className="text-center pb-3">Performance</th>
-                      <th className="text-right pb-3">Earnings</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-50">
-                    {employeeSummary.sixMonths.map((data, index) => (
-                      <tr key={index} className="hover:bg-gray-50/50 transition-colors group">
-                        <td className="py-3 text-sm font-bold text-gray-700">{data.month}</td>
-                        <td className="py-3">
-                          <div className="flex items-center justify-center gap-3">
-                            <div className="w-24 h-1.5 bg-gray-100 rounded-full overflow-hidden shadow-inner">
-                              <div
-                                className={`h-full rounded-full transition-all duration-500 ${data.performance > 80 ? 'bg-emerald-500' : data.performance > 50 ? 'bg-amber-500' : 'bg-red-500'}`}
-                                style={{ width: `${data.performance}%` }}
-                              ></div>
-                            </div>
-                            <span className="text-[10px] font-bold text-gray-500 w-10">{data.performance.toFixed(1)}%</span>
-                          </div>
-                        </td>
-                        <td className="py-3 text-right text-sm font-black text-emerald-600 tracking-tight">{formatCurrency(data.earnings, settings)}</td>
+
+              {/* 6-Month Trend Visual Table */}
+              <div className="bg-white p-10 rounded-[32px] border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-slate-200/40 transition-all duration-500">
+                <div className="flex items-center justify-between mb-10">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-slate-50 text-slate-400 rounded-2xl flex items-center justify-center border border-slate-100 shadow-sm">
+                      <FaChartLine size={20} />
+                    </div>
+                    <div>
+                        <h3 className="font-black text-slate-900 text-lg tracking-tight">Quarterly Performance</h3>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">6-Month Historical Data</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="overflow-x-auto no-scrollbar -mx-2 px-2">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="text-[12px] font-normal text-slate-400 border-b border-slate-100">
+                        <th className="text-left pb-6">Period</th>
+                        <th className="text-center pb-6">System Health</th>
+                        <th className="text-right pb-6">Final Earnings</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-slate-50">
+                      {employeeSummary.sixMonths.map((data, index) => (
+                        <tr key={index} className="hover:bg-[#F9FAFB] transition-colors group">
+                          <td className="py-6 text-sm font-semibold text-slate-900">{data.month}</td>
+                          <td className="py-6">
+                            <div className="flex items-center justify-center gap-6">
+                              <div className="w-32 h-[6px] bg-[#F9FAFB] rounded-[10px] overflow-hidden">
+                                <div
+                                  className={`h-full transition-all duration-1000 ease-out ${data.performance > 80 ? 'bg-emerald-500' : data.performance > 50 ? 'bg-amber-500' : 'bg-rose-500'}`}
+                                  style={{ width: `${data.performance}%` }}
+                                ></div>
+                              </div>
+                              <span className="text-[12px] font-semibold text-slate-900 w-12">{data.performance.toFixed(0)}%</span>
+                            </div>
+                          </td>
+                          <td className="py-6 text-right text-sm font-semibold text-slate-900">{formatCurrency(data.earnings, settings)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div className="flex justify-end pt-4">
+                <Button variant="outline" onClick={() => setIsEmployeeDetailsModalOpen(false)} className="rounded-[30px] px-10 py-4 font-semibold text-[14px] border-none bg-[#F9FAFB] hover:bg-slate-900 hover:text-white transition-all duration-300">
+                  Close Profile
+                </Button>
               </div>
             </div>
-
-            <div className="flex justify-end pt-2">
-              <Button variant="outline" onClick={() => setIsEmployeeDetailsModalOpen(false)} className="rounded-xl border-gray-200">
-                Close Profile
-              </Button>
-            </div>
-          </div>
-        )}
-      </Modal>
-    </div >
+          )}
+        </Modal>
+    </>
   );
 };
 

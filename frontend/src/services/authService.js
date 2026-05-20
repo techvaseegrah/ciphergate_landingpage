@@ -18,7 +18,12 @@ export const registerAdmin = async (userData) => {
 
     // Store the token and user data in localStorage after registration
     localStorage.setItem('token', responseData.token);
-    localStorage.setItem('tasktracker-subdomain', responseData.subdomain);
+    
+    // Filter out invalid subdomain values
+    if (responseData.subdomain && responseData.subdomain !== 'undefined' && responseData.subdomain !== 'null') {
+      localStorage.setItem('tasktracker-subdomain', responseData.subdomain);
+    }
+    
     localStorage.setItem('user', JSON.stringify({
       _id: responseData._id,
       username: responseData.username,
@@ -53,7 +58,18 @@ export const login = async (credentials, userType) => {
 
     // Include department and salary information when saving to localStorage
     localStorage.setItem('token', userData.token);
-    localStorage.setItem('tasktracker-subdomain', userData.subdomain);
+    
+    // Validate subdomain before storing
+    const subToStore = (userData.subdomain && userData.subdomain !== 'undefined' && userData.subdomain !== 'null') 
+      ? userData.subdomain 
+      : (credentials.subdomain && credentials.subdomain !== 'main' && credentials.subdomain !== 'undefined') 
+        ? credentials.subdomain 
+        : null;
+
+    if (subToStore) {
+      localStorage.setItem('tasktracker-subdomain', subToStore);
+    }
+
     localStorage.setItem('user', JSON.stringify({
       _id: userData._id,
       username: userData.username,

@@ -5,11 +5,19 @@ import { getAuthToken } from '../utils/authUtils';
 export const getUniqueId = async () => {
   try {
     const response = await api.get('workers/generate-id');
-    console.log(response.data);
-    return response.data || [];
+    return response.data;
   } catch (error) {
     console.error('Workers fetch error:', error);
-    return [];
+    // Return a locally generated fallback ID if server is unreachable or errors out
+    const letters = String.fromCharCode(
+      65 + Math.floor(Math.random() * 26),
+      65 + Math.floor(Math.random() * 26)
+    );
+    const numbers = Math.floor(1000 + Math.random() * 9000).toString();
+    return { 
+      rfid: `${letters}${numbers}`, 
+      message: "ID was generated locally (Fallback)" 
+    };
   }
 };
 

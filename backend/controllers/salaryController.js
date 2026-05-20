@@ -6,6 +6,7 @@ const Holiday = require('../models/Holiday');
 const Leave = require('../models/Leave');
 const Department = require('../models/Department');
 const Settings = require('../models/Settings');
+const mongoose = require('mongoose');
 const { calculateWorkerProductivity } = require('../utils/productivityCalculator');
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -28,7 +29,8 @@ const calculateOvertime = (attendanceData, worker, department) => {
     let totalOvertimeHours = 0;
     let totalOvertimePay = 0;
 
-    const perHourSalary = (worker.salary || 0) / (22 * regularHoursPerDay); // ~22 working days/month
+    const divisor = 22 * regularHoursPerDay;
+    const perHourSalary = divisor > 0 ? (worker.salary || 0) / divisor : 0; // ~22 working days/month
 
     attendanceData.forEach(record => {
         if (!record.checkIn || !record.checkOut) return;
@@ -141,6 +143,10 @@ const giveBonus = asyncHandler(async (req, res) => {
         return res.status(400).json({ message: 'Date range (fromDate and toDate) is required' });
     }
 
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(404).json({ message: 'Worker not found (Invalid ID format)' });
+    }
+
     const worker = await Worker.findById(id);
     if (!worker) return res.status(404).json({ message: 'Worker not found' });
 
@@ -188,10 +194,9 @@ const giveBonus = asyncHandler(async (req, res) => {
         message: 'Bonus calculated and added successfully',
         worker,
         calculationDetails: {
-            baseSalary,
+            baseSalary: worker.salary,
             bonusAmount,
             actualEarnedSalary,
-            remainingBonus,
             finalPayout
         }
     });
@@ -245,6 +250,10 @@ const getWorkerSalaryReport = asyncHandler(async (req, res) => {
     if (!fromDate || !toDate) return res.status(400).json({ message: 'Start and end dates are required' });
 
     try {
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ message: 'Invalid worker ID' });
+        }
+
         const worker = await Worker.findById(id).populate('department').select('+fines +deductions +overtimeRecords');
         if (!worker) return res.status(404).json({ message: 'Worker not found' });
 
@@ -278,15 +287,16 @@ const getWorkerSalaryReport = asyncHandler(async (req, res) => {
         });
 
         // Bonus calculation
-        const bonusesForPeriod = worker.bonuses.filter(bonus =>
+        const bonusesForPeriod = (worker.bonuses || []).filter(bonus =>
+            bonus.fromDate && bonus.toDate &&
             new Date(bonus.fromDate) <= new Date(toDate) &&
             new Date(bonus.toDate) >= new Date(fromDate)
         );
-        const totalBonusAmount = bonusesForPeriod.reduce((total, bonus) => total + bonus.amount, 0);
+        const totalBonusAmount = bonusesForPeriod.reduce((total, bonus) => total + (bonus.amount || 0), 0);
 
-        let finalSalaryWithBonus = report.summary.finalSalary;
+        let finalSalaryWithBonus = report.summary?.finalSalary || 0;
         if (totalBonusAmount > 0) {
-            finalSalaryWithBonus = (report.summary.finalSalary || 0) + totalBonusAmount;
+            finalSalaryWithBonus = (report.summary?.finalSalary || 0) + totalBonusAmount;
         }
 
         // Deduction engine
@@ -296,8 +306,8 @@ const getWorkerSalaryReport = asyncHandler(async (req, res) => {
         const overtimeSummary = calculateOvertime(attendanceData, worker, worker.department);
 
         // Final salary = earned + overtime - deductions
-        const finalSalaryWithFines = Math.max(0, finalSalaryWithBonus - deductionSummary.cappedDeduction);
-        const finalSalaryWithOvertime = finalSalaryWithFines + overtimeSummary.totalOvertimePay;
+        const finalSalaryWithFines = Math.max(0, finalSalaryWithBonus - (deductionSummary?.cappedDeduction || 0));
+        const finalSalaryWithOvertime = finalSalaryWithFines + (overtimeSummary?.totalOvertimePay || 0);
 
         res.status(200).json({
             message: 'Salary report generated successfully',

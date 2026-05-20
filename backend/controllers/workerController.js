@@ -10,6 +10,8 @@ const fs = require('fs');
 // const nodemailer = require('nodemailer');
 // const QRCode = require('qrcode');
 
+
+
 // @desc    Create new worker
 // @route   POST /api/workers
 // @access  Private/Admin
@@ -183,6 +185,8 @@ const createWorker = asyncHandler(async (req, res) => {
       personalLeave: parsedOverrides?.personal !== undefined ? parsedOverrides.personal : (policy.personal ?? 3)
     };
 
+
+
     // Create worker
     const worker = await Worker.create({
       name: trimmedName,
@@ -229,9 +233,8 @@ const createWorker = asyncHandler(async (req, res) => {
       department: departmentDoc.name,
       password: undefined // Don't return password
     });
-
   } catch (error) {
-    console.error('Worker Creation Error:', error);
+    console.error('Create Worker Error:', error);
     res.status(400);
     throw new Error(error.message || 'Failed to create worker');
   }
@@ -265,12 +268,17 @@ const generateUniqueRFID = async () => {
 // @route   POST /api/workers/check-rfid
 // @access  Public or Protected (depending on your use case)
 const generateId = asyncHandler(async (req, res) => {
-  const rfid = await generateUniqueRFID();
+  try {
+    const rfid = await generateUniqueRFID();
 
-  res.status(200).json({
-    rfid: rfid,
-    message: "ID was generated"
-  });
+    res.status(200).json({
+      rfid: rfid,
+      message: "ID was generated"
+    });
+  } catch (error) {
+    res.status(500);
+    throw new Error('Failed to generate unique RFID');
+  }
 });
 
 // @desc    Get all workers
@@ -278,6 +286,7 @@ const generateId = asyncHandler(async (req, res) => {
 // @access  Private/Admin
 const getWorkers = asyncHandler(async (req, res) => {
   try {
+
     // Handle both object and string formats for subdomain
     const subdomain = typeof req.body === 'object' && req.body.subdomain
       ? req.body.subdomain
@@ -322,7 +331,8 @@ const getWorkers = asyncHandler(async (req, res) => {
 
     res.json(transformedWorkers);
   } catch (error) {
-    console.error('Get Workers Error:', error);
+    console.error('Get Workers Error:', error.message);
+    if (res.headersSent) return;
     res.status(500);
     throw new Error('Failed to retrieve workers');
   }
@@ -359,6 +369,7 @@ const getPublicWorkers = asyncHandler(async (req, res) => {
 // @access  Private
 const getWorkerById = asyncHandler(async (req, res) => {
   try {
+
     const worker = await Worker.findById(req.params.id)
       .select('-password')
       .populate('department', 'name');
@@ -381,8 +392,8 @@ const getWorkerById = asyncHandler(async (req, res) => {
 // @access  Private/Admin
 const updateWorker = asyncHandler(async (req, res) => {
   try {
-    const worker = await Worker.findById(req.params.id);
 
+    const worker = await Worker.findById(req.params.id);
     if (!worker) {
       res.status(404);
       throw new Error('Worker not found');

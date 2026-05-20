@@ -1,0 +1,1322 @@
+/* =============================================================================
+   CIPHERGATE LANDING PAGE — MOBILE RESPONSIVE STYLESHEET
+   
+   GOLDEN RULE: Every rule here lives inside a @media query.
+   ZERO desktop styles are touched. Desktop (≥1025px) is 100% untouched.
+   
+   Breakpoints used:
+     xs  — max-width: 380px   (tiny phones: iPhone SE, Galaxy A03)
+     sm  — max-width: 480px   (small phones)
+     md  — max-width: 768px   (all phones, landscape phones)
+     lg  — max-width: 1024px  (tablets portrait & landscape)
+   
+   File location: src/mobile-responsive.css
+   Import in: src/main.jsx  →  import './mobile-responsive.css';
+   (Import it AFTER index.css so it wins specificity)
+   
+   ============================================================================= */
+
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   0. GLOBAL OVERFLOW LOCK — prevent ANY horizontal scroll on all screens ≤1024
+   ───────────────────────────────────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  html, body {
+    overflow-x: hidden !important;
+    max-width: 100vw !important;
+  }
+
+  * {
+    box-sizing: border-box !important;
+  }
+
+  /* Kill the custom cursor on mobile (it causes ghost scroll) */
+  body {
+    cursor: auto !important;
+  }
+
+  /* Request Demo Button — Cyber stroke fix for all screens */
+  .btn-cyber-secondary {
+    position: relative !important;
+    background-color: transparent !important;
+    color: #fff !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px) !important;
+  }
+
+  /* White border frame layer */
+  .btn-cyber-secondary::before {
+    content: "" !important;
+    position: absolute !important;
+    top: 0 !important; left: 0 !important;
+    width: 100% !important; height: 100% !important;
+    background: rgba(255, 255, 255, 0.88) !important;
+    clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px) !important;
+    z-index: -1 !important;
+    pointer-events: none !important;
+  }
+
+  /* Black hollow — leaves 1.5px white border visible */
+  .btn-cyber-secondary::after {
+    content: "" !important;
+    position: absolute !important;
+    top: 1.5px !important; left: 1.5px !important;
+    width: calc(100% - 3px) !important;
+    height: calc(100% - 3px) !important;
+    background: #000 !important;
+    clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px) !important;
+    z-index: -1 !important;
+    pointer-events: none !important;
+  }
+}
+
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   1. HEADER / NAVBAR
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* ── Tablet (769px–1024px): show auth button, hide full nav ── */
+@media (max-width: 1024px) {
+  /* Outer wrapper - Only target landing page header */
+  header:not(.header-container):not(.admin-header) {
+    top: 10px !important;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+
+  /* Nav pill — flex centering is non-negotiable */
+  header nav {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+    height: 64px !important;
+    border-radius: 20px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    z-index: 100 !important;
+  }
+}
+
+/* Sidebar & Backdrop Over Header Fix */
+.sidebar-backdrop {
+  z-index: 1000 !important;
+}
+
+.sidebar-container {
+  z-index: 1001 !important;
+}
+
+/* ── Phone (≤768px) ── */
+@media (max-width: 768px) {
+  header:not(.header-container):not(.admin-header) {
+    top: 8px !important;
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+  }
+
+  header nav {
+    height: 56px !important;
+    padding-left: 14px !important;
+    padding-right: 12px !important;
+    border-radius: 16px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+  }
+
+  /* Logo text */
+  header nav h1 {
+    font-size: 13px !important;
+    letter-spacing: 0.12em !important;
+    margin: 0 !important;
+    line-height: 1 !important;
+  }
+
+  /* Logo image */
+  header nav img {
+    height: 22px !important;
+  }
+
+  /* Hamburger button — always visible, properly sized */
+  header nav button[aria-label="Toggle Menu"] {
+    min-height: 40px !important;
+    min-width: 40px !important;
+    padding: 8px !important;
+  }
+}
+
+/* ── Mobile dropdown menu ── */
+@media (max-width: 768px) {
+  /* The sliding mobile menu panel */
+  header > div.md\:hidden[class*="absolute"] {
+    top: 68px !important;
+    left: 10px !important;
+    right: 10px !important;
+    padding: 20px 20px 24px !important;
+    border-radius: 16px !important;
+    max-height: calc(100vh - 90px) !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  /* Nav links in mobile menu */
+  header > div.md\:hidden a {
+    font-size: 11px !important;
+    padding: 4px 0 !important;
+    min-height: 44px !important;
+    display: flex !important;
+    align-items: center !important;
+  }
+
+  /* Get Started button in mobile menu */
+  header > div.md\:hidden button.w-full.py-4 {
+    min-height: 52px !important;
+    font-size: 11px !important;
+  }
+}
+
+/* ── Tiny phones (≤380px) ── */
+@media (max-width: 380px) {
+  header nav h1 {
+    font-size: 11px !important;
+    letter-spacing: 0.08em !important;
+  }
+
+  header nav img {
+    height: 18px !important;
+  }
+}
+
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   2. HERO SECTION
+   ───────────────────────────────────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  /* Hero container — stack vertically, center everything */
+  .hero-section {
+    padding-top: 90px !important;
+    padding-bottom: 60px !important;
+    min-height: auto !important;
+  }
+
+  /* The flex row that holds left-text + right-image */
+  .hero-section .landing-container {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 40px !important;
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+  }
+
+  /* Left text block */
+  .hero-section .landing-container > div:first-child {
+    width: 100% !important;
+    align-items: center !important;
+    text-align: center !important;
+  }
+
+  /* Right image block */
+  .hero-section .landing-container > div:last-child {
+    width: 100% !important;
+    justify-content: center !important;
+    margin-top: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  /* Hero image */
+  .hero-section .landing-container > div:last-child img {
+    max-width: 420px !important;
+    width: 90% !important;
+    transform: none !important; /* Kill the lg:scale-[1.35] lg:translate-x-12 */
+    margin: 0 auto !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-section {
+    padding-top: 80px !important;
+    padding-bottom: 48px !important;
+  }
+
+  /* Main H1 headline — the "Track Attendance / Just by Looking" */
+  .hero-section .section-title {
+    font-size: 20px !important; /* Set to exactly 20px as requested */
+    text-align: center !important;
+    margin-bottom: 20px !important;
+  }
+
+  /* The headline flex row — force wrap on small screens */
+  .hero-section .section-title > div {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 8px !important;
+    text-align: center !important;
+  }
+
+  /* "Just by + [Looking] box" row */
+  .hero-section .section-title > div > div {
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 12px !important;
+  }
+
+  /* The dashed "Looking" badge — scale down */
+  .hero-section .section-title span[style*="backgroundImage"] {
+    padding: 4px 14px 8px !important;
+    border-radius: 10px !important;
+    font-size: inherit !important;
+  }
+
+  /* Cursor emoji image on the "Looking" badge */
+  .hero-section .section-title span[style*="backgroundImage"] img {
+    width: 55px !important;
+    top: 88% !important;
+    left: 88% !important;
+  }
+
+  /* Sub-paragraph */
+  .hero-section p {
+    font-size: 14px !important;
+    line-height: 1.65 !important;
+    padding: 0 4px !important;
+    margin-bottom: 32px !important;
+    max-width: 100% !important;
+    text-align: center !important;
+  }
+
+  /* CTA button row */
+  .hero-section .landing-container > div:first-child > div[class*="flex"] {
+    flex-direction: column !important;
+    width: 100% !important;
+    max-width: 320px !important;
+    margin: 0 auto !important;
+    gap: 12px !important;
+    align-items: stretch !important;
+  }
+
+  /* Both CTA buttons — stacks them perfectly full-width */
+  .btn-cyber-primary,
+  .btn-cyber-secondary {
+    display: flex !important;
+    flex-direction: row !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 52px !important;
+    padding: 0 24px !important;
+    font-size: 15px !important;
+    font-weight: 700 !important;
+    gap: 10px !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  /* Hero right image */
+  .hero-section .landing-container > div:last-child img {
+    max-width: 340px !important;
+    width: 85% !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-section {
+    padding-top: 72px !important;
+    padding-bottom: 40px !important;
+  }
+
+  .hero-section .section-title {
+    font-size: 24px !important;
+  }
+
+  .hero-section .landing-container > div:first-child > div[class*="flex"] {
+    max-width: 280px !important;
+  }
+
+  .hero-section .landing-container > div:last-child img {
+    max-width: 280px !important;
+    width: 80% !important;
+  }
+}
+
+@media (max-width: 380px) {
+  .hero-section .section-title {
+    font-size: 20px !important;
+  }
+
+  .hero-section p {
+    font-size: 13px !important;
+  }
+}
+
+
+/* Bento Features logic moved to index.css for universal alignment lock */
+
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   4. STREAMLINE SECTION (Full-image section)
+   ───────────────────────────────────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  section#solutions {
+    max-width: 100% !important;
+    overflow: hidden !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: 0 !important;
+  }
+
+  section#solutions img {
+    width: 100% !important;
+    height: auto !important;
+    display: block !important;
+    max-width: 100% !important;
+  }
+}
+
+/* On very small screens the desktop design image may look crowded.
+   We still show it but let it scroll horizontally only if truly needed. */
+@media (max-width: 480px) {
+  section#solutions {
+    overflow-x: auto !important; /* Allow horizontal scroll ONLY for this image */
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  section#solutions img {
+    min-width: 480px !important; /* Never let the design image shrink below readable */
+    width: 100% !important;
+  }
+}
+
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   5. FACE CHECK-IN SECTION (FaceCheckInSection.jsx)
+   ───────────────────────────────────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  /* The 2-column grid → single column */
+  .landing-section .grid.grid-cols-1.lg\:grid-cols-2,
+  section .grid.grid-cols-1.lg\:grid-cols-2 {
+    grid-template-columns: 1fr !important;
+    gap: 40px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Phone mockup image */
+  section .relative.flex.justify-center.lg\:justify-start .relative.z-10 img {
+    max-width: 320px !important;
+    width: 85% !important;
+    margin: 0 auto !important;
+  }
+
+  /* Right content — center everything */
+  section .flex.flex-col.items-center.lg\:items-start.text-center.lg\:text-left {
+    align-items: center !important;
+    text-align: center !important;
+  }
+
+  /* The large heading "Effortless Face Check-In For All Employees" */
+  section .title-gradient.text-\[32px\],
+  section h2.title-gradient {
+    font-size: clamp(26px, 7vw, 42px) !important;
+    line-height: 1.2 !important;
+    text-align: center !important;
+  }
+
+  /* Stats row — stack on very small, side-by-side on phone */
+  .flex.flex-col.sm\:flex-row.items-center.justify-between.w-full {
+    flex-direction: column !important;
+    gap: 24px !important;
+    padding: 24px 0 !important;
+  }
+
+  /* Dividers between stats */
+  .w-full.sm\:w-px.h-px.sm\:h-20 {
+    width: 60px !important;
+    height: 1px !important;
+    max-width: 60px !important;
+  }
+
+  /* Stats text */
+  .flex.flex-col.items-center.gap-3 span:first-child {
+    font-size: clamp(32px, 9vw, 48px) !important;
+  }
+
+  /* CTA button — full width on mobile */
+  section .group.relative.px-8 {
+    width: 100% !important;
+    max-width: 320px !important;
+    justify-content: center !important;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Stats — show as 3-across row on small phones */
+  .flex.flex-col.sm\:flex-row.items-center.justify-between.w-full {
+    flex-direction: row !important;
+    justify-content: space-around !important;
+    gap: 8px !important;
+    flex-wrap: nowrap !important;
+  }
+
+  .flex.flex-col.items-center.gap-3 span:first-child {
+    font-size: 24px !important;
+  }
+
+  .flex.flex-col.items-center.gap-3 span:last-child {
+    font-size: 10px !important;
+    text-align: center !important;
+  }
+
+  /* Vertical dividers between stats */
+  .w-full.sm\:w-px.h-px.sm\:h-20 {
+    width: 1px !important;
+    height: 40px !important;
+    max-width: 1px !important;
+  }
+}
+
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   6. PRICING SECTION (Pricing.jsx)
+   ───────────────────────────────────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  /* Tube-light image container */
+  section#pricing-section > div:first-child {
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  section#pricing-section > div:first-child img {
+    width: 100% !important;
+    height: auto !important;
+    opacity: 0.7 !important;
+  }
+
+  /* Content below the tube light */
+  section#pricing-section > div:last-child {
+    margin-top: -60px !important;   /* relaxed gap on tablet */
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+    padding-bottom: 60px !important;
+  }
+
+  /* Pricing cards grid — single column on tablet */
+  .pricing-grid {
+    grid-template-columns: 1fr !important;
+    max-width: 480px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    gap: 20px !important;
+    width: 100% !important;
+  }
+
+  /* Section heading */
+  section#pricing-section h2.section-title {
+    font-size: clamp(28px, 7vw, 48px) !important;
+    text-align: center !important;
+    margin: 0 0 16px !important;
+  }
+
+  /* Subtitle */
+  section#pricing-section > div:last-child > p {
+    font-size: 13px !important;
+    text-align: center !important;
+    padding: 0 8px !important;
+    margin-bottom: 32px !important;
+  }
+
+  /* Monthly/Yearly toggle — Ensure no overflow */
+  section#pricing-section div[style*="borderRadius: '100px'"] {
+    margin-bottom: 40px !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    justify-content: center !important;
+    transform: scale(0.9) !important; /* Scale down slightly on mobile to avoid overflow */
+  }
+}
+
+@media (max-width: 768px) {
+  section#pricing-section > div:last-child {
+    margin-top: -20px !important;   /* relaxed gap on phone */
+  }
+
+  /* Plan cards — full width */
+  .glass-card-dark.rounded-\[28px\] {
+    border-radius: 20px !important;
+    padding: 24px 20px !important;
+  }
+
+  /* Price number */
+  .glass-card-dark span[style*="fontSize: '54px'"] {
+    font-size: 44px !important;
+  }
+
+  /* "What's Included" feature list — readable on small screens */
+  .glass-card-dark ul li {
+    font-size: 12px !important;
+    gap: 8px !important;
+  }
+
+  /* CTA button inside card */
+  .glass-card-dark button.w-full {
+    min-height: 52px !important;
+    font-size: 14px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  section#pricing-section > div:last-child {
+    margin-top: 20px !important;    /* small positive gap on tiny phones */
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+
+  .pricing-grid {
+    max-width: 100% !important;
+  }
+
+  .glass-card-dark.rounded-\[28px\] {
+    padding: 20px 16px !important;
+  }
+}
+
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   7. CONTACT SECTION (Contact.jsx)
+   ───────────────────────────────────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  section[id="contact"] .landing-container,
+  section#contact .landing-container {
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+  }
+
+  /* Contact form card — Get in touch fix */
+  section[id="contact"] .glass-card-dark,
+  section#contact .glass-card-dark {
+    padding: 32px 16px !important;
+    border-radius: 24px !important;
+    margin: 0 !important;
+  }
+
+  section#contact form {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 20px !important;
+  }
+
+  /* Force stack First/Last Name inputs */
+  section[id="contact"] .flex.flex-col.md\:grid,
+  section#contact form .flex.flex-col.md\:grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 20px !important;
+    width: 100% !important;
+  }
+
+  section#contact input,
+  section#contact textarea {
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+}
+
+@media (max-width: 768px) {
+  section[id="contact"],
+  section#contact {
+    padding-top: 48px !important;
+    padding-bottom: 48px !important;
+  }
+
+  /* Section header */
+  section[id="contact"] h2.section-title {
+    font-size: clamp(28px, 8vw, 48px) !important;
+    text-align: center !important;
+    margin-bottom: 16px !important;
+  }
+
+  section[id="contact"] > div > div > div p {
+    font-size: 14px !important;
+    padding: 0 8px !important;
+  }
+
+  /* Form card */
+  section[id="contact"] .glass-card-dark {
+    padding: 24px 16px !important;
+    border-radius: 20px !important;
+  }
+
+  /* Form inputs */
+  section[id="contact"] input,
+  section[id="contact"] textarea {
+    font-size: 16px !important; /* Prevent iOS zoom */
+    padding: 12px 0 !important;
+  }
+
+  /* Submit button */
+  section[id="contact"] button[type="submit"] {
+    min-height: 56px !important;
+    font-size: 11px !important;
+    letter-spacing: 0.2em !important;
+  }
+
+  /* Form spacing */
+  section[id="contact"] form.space-y-8,
+  section[id="contact"] form.space-y-12 {
+    gap: 20px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  section[id="contact"] .glass-card-dark {
+    padding: 20px 14px !important;
+    border-radius: 16px !important;
+  }
+
+  section[id="contact"] form > div.pt-8 {
+    padding-top: 20px !important;
+  }
+}
+
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   8. TESTIMONIALS SECTION (Testimonials.jsx)
+   ───────────────────────────────────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  /* 2-column grid → 1 column on tablet */
+  section.bg-\[\#000000\].py-24.border-t .grid.grid-cols-1.lg\:grid-cols-2 {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  /* Testimonials heading */
+  section.bg-\[\#000000\].py-24.border-t h2 {
+    font-size: clamp(28px, 6vw, 44px) !important;
+    text-align: center !important;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Each testimonial card — stack image below quote on mobile */
+  .bg-\[\#111111\].border.border-\[\#222\].rounded-\[24px\] {
+    flex-direction: column !important;
+    padding: 20px 16px !important;
+    border-radius: 16px !important;
+    gap: 20px !important;
+  }
+
+  /* Profile image — centered and smaller on mobile */
+  .bg-\[\#111111\] .w-\[120px\].h-\[120px\],
+  .bg-\[\#111111\] .w-\[150px\].h-\[150px\] {
+    width: 90px !important;
+    height: 90px !important;
+    align-self: flex-start !important;
+  }
+
+  /* Quote text */
+  .bg-\[\#111111\] p.text-\[\#a0a0a0\] {
+    font-size: 13px !important;
+    line-height: 1.65 !important;
+  }
+
+  /* Name & role */
+  .bg-\[\#111111\] h4 {
+    font-size: 14px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Full-width card with reduced padding */
+  .bg-\[\#111111\].border.border-\[\#222\].rounded-\[24px\] {
+    padding: 16px 14px !important;
+  }
+
+  .bg-\[\#111111\] .w-\[120px\].h-\[120px\] {
+    width: 72px !important;
+    height: 72px !important;
+  }
+}
+
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   9. FAQ SECTION (FAQ.jsx)
+   ───────────────────────────────────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  /* 12-column grid → single column stack */
+  section .grid.grid-cols-1.lg\:grid-cols-12 {
+    grid-template-columns: 1fr !important;
+    gap: 40px !important;
+  }
+
+  /* Left panel — center on mobile */
+  section .lg\:col-span-5 {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+  }
+
+  /* FAQ section title */
+  section .lg\:col-span-5 h2.section-title {
+    text-align: center !important;
+    align-items: center !important;
+  }
+
+  /* "Still have a question" block */
+  section .lg\:col-span-5 .mt-16,
+  section .lg\:col-span-5 .sm\:mt-24 {
+    margin-top: 32px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+  }
+
+  /* Contact Us button */
+  section .lg\:col-span-5 button {
+    margin: 0 auto !important;
+  }
+}
+
+@media (max-width: 768px) {
+  section .lg\:col-span-5 h2.section-title {
+    font-size: clamp(28px, 8vw, 44px) !important;
+  }
+
+  /* FAQ accordion items */
+  .border.border-\[\#1f1f1f\].rounded-\[16px\] {
+    border-radius: 12px !important;
+  }
+
+  .border.border-\[\#1f1f1f\] button {
+    padding: 16px !important;
+    min-height: 56px !important;
+  }
+
+  .border.border-\[\#1f1f1f\] button span:first-child {
+    font-size: 14px !important;
+    line-height: 1.4 !important;
+  }
+
+  .border.border-\[\#1f1f1f\] .px-5.sm\:px-6.pb-5 {
+    padding: 0 16px 16px !important;
+    font-size: 13px !important;
+    line-height: 1.65 !important;
+  }
+}
+
+@media (max-width: 480px) {
+  section .lg\:col-span-5 h2.section-title {
+    font-size: 24px !important;
+  }
+
+  .border.border-\[\#1f1f1f\] button span:first-child {
+    font-size: 13px !important;
+  }
+}
+
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   10. TRUSTED BY / LOGO MARQUEE (TrustedBy.jsx)
+   ───────────────────────────────────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  /* Section heading */
+  .py-12.bg-\[\#000000\] h2.section-title {
+    font-size: clamp(22px, 6vw, 38px) !important;
+    text-align: center !important;
+  }
+
+  /* Marquee container — ensure continuous loop works on mobile */
+  .logos-grid-container,
+  .animate-loop-scroll {
+    gap: 40px !important;
+    animation-duration: 30s !important; /* slightly faster on mobile */
+  }
+
+  .small-logo {
+    height: 40px !important;
+    max-width: 120px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .logos-grid-container,
+  .animate-loop-scroll {
+    gap: 28px !important;
+    animation-duration: 25s !important;
+  }
+
+  .small-logo {
+    height: 32px !important;
+    max-width: 100px !important;
+  }
+
+  /* Fade masks — smaller on mobile */
+  .relative.overflow-hidden::before,
+  .relative.overflow-hidden::after {
+    width: 48px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .small-logo {
+    height: 28px !important;
+    max-width: 80px !important;
+  }
+
+  .logos-grid-container,
+  .animate-loop-scroll {
+    gap: 20px !important;
+  }
+}
+
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   11. USE CASE SECTION (UseCase.jsx)
+   ───────────────────────────────────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  /* Each use case row: flex-col on all mobile/tablet */
+  section#use-case .flex.flex-col.items-center.gap-16,
+  section#use-case .flex.flex-col.items-center.gap-24 {
+    flex-direction: column !important;
+    gap: 32px !important;
+  }
+
+  /* Kill the md:flex-row-reverse alternating layout on mobile */
+  section#use-case .md\:flex-row-reverse {
+    flex-direction: column !important;
+  }
+
+  /* Image column and text column — full width */
+  section#use-case .w-full.md\:w-1\/2 {
+    width: 100% !important;
+  }
+
+  /* Space between use case blocks */
+  section#use-case .space-y-40,
+  section#use-case .space-y-56 {
+    gap: 64px !important;
+  }
+
+  /* Section heading */
+  section#use-case h2 {
+    font-size: clamp(28px, 7vw, 44px) !important;
+    text-align: center !important;
+  }
+
+  /* Giant decorative number */
+  section#use-case span.text-7xl,
+  section#use-case span.md\:text-\[12rem\] {
+    font-size: 80px !important;
+    top: -40px !important;
+    left: 0 !important;
+  }
+}
+
+@media (max-width: 768px) {
+  section#use-case {
+    padding-top: 48px !important;
+    padding-bottom: 48px !important;
+  }
+
+  /* Browser frame mock */
+  section#use-case .relative.group.w-full {
+    padding: 0 !important;
+    max-width: 100% !important;
+  }
+
+  /* Text side padding */
+  section#use-case .w-full.md\:w-1\/2.relative.px-4 {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  /* Use case title inside each block */
+  section#use-case h3 {
+    font-size: clamp(22px, 6vw, 36px) !important;
+  }
+
+  /* Feature list items */
+  section#use-case .space-y-5 li span:last-child {
+    font-size: 11px !important;
+  }
+
+  /* Section intro text */
+  section#use-case .flex.flex-col.items-center.text-center.mb-24 {
+    margin-bottom: 40px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  section#use-case h3 {
+    font-size: 20px !important;
+  }
+
+  section#use-case p.text-base,
+  section#use-case p.md\:text-lg {
+    font-size: 13px !important;
+  }
+
+  section#use-case span.text-7xl {
+    font-size: 56px !important;
+  }
+}
+
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   12. FOOTER (Footer.jsx)
+   ───────────────────────────────────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  footer .landing-container {
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+  }
+
+  /* 4-column grid → 2 columns on tablet */
+  footer .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-4 {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 32px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  footer {
+    padding-top: 48px !important;
+    padding-bottom: 40px !important;
+  }
+
+  /* 2-col → 1-col on mobile */
+  footer .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-4 {
+    grid-template-columns: 1fr !important;
+    gap: 32px !important;
+  }
+
+  /* Brand column — always center on mobile */
+  footer .grid > div:first-child {
+    align-items: center !important;
+    text-align: center !important;
+  }
+
+  /* Logo */
+  footer .grid > div:first-child img {
+    height: 28px !important;
+    width: auto !important;
+    max-width: 120px !important;
+  }
+
+  /* Logo text */
+  footer .grid > div:first-child h1 {
+    font-size: 16px !important;
+  }
+
+  /* Social icons row */
+  footer .flex.space-x-3 {
+    justify-content: center !important;
+  }
+
+  /* Product / Support / Connect columns — center on mobile */
+  footer .grid > div:not(:first-child) {
+    align-items: center !important;
+    text-align: center !important;
+  }
+
+  footer .grid > div h3 {
+    text-align: center !important;
+  }
+
+  /* Contact info items */
+  footer .space-y-5 > div {
+    justify-content: center !important;
+  }
+
+  /* Footer bottom bar */
+  footer .border-t.border-gray-100.pt-8 {
+    flex-direction: column !important;
+    text-align: center !important;
+    gap: 16px !important;
+  }
+
+  footer .border-t.border-gray-100.pt-8 .flex.space-x-8 {
+    justify-content: center !important;
+  }
+}
+
+@media (max-width: 480px) {
+  footer {
+    padding-top: 40px !important;
+    padding-bottom: 32px !important;
+  }
+
+  footer .landing-container {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+
+  footer .grid {
+    gap: 24px !important;
+  }
+
+  /* Footer social icons — slightly smaller */
+  footer .w-10.h-10 {
+    width: 36px !important;
+    height: 36px !important;
+  }
+}
+
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   13. GLOBAL SECTION SPACING OVERRIDES
+   ───────────────────────────────────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  section,
+  .landing-section {
+    padding-top: 48px !important;
+    padding-bottom: 48px !important;
+  }
+
+  .landing-container {
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+  }
+
+  /* Section titles — universal */
+  .section-title {
+    font-size: clamp(28px, 7vw, 52px) !important;
+    text-align: center !important;
+    line-height: 1.15 !important;
+  }
+
+  /* Badge pills above section headings */
+  div[style*="borderRadius: '100px'"],
+  .inline-flex.items-center.gap-2.px-4.rounded-full {
+    font-size: 10px !important;
+    padding: 4px 12px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  section,
+  .landing-section {
+    padding-top: 40px !important;
+    padding-bottom: 40px !important;
+  }
+
+  .section-title {
+    font-size: clamp(24px, 8vw, 40px) !important;
+  }
+}
+
+@media (max-width: 480px) {
+  section,
+  .landing-section {
+    padding-top: 32px !important;
+    padding-bottom: 32px !important;
+  }
+
+  .section-title {
+    font-size: clamp(22px, 9vw, 34px) !important;
+  }
+
+  .landing-container {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+}
+
+@media (max-width: 380px) {
+  .landing-container {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+}
+
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   14. UTILITY — PREVENT IMAGE OVERFLOW
+   ───────────────────────────────────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  img {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+
+  /* But DO NOT let this override the marquee logos width */
+  .logos-grid-container img,
+  .animate-loop-scroll img {
+    max-width: none !important; /* Marquee logos should not be constrained by this */
+  }
+}
+
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   15. FEATURES SECTION (Features.jsx — website portfolio grid)
+   ───────────────────────────────────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  /* Category pills grid — 2-col on mobile is already done in the component,
+     this ensures consistent sizing */
+  section#features .grid.grid-cols-2 {
+    gap: 8px !important;
+  }
+
+  /* Website cards grid — Projects/Control Fix */
+  section#features .grid.grid-cols-2.lg\:grid-cols-3 {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 20px !important;
+    border: none !important;
+    background: transparent !important;
+  }
+  
+  section#features .grid.grid-cols-2.lg\:grid-cols-3 > div {
+    width: 100% !important;
+    box-sizing: border-box !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  /* Individual website card */
+  section#features .bg-white.relative.cursor-pointer {
+    border: 1px solid #e5e7eb !important;
+    margin-bottom: -1px !important; /* Collapse borders */
+  }
+
+  /* Card image area */
+  section#features .relative.h-56,
+  section#features .relative.h-64,
+  section#features .relative.h-72 {
+    height: 200px !important;
+    padding: 16px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  section#features {
+    padding-top: 40px !important;
+    padding-bottom: 40px !important;
+  }
+
+  section#features .text-center.mb-16,
+  section#features .text-center.mb-20 {
+    margin-bottom: 32px !important;
+  }
+
+  section#features h2 {
+    font-size: clamp(24px, 7vw, 38px) !important;
+  }
+
+  /* Category pill buttons */
+  section#features .grid.grid-cols-2 button {
+    padding: 10px 12px !important;
+    font-size: 9px !important;
+    min-height: 44px !important;
+  }
+
+  /* Card body padding */
+  section#features .p-4.sm\:p-8 {
+    padding: 16px !important;
+  }
+
+  /* Card title */
+  section#features h3 {
+    font-size: 13px !important;
+  }
+
+  /* View Live Site button */
+  section#features a.inline-flex {
+    padding: 10px 16px !important;
+    font-size: 9px !important;
+    min-height: 40px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  section#features .relative.h-56,
+  section#features .relative.h-64,
+  section#features .relative.h-72 {
+    height: 160px !important;
+  }
+
+  section#features .grid.grid-cols-2 button {
+    font-size: 8px !important;
+    padding: 8px 10px !important;
+  }
+}
+
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   16. TUBE LIGHT IMAGE (inside Pricing section)
+   ───────────────────────────────────────────────────────────────────────────── */
+/* Removed: Fix applied directly in Pricing.jsx */
+
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   17. TOUCH TARGETS — Accessibility: all interactive elements ≥44px
+   ───────────────────────────────────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  button,
+  a,
+  [role="button"] {
+    min-height: 44px !important;
+  }
+
+  /* But don't let this break inline text links */
+  p a,
+  li a,
+  footer a {
+    min-height: auto !important;
+    display: inline !important;
+  }
+
+  footer .space-y-4 a {
+    display: block !important;
+    min-height: 36px !important;
+    line-height: 36px !important;
+  }
+}
+
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   18. INPUT FIELDS — Prevent iOS auto-zoom (font-size must be ≥16px)
+   ───────────────────────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   19. ANIMATIONS — Reduce motion overhead on low-end mobile
+   ───────────────────────────────────────────────────────────────────────────── */
+@media (max-width: 480px) and (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Slow down heavy animations on low-power devices */
+@media (max-width: 480px) {
+  .animate-loop-scroll,
+  .logos-grid-container {
+    animation-duration: 20s !important;
+  }
+
+  /* Disable rose-gold blob animations on small screens */
+  .rose-gold-blob,
+  .rose-gold-blob-2 {
+    display: none !important;
+  }
+}

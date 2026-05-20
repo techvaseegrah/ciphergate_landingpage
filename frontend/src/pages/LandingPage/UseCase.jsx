@@ -11,7 +11,7 @@ const ImageModal = ({ src, onClose }) => {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       onClick={onClose}
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-white/95 backdrop-blur-md p-4 md:p-10 cursor-zoom-out"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-[#000000]/95 backdrop-blur-md p-4 md:p-10 cursor-zoom-out"
     >
       <motion.div
         initial={{ scale: 0.95, opacity: 0 }}
@@ -23,7 +23,7 @@ const ImageModal = ({ src, onClose }) => {
         <img
           src={src}
           alt="Zoomed View"
-          className="max-w-full max-h-full object-contain border border-gray-200 shadow-2xl"
+          className="max-w-full max-h-full object-contain border border-[#222] shadow-2xl"
         />
 
         {/* Close Button */}
@@ -44,13 +44,13 @@ const CinematicBrowser = ({ images, activeIndex, name, onImageClick }) => {
     <div className="relative group w-full max-w-2xl px-4 md:px-0">
       <div
         onClick={() => onImageClick(images[activeIndex])}
-        className="relative border border-gray-200 bg-white shadow-sm overflow-hidden aspect-[4/3] md:aspect-video transition-all duration-700 group-hover:shadow-xl cursor-zoom-in"
+        className="relative border border-[#222] bg-[#000000] shadow-sm overflow-hidden aspect-[4/3] md:aspect-video transition-all duration-700 group-hover:shadow-xl cursor-zoom-in"
       >
-        <div className="bg-[#fafafa] border-b border-gray-200 px-5 py-3 flex items-center justify-between">
+        <div className="bg-[#000000] border-b border-[#222] px-5 py-3 flex items-center justify-between">
           <div className="flex gap-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-gray-300" />
-            <div className="w-1.5 h-1.5 rounded-full bg-gray-300" />
-            <div className="w-1.5 h-1.5 rounded-full bg-gray-300" />
+            <div className="w-1.5 h-1.5 rounded-full bg-[#333]" />
+            <div className="w-1.5 h-1.5 rounded-full bg-[#333]" />
+            <div className="w-1.5 h-1.5 rounded-full bg-[#333]" />
           </div>
           <div className="px-4 py-0.5 text-[10px] text-gray-500 font-mono tracking-widest uppercase">
             {name.toLowerCase().replace(/\s+/g, '-')}.interface
@@ -58,7 +58,7 @@ const CinematicBrowser = ({ images, activeIndex, name, onImageClick }) => {
           <div className="w-10" />
         </div>
 
-        <div className="relative h-full w-full bg-white flex items-start justify-center overflow-hidden">
+        <div className="relative h-full w-full bg-[#000000] flex items-start justify-center overflow-hidden">
           <AnimatePresence mode="wait">
             <motion.img
               key={activeIndex}
@@ -117,7 +117,7 @@ const UseCaseSection = () => {
   }, []);
 
   return (
-    <section id="use-case" className="py-24 md:py-32 bg-white relative overflow-hidden font-sans border-t border-gray-100">
+    <section id="use-case" className="py-24 md:py-32 bg-[#000000] relative overflow-hidden font-sans border-t border-[#222]">
       {/* ZOOM MODAL INTEGRATION */}
       <AnimatePresence>
         {selectedImage && (
@@ -134,10 +134,10 @@ const UseCaseSection = () => {
           <motion.p className="text-gray-500 font-medium text-xs tracking-[0.2em] uppercase mb-6">
             Capabilities & Impact
           </motion.p>
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-light text-gray-900 tracking-wide mb-8">
+          <h2 className="title-gradient text-4xl md:text-5xl lg:text-6xl font-light text-gray-100 tracking-wide mb-8">
             Perfect for <span className="font-normal text-rose-gold-animate font-semibold">Every Use Case.</span>
           </h2>
-          <div className="w-16 h-[1px] bg-gray-300" />
+          <div className="w-16 h-[1px] bg-[#333]" />
         </div>
 
         <div className="space-y-40 md:space-y-56">
@@ -166,19 +166,19 @@ const UseCaseSection = () => {
                     <p className="text-gray-500 font-medium text-[10px] tracking-[0.25em] uppercase">
                       {useCase.tagline}
                     </p>
-                    <h3 className="text-3xl md:text-5xl font-light text-gray-900 tracking-wide">
+                    <h3 className="text-3xl md:text-5xl font-light text-gray-100 tracking-wide">
                       {useCase.title}
                     </h3>
                   </div>
                   <p className="text-base md:text-lg text-gray-500 leading-loose font-light max-w-lg">
                     {useCase.description}
                   </p>
-                  <div className="pt-6 border-t border-gray-100">
+                  <div className="pt-6 border-t border-[#222]">
                     <ul className="space-y-5">
                       {useCase.features.map((feature, idx) => (
                         <motion.li key={idx} className="flex items-center gap-6 group cursor-pointer">
-                          <div className="w-8 h-[1px] bg-gray-300 group-hover:bg-black group-hover:w-12 transition-all duration-500" />
-                          <span className="text-xs font-medium text-gray-500 group-hover:text-black transition-colors uppercase tracking-[0.1em]">
+                          <div className="w-8 h-[1px] bg-[#333] group-hover:bg-[#000000] group-hover:w-12 transition-all duration-500" />
+                          <span className="text-xs font-medium text-gray-500 group-hover:text-[#000] transition-colors uppercase tracking-[0.1em]">
                             {feature}
                           </span>
                         </motion.li>

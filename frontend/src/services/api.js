@@ -9,7 +9,10 @@ const getBaseURL = () => {
 const api = axios.create({
   baseURL: getBaseURL(),
   withCredentials: true,
+  timeout: 30000, // 30 seconds timeout
 });
+
+console.log('⚡ API initialized with baseURL:', getBaseURL());
 
 // Request interceptor: adds token from localStorage
 api.interceptors.request.use(
@@ -46,11 +49,27 @@ api.interceptors.request.use(
 // Response interceptor: handles 401 unauthorized
 api.interceptors.response.use(
   (response) => {
-    console.log('API Response Success:', response.status, response.config.url);
     return response;
   },
   (error) => {
-    console.error('API Response Error:', error.response?.status, error.response?.data, error.config?.url);
+    const url = error.config?.url;
+    const code = error.code;
+    const message = error.message;
+
+    if (code === 'ECONNABORTED') {
+      console.error(`🚨 API Timeout Triggered (${url}): The request took too long (>30s) or was aborted.`);
+    } else if (code === 'ERR_CANCELED') {
+      console.warn(`🛑 API Request Canceled (${url}): The component likely unmounted.`);
+    }
+
+    console.error('API Response Error Details:', {
+      status: error.response?.status,
+      data: error.response?.data,
+      url: url,
+      code: code,
+      message: message
+    });
+
     if (error.response && error.response.status === 401) {
       console.error('API 401 Unauthorized access');
       // Clear localStorage
@@ -62,11 +81,9 @@ api.interceptors.response.use(
       if (currentPath.startsWith('/worker')) {
         // For worker routes, we don't want to redirect to admin login
         // The component should handle the error display
-        console.log('Worker authentication failed, staying on current page');
       } else if (currentPath.startsWith('/client')) {
         // For client routes, we don't want to redirect to admin login
         // The component should handle the error display
-        console.log('Client authentication failed, staying on current page');
       } else if (!currentPath.startsWith('/admin/login') && !currentPath.startsWith('/admin/register')) {
         // For other admin routes (not login/register), redirect to admin login
         window.location.href = '/admin/login';

@@ -70,7 +70,15 @@ const AdminLogin = () => {
 
         try {
             const result = await login(loginCredentials, 'admin');
-            localStorage.setItem('tasktracker-subdomain', result.subdomain);
+            console.log('DEBUG: Admin login result:', result);
+            
+            // Subdomain is now handled inside authService.login, 
+            // but we'll double check here for extra safety
+            const finalSubdomain = result.subdomain || credentials.subdomain;
+            if (finalSubdomain && finalSubdomain !== 'undefined' && finalSubdomain !== 'main') {
+                localStorage.setItem('tasktracker-subdomain', finalSubdomain);
+            }
+
             toast.success('Login successful!');
             navigate('/admin');
         } catch (error) {

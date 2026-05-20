@@ -124,20 +124,22 @@ const NotificationManagement = () => {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Notification Management</h1>
-        <Button variant="primary" onClick={openAddModal} className="flex items-center">
-          <FaPlus className="mr-2" /> Add Notification
-        </Button>
-      </div>
-
-      <div className="mb-4 flex justify-end flex-wrap gap-4">
-        <input
-          type="date"
-          className="form-input w-48"
-          value={filterStartDate}
-          onChange={(e) => setFilterStartDate(e.target.value)}
-        />
+      <div className="page-header-row flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Notification Management</h1>
+          <p className="text-slate-500 text-sm mt-1">Broadcast messages to your workforce.</p>
+        </div>
+        <div className="flex flex-row items-center gap-3 w-full md:w-auto">
+          <input
+            type="date"
+            className="form-input h-10 px-3 rounded-xl border-slate-200 text-sm font-medium flex-1 md:w-48"
+            value={filterStartDate}
+            onChange={(e) => setFilterStartDate(e.target.value)}
+          />
+          <Button variant="primary" onClick={openAddModal} className="h-10 px-4 rounded-xl flex items-center shadow-lg shadow-slate-900/10 whitespace-nowrap">
+            <FaPlus className="mr-2" /> Add
+          </Button>
+        </div>
       </div>
 
       {isLoading ? (
@@ -153,8 +155,8 @@ const NotificationManagement = () => {
                   <p className="text-lg whitespace-normal break-words w-full">
                     {notification.messageData}
                   </p>
-                  <p className="text-sm text-gray-500 mt-2">
-                    {new Date(notification.createdAt).toLocaleString()}
+                  <p className="text-sm text-gray-400 font-medium mt-2">
+                    {notification.createdAt ? new Date(notification.createdAt).toLocaleString() : 'N/A'}
                   </p>
                 </div>
                 <div className="flex space-x-2 mt-4 justify-end">

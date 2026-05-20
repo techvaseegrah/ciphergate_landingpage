@@ -1,0 +1,115 @@
+.pricing-section {
+  background-color: #000;
+  width: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 80px; /* Reduced bottom padding */
+}
+
+
+
+.pricing-content-wrapper {
+  margin-top: -300px; /* INCREASE this negative value to close the gap */
+  width: 100%;
+  max-width: 1200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 2;
+}
+
+.pricing-content-wrapper h2 {
+  font-size: clamp(32px, 5vw, 48px);
+  color: #fff;
+  margin: 16px 0;
+}
+
+.pricing-content-wrapper p {
+  color: rgba(255, 255, 255, 0.7);
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.pricing-grid {
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: center !important;
+  align-items: stretch !important;
+  gap: 64px !important; /* Force exact 64px gap */
+  width: 100% !important;
+  max-width: 1200px !important; /* Increased to allow wider cards */
+  margin: 40px auto !important;
+  padding: 0 20px !important;
+  position: relative;
+  z-index: 5;
+}
+
+.plan-card {
+  width: 100% !important;
+  max-width: 520px !important; /* Increased from 480px for a less squeezed look */
+  flex: 1 1 520px !important; 
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 100%;
+}
+
+/* Scope these specifically to pricing to avoid shrinking other sections like Contact */
+.pricing-section .glass-card-dark {
+  width: 100% !important;
+  max-width: 520px !important;
+  box-sizing: border-box !important;
+  min-width: 0 !important;
+}
+
+.plan-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.02) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+  position: relative;
+  box-shadow: 0 4px 50px rgba(0, 0, 0, 0.6);
+  border-radius: 24px;
+  overflow: hidden;
+  transition: transform 0.3s ease, border-color 0.3s ease;
+}
+
+.plan-card:hover {
+  transform: translateY(-5px);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Specular Highlight matching Bento Cards */
+.plan-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 24px;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.4), transparent 50%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* Ensure the grid stays nice on smaller screens */
+@media (max-width: 900px) {
+  .pricing-grid {
+    grid-template-columns: 1fr !important;
+    padding: 0 20px;
+    max-width: 500px !important;
+  }
+  .plan-card {
+    min-width: 280px !important;
+    max-width: 100% !important;
+  }
+  .pricing-content-wrapper {
+    margin-top: -30px !important; /* Minimal pull-up for mobile to keep light above text */
+  }
+}

@@ -13,10 +13,13 @@ dotenv.config();
 // Enhanced error handling for database connection
 const startServer = async () => {
   try {
-    // Connect to database
-    console.log('Connecting to database...');
-    await connectDB();
-    console.log('Database connected successfully');
+    // Connect to database (Non-blocking)
+    console.log('Initiating database connection...');
+    connectDB()
+      .then(() => console.log('✅ Database connected successfully'))
+      .catch((dbError) => {
+        console.error('❌ Database connection failed. Server is running but DB-dependent routes will fail:', dbError.message);
+      });
 
     const app = express();
     const server = http.createServer(app);
@@ -31,12 +34,13 @@ const startServer = async () => {
           'https://techvaseegrah.ciphergate.in',
           'https://ciphergate.in',
         ];
-        const localhostRegex = /^http:\/\/.*\.localhost:3000$/;
+        const localhostRegex = /^http:\/\/.*\.localhost(:\d+)?$/;
         const ciphergateRegex = /^https:\/\/.*\.ciphergate\.in$/;
 
         if (!origin || allowedOrigins.includes(origin) || localhostRegex.test(origin) || ciphergateRegex.test(origin)) {
           callback(null, true);
         } else {
+          console.warn('CORS Blocked for origin:', origin);
           callback(new Error('Not allowed by CORS'));
         }
       },
@@ -54,6 +58,17 @@ const startServer = async () => {
     // Middleware
     app.use(express.json());
     app.use(express.urlencoded({ extended: false }));
+
+    // Global Request Timeout Middleware
+    app.use((req, res, next) => {
+      res.setTimeout(15000, () => {
+        console.error('🚨 Request timeout triggered for URL:', req.originalUrl);
+        if (!res.headersSent) {
+          res.status(408).json({ message: 'Request timeout' });
+        }
+      });
+      next();
+    });
 
     // Serve static files from uploads directory
     app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -73,6 +88,7 @@ const startServer = async () => {
     const settingsRoutes = require('./routes/settingsRoutes');
     const holidayRoutes = require('./routes/holidayRoutes');
     const fineRoutes = require('./routes/fineRoutes'); // ADD THIS
+    const workAllocationRoutes = require('./routes/workAllocationRoutes');
 
     // Test App routes
     const learningTopicRoutes = require('./routes/learningTopicRoutes');
@@ -99,6 +115,7 @@ const startServer = async () => {
     app.use('/api/settings', settingsRoutes);
     app.use('/api/holidays', holidayRoutes);
     app.use('/api/fines', fineRoutes); // ADD THIS
+    app.use('/api/work-allocation', workAllocationRoutes);
 
     // Test App routes
     app.use('/api/test/topics', learningTopicRoutes);
@@ -186,8 +203,7 @@ const startServer = async () => {
     console.error('5. Try creating a new database user with a simple password');
     console.error('6. Refer to MONGODB_TROUBLESHOOTING.md for detailed instructions');
 
-    // Exit the process as we can't start the server without a database connection
-    process.exit(1);
+    // Removed process.exit(1) to allow the server to keep running/retrying
   }
 };
 

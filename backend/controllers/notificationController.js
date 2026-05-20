@@ -33,8 +33,18 @@ const readNotification = asyncHandler(async (req, res) => {
     throw new Error('Subdomain is required');
   }
 
-  const notifications = await Notification.find({ subdomain }).sort({ createdAt: -1 });
-  return res.status(200).json({notifications});
+  try {
+    const notifications = await Notification.find({ subdomain })
+      .sort({ createdAt: -1 })
+      .maxTimeMS(5000);
+    
+    return res.status(200).json({ notifications });
+  } catch (error) {
+    console.error('Read Notifications Error:', error.message);
+    if (res.headersSent) return;
+    res.status(500);
+    throw new Error('Failed to retrieve notifications');
+  }
 });
 
 // @desc    Update a notification by ID

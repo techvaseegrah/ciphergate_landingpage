@@ -13,7 +13,7 @@ const createDepartment = asyncHandler(async (req, res) => {
     throw new Error('Department name must be at least 2 characters long');
   }
 
-  if (!subdomain || subdomain == 'main') {
+  if (!subdomain) {
     res.status(400);
     throw new Error('Company name is missing, login again.');
   }
@@ -21,7 +21,7 @@ const createDepartment = asyncHandler(async (req, res) => {
   try {
     const existingDepartment = await Department.findOne({
       name: name.trim()
-    });
+    }).maxTimeMS(2000); 
 
     if (existingDepartment) {
       res.status(400);
@@ -30,7 +30,6 @@ const createDepartment = asyncHandler(async (req, res) => {
 
     // Create department with exact case preservation
     const department = new Department({ name, subdomain });
-
     await department.save();
 
     // Get worker count
@@ -38,30 +37,29 @@ const createDepartment = asyncHandler(async (req, res) => {
       department: department._id
     });
 
-    // Prepare response
-    const departmentResponse = {
+    res.status(201).json({
       ...department.toObject(),
       workerCount
-    };
-
-    res.status(201).json(departmentResponse);
+    });
   } catch (error) {
-    console.error('Department Creation Error:', error);
-    throw error;
+    console.error('Create Department Error:', error);
+    res.status(500);
+    throw new Error(error.message || 'Server error creating department');
   }
 });
 
 const getDepartments = asyncHandler(async (req, res) => {
   const { subdomain } = req.body;
-  if (!subdomain || subdomain === 'main') {
-    res.status(400);
-    throw new Error('Subdomain is missing or invalid.');
-  }
+  
+  // ALLOW 'main' for mock/development mode
+  const effectiveSubdomain = subdomain || 'main';
 
   try {
+
+
     // 1. Load all departments for this subdomain
     const departments = await Department
-      .find({ subdomain })
+      .find({ subdomain: effectiveSubdomain })
       .sort({ createdAt: -1 });
 
     // 2. Get current date in Asia/Kolkata timezone
@@ -136,8 +134,10 @@ const getDepartments = asyncHandler(async (req, res) => {
     res.json(departmentsWithData);
 
   } catch (error) {
-    console.error('Get Departments Error:', error);
-    res.status(500).json({ message: 'Failed to fetch departments.' });
+    console.error('Get Departments Error:', error.message);
+    if (res.headersSent) return;
+    res.status(500);
+    throw new Error('Failed to retrieve departments');
   }
 });
 

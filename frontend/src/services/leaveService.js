@@ -1,15 +1,19 @@
 import api from './api';
 
-export const getAllLeaves = async (leaveData) => {
-  try {
-    if (!leaveData.subdomain || leaveData.subdomain == 'main') {
-      throw new Error('Subdomain is missing check the URL');
-    }
+let leaveController = null;
 
-    // Ensure subdomain is properly formatted for the API call - use it in the URL path
-    const response = await api.get(`leaves/${leaveData.subdomain}/0`);
+export const getAllLeaves = async (leaveData) => {
+  if (leaveController) leaveController.abort();
+  leaveController = new AbortController();
+
+  try {
+    const effectiveSubdomain = leaveData.subdomain || 'main';
+    const response = await api.get(`leaves/${effectiveSubdomain}/0`, {
+      signal: leaveController.signal
+    });
     return response.data;
   } catch (error) {
+    if (error.name === 'CanceledError' || error.name === 'AbortError') return [];
     console.error('Leaves fetch error:', error);
 
     if (error.response) {

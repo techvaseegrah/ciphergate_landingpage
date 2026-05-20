@@ -47,8 +47,10 @@ export default {
         'slate-900': '#0f172a',
       },
       fontFamily: {
-        'sans': ['Inter', 'system-ui', 'sans-serif'],
+        'sans': ['Poppins', 'Inter', 'sans-serif'],
+        'inter': ['Inter', 'sans-serif'],
         'poppins': ['Poppins', 'sans-serif'],
+        'bruno': ['"Bruno Ace SC"', 'sans-serif'],
       },
       boxShadow: {
         'soft': '0 10px 30px -10px rgba(0, 0, 0, 0.05)',
