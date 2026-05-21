@@ -3,6 +3,7 @@ const asyncHandler = require('express-async-handler');
 const mongoose = require('mongoose');
 const Worker = require('../models/Worker');
 const Admin = require('../models/Admin');
+const { updateActivity } = require('../utils/activityTracker');
 
 const protect = asyncHandler(async (req, res, next) => {
   let token;
@@ -49,6 +50,7 @@ const protect = asyncHandler(async (req, res, next) => {
         }
         req.user = user;
         req.user.role = 'admin';
+        updateActivity(user._id, 'admin');
       } else {
         // Then try Worker collection
         user = await Worker.findById(decoded.id).select('-password').populate('department').maxTimeMS(5000);
@@ -57,6 +59,7 @@ const protect = asyncHandler(async (req, res, next) => {
         }
         req.user = user;
         req.user.role = 'worker';
+        updateActivity(user._id, 'worker');
       }
     }
     next();

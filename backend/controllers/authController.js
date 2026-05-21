@@ -1,6 +1,7 @@
 const asyncHandler = require('express-async-handler');
 const Admin = require('../models/Admin');
 const Worker = require('../models/Worker');
+const { updateActivity } = require('../utils/activityTracker');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { OAuth2Client } = require('google-auth-library');
@@ -165,6 +166,7 @@ const loginAdmin = asyncHandler(async (req, res) => {
       organizationId: admin.subdomain,
       token: generateToken(admin._id, 'admin')
     });
+    updateActivity(admin._id, 'admin');
   } else {
     res.status(401);
     throw new Error('Invalid credentials');
@@ -229,6 +231,7 @@ const googleLoginAdmin = asyncHandler(async (req, res) => {
         organizationId: admin.subdomain,
         token: generateToken(admin._id, 'admin')
       });
+      updateActivity(admin._id, 'admin');
     } else {
       res.status(404);
       throw new Error('Account not found. Please register first.');
@@ -269,6 +272,7 @@ const loginWorker = asyncHandler(async (req, res) => {
       accountType,
       token: generateToken(worker._id, 'worker')
     });
+    updateActivity(worker._id, 'worker');
   } else {
     res.status(401);
     throw new Error('Invalid credentials');
@@ -371,15 +375,50 @@ const getAllAdmins = asyncHandler(async (req, res) => {
   // Get all admin accounts, excluding passwords
   const admins = await Admin.find({}).select('-password');
 
-  // Ensure createdAt and updatedAt are included in the response
-  const adminsData = admins.map(admin => {
-    const adminObj = admin.toObject();
-    return {
-      ...adminObj,
-      createdAt: admin.createdAt,
-      updatedAt: admin.updatedAt
-    };
-  });
+  const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+  const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  const today = new Date().toISOString().split('T')[0];
+
+  // Ensure createdAt, updatedAt and activity stats are included in the response
+  const adminsData = await Promise.all(
+    admins.map(async (admin) => {
+      const adminObj = admin.toObject();
+
+      // Fetch workers metrics for this subdomain
+      const [workerCount, activeWorkersCount, workersLastActive, todayWorkersLoginCount] = await Promise.all([
+        Worker.countDocuments({ subdomain: admin.subdomain }),
+        Worker.countDocuments({ subdomain: admin.subdomain, lastActive: { $gte: fiveMinutesAgo } }),
+        Worker.findOne({ subdomain: admin.subdomain, lastActive: { $ne: null } })
+          .sort({ lastActive: -1 })
+          .select('lastActive'),
+        Worker.countDocuments({ subdomain: admin.subdomain, loginDates: today })
+      ]);
+
+      const workerMaxActive = workersLastActive?.lastActive || null;
+      const lastActive = (admin.lastActive && workerMaxActive)
+        ? (admin.lastActive > workerMaxActive ? admin.lastActive : workerMaxActive)
+        : (admin.lastActive || workerMaxActive || null);
+
+      const isAdminActive = admin.lastActive && admin.lastActive >= fiveMinutesAgo;
+      const activeNow = activeWorkersCount + (isAdminActive ? 1 : 0);
+
+      const isAdminLoggedInToday = admin.loginDates && admin.loginDates.includes(today);
+      const todayLogin = todayWorkersLoginCount + (isAdminLoggedInToday ? 1 : 0);
+
+      const activityStatus = (lastActive && lastActive >= oneDayAgo) ? 'Active' : 'Inactive';
+
+      return {
+        ...adminObj,
+        createdAt: admin.createdAt,
+        updatedAt: admin.updatedAt,
+        usersCount: workerCount + 1, // Workers + 1 (the Admin)
+        activeNow,
+        lastActive,
+        todayLogin,
+        activityStatus
+      };
+    })
+  );
 
   res.json(adminsData);
 });

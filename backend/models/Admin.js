@@ -128,6 +128,14 @@ const adminSchema = mongoose.Schema(
     gstNumber: {
       type: String,
       default: ''
+    },
+    lastActive: {
+      type: Date,
+      default: null
+    },
+    loginDates: {
+      type: [String],
+      default: []
     }
   },
   {

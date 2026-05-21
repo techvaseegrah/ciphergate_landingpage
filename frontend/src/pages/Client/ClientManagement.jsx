@@ -3,6 +3,25 @@ import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { getAllAdmins, deleteAdmin } from '../../services/authService';
 
+const formatLastActive = (dateString) => {
+  if (!dateString) return 'Never';
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now - date;
+  
+  if (diffMs < 0) return 'Just now';
+  
+  const diffMins = Math.floor(diffMs / (60 * 1000));
+  if (diffMins < 1) return 'Just now';
+  if (diffMins < 60) return `${diffMins} min ago`;
+  
+  const diffHours = Math.floor(diffMs / (60 * 60 * 1000));
+  if (diffHours < 24) return `${diffHours} hr${diffHours > 1 ? 's' : ''} ago`;
+  
+  const diffDays = Math.floor(diffMs / (24 * 60 * 60 * 1000));
+  return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+};
+
 const ClientManagement = () => {
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -106,64 +125,67 @@ const ClientManagement = () => {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Company Name</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Username</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mobile</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created Date</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Users</th>
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Active Now</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Active</th>
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Today Login</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredAccounts.map((account) => (
                   <tr key={account._id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{account.subdomain}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{account.username}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{account.email}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{account.phoneNumber || 'N/A'}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
-                        {new Date(account.createdAt).toLocaleDateString()}
+                      <div className="text-sm font-semibold text-gray-900 capitalize">{account.subdomain}</div>
+                      <div className="text-xs text-gray-500">{account.email}</div>
+                      <div className="mt-1 flex gap-1 items-center">
+                        {account.accountType === 'premium' ? (
+                          <span className="px-1.5 py-0.5 inline-flex text-[9px] font-semibold rounded bg-amber-100 text-amber-800 border border-amber-200">
+                            Premium
+                          </span>
+                        ) : (
+                          <span className="px-1.5 py-0.5 inline-flex text-[9px] font-semibold rounded bg-blue-100 text-blue-800 border border-blue-200">
+                            Free
+                          </span>
+                        )}
+                        <span className="text-[10px] text-gray-400">({account.username})</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {account.accountType === 'premium' ? (
-                        <div className="flex flex-col gap-1">
-                          <span className="px-2 w-max inline-flex text-[10px] leading-4 font-semibold rounded-full bg-green-100 text-green-800 border border-green-200">
-                            Premium ({account.subscriptionPlan === 'yearly' ? 'Yearly' : 'Monthly'})
-                          </span>
-                          <span className="text-[10px] text-gray-500 font-medium">
-                            Paid: {new Date(account.subscriptionStartDate || account.updatedAt || account.createdAt).toLocaleDateString('en-GB')}
-                          </span>
-                          <span className="text-[10px] text-gray-500 font-medium">
-                            Due: {account.subscriptionEndDate ? new Date(account.subscriptionEndDate).toLocaleDateString('en-GB') : (() => {
-                              const d = new Date(account.subscriptionStartDate || account.updatedAt || account.createdAt);
-                              if (account.subscriptionPlan === 'yearly') d.setFullYear(d.getFullYear() + 1);
-                              else d.setMonth(d.getMonth() + 1);
-                              return d.toLocaleDateString('en-GB');
-                            })()}
-                          </span>
+                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                      <span className="text-sm text-gray-900 font-semibold">{account.usersCount || 0}</span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                      {account.activeNow > 0 ? (
+                        <div className="flex items-center justify-center gap-1.5">
+                          <span className="h-2 w-2 rounded-full bg-green-500 animate-ping"></span>
+                          <span className="text-sm text-green-700 font-semibold">{account.activeNow}</span>
                         </div>
                       ) : (
-                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                          Free Plan
-                        </span>
+                        <span className="text-sm text-gray-500">0</span>
                       )}
                     </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{formatLastActive(account.lastActive)}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                      <span className="text-sm text-gray-900">{account.todayLogin || 0}</span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                        account.activityStatus === 'Active'
+                          ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                          : 'bg-gray-100 text-gray-800 border border-gray-200'
+                      }`}>
+                        {account.activityStatus || 'Inactive'}
+                      </span>
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex space-x-3 items-center">
+                      <div className="flex items-center justify-center space-x-1">
                         <Link
                           to={`/client/view/${account._id}`}
-                          className="text-[#111111] hover:text-gray-700 transition-colors p-1"
+                          className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-gray-700 hover:text-black hover:bg-gray-100 transition-colors"
                           title="View Details"
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
@@ -173,7 +195,7 @@ const ClientManagement = () => {
                         </Link>
                         <Link
                           to={`/client/edit/${account._id}`}
-                          className="text-green-500 hover:text-green-700 transition-colors p-1"
+                          className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 transition-colors"
                           title="Edit Account"
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
@@ -182,7 +204,7 @@ const ClientManagement = () => {
                         </Link>
                         <button
                           onClick={() => openDeleteModal(account)}
-                          className="text-red-500 hover:text-red-700 transition-colors p-1"
+                          className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-rose-600 hover:text-rose-700 hover:bg-rose-50 transition-colors"
                           title="Delete Account"
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">

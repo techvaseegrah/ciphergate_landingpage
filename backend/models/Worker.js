@@ -284,6 +284,14 @@ const workerSchema = mongoose.Schema({
       }],
       default: []
     }
+  },
+  lastActive: {
+    type: Date,
+    default: null
+  },
+  loginDates: {
+    type: [String],
+    default: []
   }
 }, {
   timestamps: true
