@@ -57,8 +57,7 @@ const workerSchema = mongoose.Schema({
   },
   // Employment Details
   dateOfJoining: {
-    type: Date,
-    required: [true, 'Please add a date of joining']
+    type: Date
   },
   dateOfExit: {
     type: Date

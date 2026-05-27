@@ -5,7 +5,7 @@ import { useScroll, motion } from 'framer-motion';
 import Header from './Header.jsx';
 import Hero from './Hero.jsx';
 import BentoFeatures from '../../components/landing/BentoFeatures.jsx';
-import { StreamlineSection } from './StreamlineSection.jsx';
+
 import FaceCheckInSection from './FaceCheckInSection.jsx';
 import Pricing from './Pricing.jsx';
 import Contact from './Contact.jsx';
@@ -30,7 +30,7 @@ function LandingPage() {
 
       <div className="space-y-0 relative z-10">
         <BentoFeatures id="our-story" />
-        <StreamlineSection />
+
         <FaceCheckInSection id="features" />
         <Pricing id="pricing" />
         <Testimonials />

@@ -105,16 +105,6 @@ const createWorker = asyncHandler(async (req, res) => {
       throw new Error('Contact number is required');
     }
 
-    if (!workPassType) {
-      res.status(400);
-      throw new Error('Work Pass Type is required');
-    }
-
-    if (!dateOfJoining) {
-      res.status(400);
-      throw new Error('Date of Joining is required');
-    }
-
     // Validate exit workflow fields when resigned
     const finalResignationStatus = resignationStatus || 'Active';
     if (finalResignationStatus === 'Resigned') {

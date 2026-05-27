@@ -74,10 +74,14 @@ const WorkerLayout = ({ children }) => {
       label: 'Attendance Report'
     },
     {
-      to: '/worker/work-allocation',
       icon: <FaBook />,
       label: 'Work Allocation',
-      badge: user?.accountType === 'premium' ? 'PRO' : 'LOCK'
+      badge: user?.accountType === 'premium' ? 'PRO' : 'LOCK',
+      isDropdown: true,
+      children: [
+        { to: '/worker/work-allocation', label: 'Task Board' },
+        { to: '/worker/work-allocation/topics', label: 'Manage Topics' }
+      ]
     },
     {
       to: '/worker/leave-apply',

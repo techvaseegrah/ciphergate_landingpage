@@ -358,7 +358,7 @@ const Dashboard = () => {
                 initial="hidden"
                 animate="visible"
                 variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
-                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-[14px] flex-1"
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-[14px] flex-1 content-start"
               >
                  {departments.map((department) => {
                     const deptPercentage = department.workerCount > 0
@@ -369,28 +369,45 @@ const Dashboard = () => {
                        <motion.div 
                         key={department._id} 
                         variants={{ hidden: { opacity: 0, scale: 0.95 }, visible: { opacity: 1, scale: 1 } }}
-                        whileHover={{ scale: 1.03, boxShadow: "0 10px 25px rgba(0,0,0,0.05)" }}
+                        whileHover={{ scale: 1.03, boxShadow: "0 5px 15px rgba(0,0,0,0.05)" }}
                         whileTap={{ scale: 0.98 }}
-                        className="p-4 bg-slate-50/50 rounded-[24px] border border-transparent hover:border-slate-200 hover:bg-white transition-all cursor-pointer group flex flex-col h-full"
+                        className="px-4 py-3 bg-slate-50/50 rounded-[16px] border border-slate-100 hover:border-slate-200 hover:bg-white transition-all cursor-pointer group flex items-center justify-between"
                         onClick={() => handleViewEmployees(department)}
                        >
-                          <div className="flex items-start justify-between mb-4">
-                             <div className="flex items-center gap-2.5">
-                                <div className="w-9 h-9 bg-white text-slate-900 rounded-xl flex items-center justify-center shadow-md group-hover:!bg-slate-900 group-hover:text-white transition-all">
-                                   <FiLayers size={16} />
-                                </div>
-                                <div className="min-w-0">
-                                   <h4 className="text-[14px] font-bold text-slate-900 truncate tracking-tight mb-0.5 leading-relaxed">{department.name}</h4>
-                                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight mt-1 leading-relaxed">{department.workerCount} Professionals</p>
-                                </div>
+                          <div className="flex items-center gap-3">
+                             <div className="w-9 h-9 bg-white text-slate-900 rounded-xl flex items-center justify-center shadow-sm border border-slate-100 group-hover:!bg-slate-900 group-hover:text-white transition-all shrink-0">
+                                <FiLayers size={16} />
                              </div>
-                             <div className="text-right">
-                                <p className="text-[16px] font-bold text-slate-900 tracking-tight leading-none">{Math.round(deptPercentage)}%</p>
-                                <p className="text-[8px] text-slate-400 font-bold uppercase tracking-widest mt-1">Cap.</p>
+                             <div className="min-w-0">
+                                <h4 className="text-[13px] font-bold text-slate-900 truncate tracking-tight leading-none mb-1.5">{department.name}</h4>
+                                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tight leading-none">{department.workerCount} Professionals</p>
                              </div>
                           </div>
-                          
-                          {/* Removed progress bar line as requested */}
+                          <div className="shrink-0 flex items-center justify-center bg-white rounded-full p-1 shadow-sm border border-slate-100">
+                             <div className="relative w-9 h-9 flex items-center justify-center">
+                                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                                   <path
+                                      className="text-slate-100"
+                                      strokeWidth="3.5"
+                                      stroke="currentColor"
+                                      fill="none"
+                                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                   />
+                                   <path
+                                      className={`${deptPercentage > 0 ? 'text-slate-900' : 'text-transparent'} transition-all duration-1000 ease-out`}
+                                      strokeWidth="3.5"
+                                      strokeDasharray={`${Math.round(deptPercentage)}, 100`}
+                                      strokeLinecap="round"
+                                      stroke="currentColor"
+                                      fill="none"
+                                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                   />
+                                </svg>
+                                <span className="absolute text-[10px] font-bold text-slate-900 tracking-tighter">
+                                   {Math.round(deptPercentage)}%
+                                </span>
+                             </div>
+                          </div>
                        </motion.div>
                     );
                  })}

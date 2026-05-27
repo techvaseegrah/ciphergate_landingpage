@@ -227,12 +227,38 @@ const WorkAllocation = ({ isWorkerView = false }) => {
     setNewSubtaskInput('');
   };
 
-  const handleToggleSubtask = (index) => {
-    setTaskForm(prev => {
-      const updated = [...prev.subtasks];
-      updated[index].completed = !updated[index].completed;
-      return { ...prev, subtasks: updated };
-    });
+  const handleToggleSubtask = async (index) => {
+    const updatedSubtasks = [...taskForm.subtasks];
+    updatedSubtasks[index] = { ...updatedSubtasks[index], completed: !updatedSubtasks[index].completed };
+    
+    const total = updatedSubtasks.length;
+    const completedCount = updatedSubtasks.filter(s => s.completed).length;
+    const newProgress = total > 0 ? Math.round((completedCount / total) * 100) : taskForm.progress;
+    
+    let newPhase = taskForm.phase;
+    
+    if (completedCount === 0 && newPhase !== 'done') {
+       newPhase = 'to_do';
+    } else if (completedCount > 0 && completedCount < total && newPhase !== 'done') {
+       newPhase = 'in_progress';
+    } else if (completedCount === total && newPhase !== 'done') {
+       newPhase = 'review';
+    }
+
+    const updatedForm = { ...taskForm, subtasks: updatedSubtasks, progress: newProgress, phase: newPhase };
+    setTaskForm(updatedForm);
+
+    if (editingTaskId) {
+      try {
+        const savedTask = await updateTask(editingTaskId, updatedForm);
+        setTasks(prev => prev.map(t => t._id === editingTaskId ? savedTask : t));
+        const overviewRes = await getOverview();
+        setOverviewData(overviewRes || []);
+      } catch (err) {
+        console.error("Auto-save failed", err);
+        toast.error('Failed to auto-save task progress');
+      }
+    }
   };
 
   const handleDeleteSubtask = (index) => {
@@ -598,31 +624,34 @@ const WorkAllocation = ({ isWorkerView = false }) => {
                   onDragStart={(e) => handleDragStart(e, task._id)}
                   onDragEnd={handleDragEnd}
                   onClick={() => handleOpenNewTaskModal(task)}
-                  className={`kanban-card bg-white rounded-[20px] p-5 border-l-[5px] border-l-blue-600 border-y border-r border-slate-100 shadow-[0_4px_12px_rgba(0,0,0,0.02)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.05)] hover:border-slate-200/80 transition-all duration-300 cursor-grab active:cursor-grabbing flex flex-col gap-4 relative group select-none ${
+                  className={`kanban-card bg-white rounded-[14px] p-3 border-l-[4px] border-l-blue-600 border-y border-r border-slate-100 shadow-[0_4px_12px_rgba(0,0,0,0.02)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.05)] hover:border-slate-200/80 transition-all duration-300 cursor-grab active:cursor-grabbing flex flex-col gap-2.5 relative group select-none ${
                     draggingId === task._id ? 'opacity-40 scale-95 rotate-1' : ''
                   }`}
                 >
-                  {!isWorkerView && (
-                    <button
-                      onClick={(e) => handleDeleteTaskClick(task._id, e)}
-                      className="absolute top-4 right-4 text-slate-300 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-all cursor-pointer bg-slate-50 p-1.5 rounded-lg border-0"
-                    >
-                      <FiTrash2 size={14} />
-                    </button>
-                  )}
-
-                  <div className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 border border-slate-100 rounded-lg w-max text-slate-500 text-[10px] font-bold uppercase tracking-wider">
-                    <FiClock size={12} className="text-slate-400" />
-                    <span>{new Date(task.createdAt || Date.now()).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }).toUpperCase()}</span>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <div className="flex items-center gap-1.5 px-2 py-0.5 bg-slate-50 border border-slate-100 rounded-md w-max text-slate-500 text-[9px] font-bold uppercase tracking-wider">
+                        <FiClock size={12} className="text-slate-400" />
+                        <span>{new Date(task.createdAt || Date.now()).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }).toUpperCase()}</span>
+                      </div>
+                    </div>
+                    {!isWorkerView && (
+                      <button
+                        onClick={(e) => handleDeleteTaskClick(task._id, e)}
+                        className="flex-shrink-0 text-slate-400 hover:text-rose-500 transition-all cursor-pointer bg-slate-50 hover:bg-rose-50 p-1.5 rounded-md border-0 shadow-sm"
+                      >
+                        <FiTrash2 size={14} />
+                      </button>
+                    )}
                   </div>
 
-                  <p className="text-xs md:text-sm font-extrabold text-slate-800 leading-snug m-0 pr-6">
+                  <p className="text-[11px] md:text-xs font-extrabold text-slate-800 leading-snug m-0 pr-6">
                     {task.title}
                   </p>
 
                   {/* ── Task Checklist inside card ── */}
                   {task.subtasks && task.subtasks.length > 0 && (
-                    <div className="bg-white border border-slate-100 rounded-2xl p-3" onClick={e => e.stopPropagation()}>
+                    <div className="bg-white border border-slate-100 rounded-xl p-2" onClick={e => e.stopPropagation()}>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-1.5">
                           <FiCheckSquare size={12} className="text-slate-500" />
@@ -648,13 +677,13 @@ const WorkAllocation = ({ isWorkerView = false }) => {
                   <div className="pt-1 flex items-center gap-2">
                     <button
                       onClick={(e) => { e.stopPropagation(); handleMovePhase(task._id, 'in_progress', 10); }}
-                      className="w-full py-2.5 bg-[#2563eb] hover:bg-[#1d4ed8] text-white text-xs font-bold rounded-xl shadow-md shadow-blue-600/10 transition-all cursor-pointer border-0 uppercase tracking-wider"
+                      className="w-full py-1.5 bg-[#2563eb] hover:bg-[#1d4ed8] text-white text-[10px] font-bold rounded-lg shadow-md shadow-blue-600/10 transition-all cursor-pointer border-0 uppercase tracking-wider"
                     >
                       MOVE NEXT
                     </button>
                   </div>
 
-                  <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] font-bold text-slate-400">
+                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] font-bold text-slate-400">
                     <div className="flex items-center gap-1.5">
                       <FiCheckSquare className="text-slate-300" size={14} />
                       <span className="font-poppins uppercase tracking-wider">TASK — {task.taskNumber}</span>
@@ -712,31 +741,34 @@ const WorkAllocation = ({ isWorkerView = false }) => {
                   onDragStart={(e) => handleDragStart(e, task._id)}
                   onDragEnd={handleDragEnd}
                   onClick={() => handleOpenNewTaskModal(task)}
-                  className={`kanban-card bg-white rounded-[20px] p-5 border-l-[5px] border-l-blue-600 border-y border-r border-slate-100 shadow-[0_4px_12px_rgba(0,0,0,0.02)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.05)] hover:border-slate-200/80 transition-all duration-300 cursor-grab active:cursor-grabbing flex flex-col gap-4 relative group select-none ${
+                  className={`kanban-card bg-white rounded-[14px] p-3 border-l-[4px] border-l-blue-600 border-y border-r border-slate-100 shadow-[0_4px_12px_rgba(0,0,0,0.02)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.05)] hover:border-slate-200/80 transition-all duration-300 cursor-grab active:cursor-grabbing flex flex-col gap-2.5 relative group select-none ${
                     draggingId === task._id ? 'opacity-40 scale-95 rotate-1' : ''
                   }`}
                 >
-                  {!isWorkerView && (
-                    <button
-                      onClick={(e) => handleDeleteTaskClick(task._id, e)}
-                      className="absolute top-4 right-4 text-slate-300 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-all cursor-pointer bg-slate-50 p-1.5 rounded-lg border-0"
-                    >
-                      <FiTrash2 size={14} />
-                    </button>
-                  )}
-
-                  <div className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 border border-slate-100 rounded-lg w-max text-slate-500 text-[10px] font-bold uppercase tracking-wider">
-                    <FiClock size={12} className="text-slate-400" />
-                    <span>{new Date(task.createdAt || Date.now()).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }).toUpperCase()}</span>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <div className="flex items-center gap-1.5 px-2 py-0.5 bg-slate-50 border border-slate-100 rounded-md w-max text-slate-500 text-[9px] font-bold uppercase tracking-wider">
+                        <FiClock size={12} className="text-slate-400" />
+                        <span>{new Date(task.createdAt || Date.now()).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }).toUpperCase()}</span>
+                      </div>
+                    </div>
+                    {!isWorkerView && (
+                      <button
+                        onClick={(e) => handleDeleteTaskClick(task._id, e)}
+                        className="flex-shrink-0 text-slate-400 hover:text-rose-500 transition-all cursor-pointer bg-slate-50 hover:bg-rose-50 p-1.5 rounded-md border-0 shadow-sm"
+                      >
+                        <FiTrash2 size={14} />
+                      </button>
+                    )}
                   </div>
 
-                  <p className="text-xs md:text-sm font-extrabold text-slate-800 leading-snug m-0 pr-6">
+                  <p className="text-[11px] md:text-xs font-extrabold text-slate-800 leading-snug m-0 pr-6">
                     {task.title}
                   </p>
 
                   {/* ── Task Checklist inside card ── */}
                   {task.subtasks && task.subtasks.length > 0 && (
-                    <div className="bg-white border border-slate-100 rounded-2xl p-3" onClick={e => e.stopPropagation()}>
+                    <div className="bg-white border border-slate-100 rounded-xl p-2" onClick={e => e.stopPropagation()}>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-1.5">
                           <FiCheckSquare size={12} className="text-slate-500" />
@@ -762,19 +794,19 @@ const WorkAllocation = ({ isWorkerView = false }) => {
                   <div className="pt-1 flex items-center gap-3">
                     <button
                       onClick={(e) => { e.stopPropagation(); handleMovePhase(task._id, 'to_do', 0); }}
-                      className="flex-1 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-500 hover:text-slate-700 text-xs font-bold rounded-xl transition-all cursor-pointer uppercase tracking-wider"
+                      className="flex-1 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-500 hover:text-slate-700 text-[10px] font-bold rounded-lg transition-all cursor-pointer uppercase tracking-wider"
                     >
                       MOVE BACK
                     </button>
                     <button
                       onClick={(e) => { e.stopPropagation(); handleMovePhase(task._id, 'review', 90); }}
-                      className="flex-1 py-2.5 bg-[#2563eb] hover:bg-[#1d4ed8] text-white text-xs font-bold rounded-xl shadow-md shadow-blue-600/10 transition-all cursor-pointer border-0 uppercase tracking-wider"
+                      className="flex-1 py-1.5 bg-[#2563eb] hover:bg-[#1d4ed8] text-white text-[10px] font-bold rounded-lg shadow-md shadow-blue-600/10 transition-all cursor-pointer border-0 uppercase tracking-wider"
                     >
                       MOVE NEXT
                     </button>
                   </div>
 
-                  <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] font-bold text-slate-400">
+                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] font-bold text-slate-400">
                     <div className="flex items-center gap-1.5">
                       <FiCheckSquare className="text-slate-300" size={14} />
                       <span className="font-poppins uppercase tracking-wider">TASK — {task.taskNumber}</span>
@@ -832,34 +864,35 @@ const WorkAllocation = ({ isWorkerView = false }) => {
                   onDragStart={(e) => handleDragStart(e, task._id)}
                   onDragEnd={handleDragEnd}
                   onClick={() => handleOpenNewTaskModal(task)}
-                  className={`kanban-card bg-white rounded-[20px] p-5 border-l-[5px] border-l-purple-500 border-y border-r border-slate-100 shadow-[0_4px_12px_rgba(0,0,0,0.02)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.05)] hover:border-slate-200/80 transition-all duration-300 cursor-grab active:cursor-grabbing flex flex-col gap-4 relative group select-none ${
+                  className={`kanban-card bg-white rounded-[14px] p-3 border-l-[4px] border-l-purple-500 border-y border-r border-slate-100 shadow-[0_4px_12px_rgba(0,0,0,0.02)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.05)] hover:border-slate-200/80 transition-all duration-300 cursor-grab active:cursor-grabbing flex flex-col gap-2.5 relative group select-none ${
                     draggingId === task._id ? 'opacity-40 scale-95 rotate-1' : ''
                   }`}
                 >
-                  {!isWorkerView && (
-                    <button
-                      onClick={(e) => handleDeleteTaskClick(task._id, e)}
-                      className="absolute top-4 right-4 text-slate-300 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-all cursor-pointer bg-slate-50 p-1.5 rounded-lg border-0"
-                    >
-                      <FiTrash2 size={14} />
-                    </button>
-                  )}
-
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 border border-slate-100 rounded-lg w-max text-slate-500 text-[10px] font-bold uppercase tracking-wider">
-                      <FiClock size={12} className="text-slate-400" />
-                      <span>{new Date(task.createdAt || Date.now()).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }).toUpperCase()}</span>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <div className="flex items-center gap-1.5 px-2 py-0.5 bg-slate-50 border border-slate-100 rounded-md w-max text-slate-500 text-[9px] font-bold uppercase tracking-wider">
+                        <FiClock size={12} className="text-slate-400" />
+                        <span>{new Date(task.createdAt || Date.now()).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }).toUpperCase()}</span>
+                      </div>
+                      <span className="px-2.5 py-0.5 bg-purple-50 border border-purple-100 text-purple-600 text-[10px] font-bold rounded-lg uppercase tracking-wider font-poppins">Testing</span>
                     </div>
-                    <span className="px-2.5 py-0.5 bg-purple-50 border border-purple-100 text-purple-600 text-[10px] font-bold rounded-lg uppercase tracking-wider font-poppins">Testing</span>
+                    {!isWorkerView && (
+                      <button
+                        onClick={(e) => handleDeleteTaskClick(task._id, e)}
+                        className="flex-shrink-0 text-slate-400 hover:text-rose-500 transition-all cursor-pointer bg-slate-50 hover:bg-rose-50 p-1.5 rounded-md border-0 shadow-sm"
+                      >
+                        <FiTrash2 size={14} />
+                      </button>
+                    )}
                   </div>
 
-                  <p className="text-xs md:text-sm font-extrabold text-slate-800 leading-snug m-0 pr-6">
+                  <p className="text-[11px] md:text-xs font-extrabold text-slate-800 leading-snug m-0 pr-6">
                     {task.title}
                   </p>
 
                   {/* ── Task Checklist inside card ── */}
                   {task.subtasks && task.subtasks.length > 0 && (
-                    <div className="bg-white border border-slate-100 rounded-2xl p-3" onClick={e => e.stopPropagation()}>
+                    <div className="bg-white border border-slate-100 rounded-xl p-2" onClick={e => e.stopPropagation()}>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-1.5">
                           <FiCheckSquare size={12} className="text-slate-500" />
@@ -882,22 +915,24 @@ const WorkAllocation = ({ isWorkerView = false }) => {
                     </div>
                   </div>
 
-                  <div className="pt-1 flex items-center gap-3">
-                    <button
-                      onClick={(e) => { e.stopPropagation(); handleMovePhase(task._id, 'in_progress', 50); }}
-                      className="flex-1 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-500 hover:text-slate-700 text-xs font-bold rounded-xl transition-all cursor-pointer uppercase tracking-wider"
-                    >
-                      REJECT
-                    </button>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); handleMovePhase(task._id, 'done', 100); }}
-                      className="flex-1 py-2.5 bg-[#2563eb] hover:bg-[#1d4ed8] text-white text-xs font-bold rounded-xl shadow-md shadow-blue-600/10 transition-all cursor-pointer border-0 uppercase tracking-wider"
-                    >
-                      APPROVE
-                    </button>
-                  </div>
+                  {!isWorkerView && (
+                    <div className="pt-1 flex items-center gap-3">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); handleMovePhase(task._id, 'in_progress', 50); }}
+                        className="flex-1 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-500 hover:text-slate-700 text-[10px] font-bold rounded-lg transition-all cursor-pointer uppercase tracking-wider"
+                      >
+                        REJECT
+                      </button>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); handleMovePhase(task._id, 'done', 100); }}
+                        className="flex-1 py-1.5 bg-[#2563eb] hover:bg-[#1d4ed8] text-white text-[10px] font-bold rounded-lg shadow-md shadow-blue-600/10 transition-all cursor-pointer border-0 uppercase tracking-wider"
+                      >
+                        APPROVE
+                      </button>
+                    </div>
+                  )}
 
-                  <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] font-bold text-slate-400">
+                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] font-bold text-slate-400">
                     <div className="flex items-center gap-1.5">
                       <FiCheckSquare className="text-slate-300" size={14} />
                       <span className="font-poppins uppercase tracking-wider">TASK — {task.taskNumber}</span>
@@ -955,22 +990,25 @@ const WorkAllocation = ({ isWorkerView = false }) => {
                   onDragStart={(e) => handleDragStart(e, task._id)}
                   onDragEnd={handleDragEnd}
                   onClick={() => handleOpenNewTaskModal(task)}
-                  className={`kanban-card bg-white rounded-[20px] p-5 border-l-[5px] border-l-emerald-500 border-y border-r border-slate-100 shadow-[0_4px_12px_rgba(0,0,0,0.02)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.05)] hover:border-slate-200/80 transition-all duration-300 cursor-grab active:cursor-grabbing flex flex-col gap-4 relative group select-none ${
+                  className={`kanban-card bg-white rounded-[14px] p-3 border-l-[4px] border-l-emerald-500 border-y border-r border-slate-100 shadow-[0_4px_12px_rgba(0,0,0,0.02)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.05)] hover:border-slate-200/80 transition-all duration-300 cursor-grab active:cursor-grabbing flex flex-col gap-2.5 relative group select-none ${
                     draggingId === task._id ? 'opacity-40 scale-95 rotate-1' : ''
                   }`}
                 >
-                  {!isWorkerView && (
-                    <button
-                      onClick={(e) => handleDeleteTaskClick(task._id, e)}
-                      className="absolute top-4 right-4 text-slate-300 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-all cursor-pointer bg-slate-50 p-1.5 rounded-lg border-0"
-                    >
-                      <FiTrash2 size={14} />
-                    </button>
-                  )}
-
-                  <div className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 border border-slate-100 rounded-lg w-max text-slate-500 text-[10px] font-bold uppercase tracking-wider">
-                    <FiClock size={12} className="text-slate-400" />
-                    <span>{new Date(task.createdAt || Date.now()).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }).toUpperCase()}</span>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <div className="flex items-center gap-1.5 px-2 py-0.5 bg-slate-50 border border-slate-100 rounded-md w-max text-slate-500 text-[9px] font-bold uppercase tracking-wider">
+                        <FiClock size={12} className="text-slate-400" />
+                        <span>{new Date(task.createdAt || Date.now()).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }).toUpperCase()}</span>
+                      </div>
+                    </div>
+                    {!isWorkerView && (
+                      <button
+                        onClick={(e) => handleDeleteTaskClick(task._id, e)}
+                        className="flex-shrink-0 text-slate-400 hover:text-rose-500 transition-all cursor-pointer bg-slate-50 hover:bg-rose-50 p-1.5 rounded-md border-0 shadow-sm"
+                      >
+                        <FiTrash2 size={14} />
+                      </button>
+                    )}
                   </div>
 
                   <p className="text-xs md:text-sm font-extrabold text-slate-800 leading-snug m-0 pr-6">
@@ -1002,14 +1040,16 @@ const WorkAllocation = ({ isWorkerView = false }) => {
                     </div>
                   </div>
 
-                  <div className="pt-1 flex items-center gap-2">
-                    <button
-                      onClick={(e) => { e.stopPropagation(); handleMovePhase(task._id, 'review', 90); }}
-                      className="w-full py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-500 hover:text-slate-700 text-xs font-bold rounded-xl transition-all cursor-pointer uppercase tracking-wider"
-                    >
-                      MOVE BACK
-                    </button>
-                  </div>
+                  {!isWorkerView && (
+                    <div className="pt-1 flex items-center gap-2">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); handleMovePhase(task._id, 'review', 90); }}
+                        className="w-full py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-500 hover:text-slate-700 text-[10px] font-bold rounded-lg transition-all cursor-pointer uppercase tracking-wider"
+                      >
+                        MOVE BACK
+                      </button>
+                    </div>
+                  )}
 
                   <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] font-bold text-slate-400">
                     <div className="flex items-center gap-1.5">
@@ -1203,13 +1243,12 @@ const WorkAllocation = ({ isWorkerView = false }) => {
               <div className="space-y-2 max-h-32 overflow-y-auto">
                 {taskForm.subtasks.map((sub, i) => (
                   <div key={i} className="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-slate-100">
-                    <button
-                      type="button"
-                      onClick={() => handleToggleSubtask(i)}
-                      className={`w-5 h-5 rounded-md border flex items-center justify-center flex-shrink-0 cursor-pointer ${sub.completed ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-200 bg-white'}`}
-                    >
-                      {sub.completed && <FiCheck size={11} />}
-                    </button>
+                    <input
+                      type="checkbox"
+                      checked={sub.completed}
+                      onChange={() => handleToggleSubtask(i)}
+                      className="w-4 h-4 accent-emerald-500 cursor-pointer rounded flex-shrink-0 border-slate-300"
+                    />
                     <span className={`flex-1 text-xs font-semibold text-slate-700 font-poppins ${sub.completed ? 'line-through text-slate-300' : ''}`}>{sub.title}</span>
                     {!isWorkerView && (
                       <button type="button" onClick={() => handleDeleteSubtask(i)} className="text-amber-400 hover:text-amber-600 border-none bg-transparent cursor-pointer p-0">
@@ -1331,7 +1370,7 @@ const WorkAllocation = ({ isWorkerView = false }) => {
                   <option value="to_do">TO DO</option>
                   <option value="in_progress">IN PROGRESS</option>
                   <option value="review">REVIEW</option>
-                  <option value="done">DONE</option>
+                  <option value="done" disabled={isWorkerView}>DONE</option>
                 </select>
                 <FiChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
               </div>

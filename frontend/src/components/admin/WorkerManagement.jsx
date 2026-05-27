@@ -493,16 +493,6 @@ const WorkerManagement = () => {
       return;
     }
 
-    if (!formData.workPassType) {
-      toast.error('Work Pass Type is required');
-      return;
-    }
-
-    if (!formData.dateOfJoining) {
-      toast.error('Date of Joining is required');
-      return;
-    }
-
     if (formData.passExpiryDate) {
       const expiry = new Date(formData.passExpiryDate);
       const today = new Date();
@@ -564,11 +554,6 @@ const WorkerManagement = () => {
       }
     }
 
-    if (!formData.idProofFile) {
-      toast.error('ID Proof document is required');
-      return;
-    }
-
     try {
       const newWorker = await createWorker({
         ...formData,
@@ -602,7 +587,7 @@ const WorkerManagement = () => {
     e.preventDefault();
 
     // Validate mandatory inputs
-    if (!formData.name || !formData.username || !formData.employeeId || !formData.contactNumber || !formData.workPassType || !formData.dateOfJoining || !formData.department) {
+    if (!formData.name || !formData.username || !formData.employeeId || !formData.contactNumber || !formData.department) {
       toast.error('Please fill in all mandatory fields');
       return;
     }
@@ -1086,14 +1071,13 @@ const WorkerManagement = () => {
             <h3 className="text-lg font-semibold border-b pb-2 mb-4 text-[#111111]">Employment Info</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="form-group">
-                <label className="form-label">Date of Joining *</label>
+                <label className="form-label">Date of Joining</label>
                 <input
                   type="date"
                   name="dateOfJoining"
                   className="form-input"
                   value={formData.dateOfJoining}
                   onChange={handleChange}
-                  required
                 />
               </div>
 
@@ -1263,13 +1247,12 @@ const WorkerManagement = () => {
             <h3 className="text-lg font-semibold border-b pb-2 mb-4 text-[#111111]">Work Pass Info</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="form-group">
-                <label className="form-label">Work Pass Type *</label>
+                <label className="form-label">Work Pass Type</label>
                 <select
                   name="workPassType"
                   className="form-input"
                   value={formData.workPassType}
                   onChange={handleChange}
-                  required
                 >
                   <option value="">Select Type</option>
                   <option value="Work Permit">Work Permit</option>
@@ -1406,14 +1389,14 @@ const WorkerManagement = () => {
             </div>
           </div>
 
-          {/* ID Proof Upload - REQUIRED */}
+          {/* ID Proof Upload */}
           <div>
             <h3 className="text-lg font-semibold border-b pb-2 mb-4 text-[#111111] flex items-center gap-2">
               ID Proof
-              <span className="text-xs font-normal text-red-500 bg-red-50 px-2 py-0.5 rounded-full border border-red-100">Required</span>
+              <span className="text-xs font-normal text-gray-500 bg-gray-50 px-2 py-0.5 rounded-full border border-gray-200">Optional</span>
             </h3>
             <div className="form-group">
-              <label className="form-label">Upload ID Document <span className="text-red-500">*</span></label>
+              <label className="form-label">Upload ID Document</label>
               <div className="border-2 border-dashed border-gray-200 rounded-xl p-4 hover:border-blue-300 transition-colors bg-gray-50">
                 <input
                   type="file"
@@ -1615,14 +1598,13 @@ const WorkerManagement = () => {
             <h3 className="text-lg font-semibold border-b pb-2 mb-4 text-[#111111]">Employment Info</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="form-group">
-                <label className="form-label">Date of Joining *</label>
+                <label className="form-label">Date of Joining</label>
                 <input
                   type="date"
                   name="dateOfJoining"
                   className="form-input"
                   value={formData.dateOfJoining}
                   onChange={handleChange}
-                  required
                 />
               </div>
 
@@ -1778,13 +1760,12 @@ const WorkerManagement = () => {
             <h3 className="text-lg font-semibold border-b pb-2 mb-4 text-[#111111]">Work Pass Info</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="form-group">
-                <label className="form-label">Work Pass Type *</label>
+                <label className="form-label">Work Pass Type</label>
                 <select
                   name="workPassType"
                   className="form-input"
                   value={formData.workPassType}
                   onChange={handleChange}
-                  required
                 >
                   <option value="">Select Type</option>
                   <option value="Work Permit">Work Permit</option>
