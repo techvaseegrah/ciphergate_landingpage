@@ -14,6 +14,10 @@ const testConnection = async () => {
       process.exit(1);
     }
     
+    try {
+      require('dns').setServers(['8.8.8.8', '8.8.4.4']);
+    } catch(e) {}
+    
     // Attempt to connect to MongoDB
     await mongoose.connect(process.env.MONGO_URI, {
       serverSelectionTimeoutMS: 5000,

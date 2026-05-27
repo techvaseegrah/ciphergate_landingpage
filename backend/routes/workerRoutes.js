@@ -8,6 +8,8 @@ const {
   updateWorker, 
   deleteWorker,
   getWorkerActivities,
+  getAllWorkerActivities,
+  submitTask,
   resetWorkerActivities,
   getPublicWorkers,
   generateId,
@@ -19,6 +21,8 @@ const { uploadIdProof } = require('../middleware/uploadMiddleware');
 
 router.route('/').post(protect, adminOnly, uploadIdProof.single('idProofFile'), createWorker);
 router.route('/all').post(protect, adminOrWorker, getWorkers);
+router.route('/all-activities').get(protect, adminOnly, getAllWorkerActivities);
+router.route('/submit-task').post(protect, adminOrWorker, submitTask);
 router.route('/generate-id').get(protect, generateId);
 router.route('/get-worker-by-rfid').post(getWorkerByRfid);
 

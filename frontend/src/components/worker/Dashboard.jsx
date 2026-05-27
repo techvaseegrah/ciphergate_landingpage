@@ -75,9 +75,12 @@ const Dashboard = () => {
     const loadDashboardData = async () => {
       setIsLoading(true);
       try {
-        // Since task service has been removed, we'll just initialize with empty array
-        setTasks([]);
-
+        if (user?._id) {
+          const response = await api.get(`/workers/${user._id}/activities`);
+          setTasks(response.data || []);
+        } else {
+          setTasks([]);
+        }
       } catch (error) {
         toast.error('Failed to load dashboard data');
         console.error(error);
@@ -307,14 +310,6 @@ const Dashboard = () => {
         )
       }
 
-      <Card className="mb-6">
-        <h2 className="text-xl font-bold mb-4 flex items-center">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2 text-purple-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-          </svg>
-          <span className="truncate">Submit Task</span>
-        </h2>
-      </Card>
 
       <h1 className="text-2xl font-bold mb-6 flex items-center">
         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -372,9 +367,9 @@ const Dashboard = () => {
                   {task.topics.map((topic, index) => (
                     <span
                       key={index}
-                      className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full truncate max-w-[120px]"
+                      className="px-3 py-1.5 bg-blue-50 text-blue-800 text-xs font-medium rounded-full border border-blue-100"
                     >
-                      {topic?.name || 'Unknown Topic'}
+                      {topic?.topicName || topic?.name || 'Unknown Topic'}
                     </span>
                   ))}
                 </div>

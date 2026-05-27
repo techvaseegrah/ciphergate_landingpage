@@ -17,7 +17,7 @@ const taskSchema = mongoose.Schema({
   },
   topics: [{ // This now refers to the main topics selected or those whose subtopics were selected
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Topic'
+    ref: 'TaskTopic'
   }],
   // NEW FIELD: To store specifically selected subtopics
   selectedSubtopics: {

@@ -82,6 +82,10 @@ const SalaryManagement = () => {
     });
     const [selectedDeductionWorker, setSelectedDeductionWorker] = useState(null);
     const [deductionSearchTerm, setDeductionSearchTerm] = useState('');
+    
+    // DELETE DEDUCTION CONFIRM MODAL
+    const [isDeductionDeleteConfirmOpen, setIsDeductionDeleteConfirmOpen] = useState(false);
+    const [deductionToDelete, setDeductionToDelete] = useState(null);
 
     // INCREMENT MODAL STATES
     const [isIncrementModalOpen, setIsIncrementModalOpen] = useState(false);
@@ -726,6 +730,28 @@ const SalaryManagement = () => {
         }
     };
 
+    const confirmDeleteDeduction = async () => {
+        if (!deductionToDelete) return;
+        try {
+            await deleteDeduction(deductionToDelete.workerId, deductionToDelete.deductionId);
+            toast.success('Deduction deleted');
+            loadData();
+            if (isReportModalOpen && selectedWorker) {
+                fetchReport();
+            }
+        } catch (err) {
+            toast.error(err.message || 'Failed to delete');
+        } finally {
+            setIsDeductionDeleteConfirmOpen(false);
+            setDeductionToDelete(null);
+        }
+    };
+
+    const cancelDeleteDeduction = () => {
+        setIsDeductionDeleteConfirmOpen(false);
+        setDeductionToDelete(null);
+    };
+
     const columns = [
         {
             header: 'Name',
@@ -1017,15 +1043,8 @@ const SalaryManagement = () => {
                                             if (item.penaltyType === 'Fine') {
                                                 await handleDeleteFine(item.workerRawId, item._id);
                                             } else {
-                                                if (window.confirm('Are you sure you want to delete this deduction?')) {
-                                                    try {
-                                                        await deleteDeduction(item.workerRawId, item._id);
-                                                        toast.success('Deduction deleted');
-                                                        loadData();
-                                                    } catch (err) {
-                                                        toast.error(err.message || 'Failed to delete');
-                                                    }
-                                                }
+                                                setDeductionToDelete({ workerId: item.workerRawId, deductionId: item._id });
+                                                setIsDeductionDeleteConfirmOpen(true);
                                             }
                                         }}
                                         className="p-2 text-slate-300 group-hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors"
@@ -1546,16 +1565,8 @@ const SalaryManagement = () => {
                                                             <td className="px-6 py-4 whitespace-nowrap">
                                                                 <button
                                                                     onClick={async () => {
-                                                                        if (window.confirm('Are you sure you want to delete this deduction?')) {
-                                                                            try {
-                                                                                await deleteDeduction(selectedWorker._id, d._id);
-                                                                                toast.success('Deduction deleted');
-                                                                                loadData();
-                                                                                fetchReport();
-                                                                            } catch (err) {
-                                                                                toast.error(err.message || 'Failed to delete');
-                                                                            }
-                                                                        }
+                                                                        setDeductionToDelete({ workerId: selectedWorker._id, deductionId: d._id });
+                                                                        setIsDeductionDeleteConfirmOpen(true);
                                                                     }}
                                                                     className="text-red-600 hover:text-red-900"
                                                                     title="Delete Deduction"
@@ -1788,6 +1799,38 @@ const SalaryManagement = () => {
                             onClick={cancelRemoveBonus}
                         >
                             Cancel
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* Delete Deduction Confirmation Modal */}
+            <Modal
+                isOpen={isDeductionDeleteConfirmOpen}
+                onClose={cancelDeleteDeduction}
+                title="Confirm Deletion"
+                size="sm"
+            >
+                <div className="text-center py-6">
+                    <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+                        <FiAlertCircle className="h-6 w-6 text-red-600" aria-hidden="true" />
+                    </div>
+                    <h3 className="text-lg leading-6 font-medium text-gray-900 mb-2">Delete Deduction</h3>
+                    <p className="text-sm text-gray-500 mb-6">
+                        Are you sure you want to delete this deduction? This action cannot be undone.
+                    </p>
+                    <div className="flex justify-center space-x-4">
+                        <Button
+                            variant="secondary"
+                            onClick={cancelDeleteDeduction}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            variant="danger"
+                            onClick={confirmDeleteDeduction}
+                        >
+                            Yes, Delete
                         </Button>
                     </div>
                 </div>

@@ -595,14 +595,79 @@ const deleteWorker = asyncHandler(async (req, res) => {
   }
 });
 
+// @desc    Submit a task
+// @route   POST /api/workers/submit-task
+// @access  Private/Worker
+const submitTask = asyncHandler(async (req, res) => {
+  try {
+    const subdomain = req.user.subdomain;
+    if (!subdomain) {
+      res.status(400);
+      throw new Error('Subdomain is required');
+    }
+
+    const { points, description, topics } = req.body;
+    
+    // We expect topics to be an array of Topic Object IDs
+    const topicIds = topics ? topics.map(t => t._id) : [];
+
+    const task = await Task.create({
+      worker: req.user._id,
+      subdomain,
+      points: points || 0,
+      description: description || '',
+      topics: topicIds,
+      status: 'pending'
+    });
+
+    const populatedTask = await Task.findById(task._id).populate('topics', 'topicName points');
+
+    res.status(201).json(populatedTask);
+  } catch (error) {
+    console.error('Submit Task Error:', error);
+    res.status(500);
+    throw new Error('Failed to submit task');
+  }
+});
+
+// @desc    Get all activities for all workers in subdomain
+// @route   GET /api/workers/all/activities
+// @access  Private/Admin
+const getAllWorkerActivities = asyncHandler(async (req, res) => {
+  try {
+    const subdomain = req.user.subdomain;
+    if (!subdomain) {
+      res.status(400);
+      throw new Error('Subdomain is required');
+    }
+
+    const tasks = await Task.find({ subdomain })
+      .populate({
+        path: 'worker',
+        select: 'name department',
+        populate: {
+          path: 'department',
+          select: 'name'
+        }
+      })
+      .populate('topics', 'topicName points')
+      .sort({ createdAt: -1 });
+
+    res.json(tasks);
+  } catch (error) {
+    console.error('Get All Worker Activities Error:', error);
+    res.status(500);
+    throw new Error('Failed to retrieve all worker activities');
+  }
+});
+
 // @desc    Get worker activities
 // @route   GET /api/workers/:id/activities
 // @access  Private
 const getWorkerActivities = asyncHandler(async (req, res) => {
   try {
     const tasks = await Task.find({ worker: req.params.id })
-      .populate('topics', 'name points')
-      .populate('department', 'name')
+      .populate('topics', 'topicName points')
       .sort({ createdAt: -1 });
 
     res.json(tasks);
@@ -740,6 +805,8 @@ module.exports = {
   updateWorker,
   deleteWorker,
   getWorkerActivities,
+  getAllWorkerActivities,
+  submitTask,
   resetWorkerActivities,
   getWorkersByDepartment,
   getPublicWorkers,

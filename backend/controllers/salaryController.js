@@ -165,6 +165,7 @@ const giveBonus = asyncHandler(async (req, res) => {
         attendanceData,
         fromDate,
         toDate,
+        leaveData,
         options: {
             batches,
             holidays,
@@ -276,6 +277,7 @@ const getWorkerSalaryReport = asyncHandler(async (req, res) => {
             attendanceData,
             fromDate,
             toDate,
+            leaveData,
             options: {
                 batches,
                 holidays,

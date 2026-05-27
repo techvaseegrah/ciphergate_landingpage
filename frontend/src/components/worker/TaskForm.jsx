@@ -1,116 +1,152 @@
 // attendance _31/client/src/components/worker/TaskForm.jsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import Button from '../common/Button';
 import Spinner from '../common/Spinner';
 import { FaChevronDown, FaChevronUp } from 'react-icons/fa';
+import { getTaskTopics } from '../../services/taskTopicService';
+import api from '../../services/api';
 
 const TaskForm = ({ onTaskSubmit }) => {
   const { user } = useAuth();
-  const [formData, setFormData] = useState({});
+  const [topics, setTopics] = useState([]);
+  const [selectedTopics, setSelectedTopics] = useState({});
+  const [showAllTopics, setShowAllTopics] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Handle form field changes
-  const handleFieldChange = (fieldName, value) => {
-    setFormData(prev => ({
-      ...prev,
-      [fieldName]: value
-    }));
-  };
-  
-  // Check if form is valid
-  const isFormValid = () => {
-    // At least one field value must be greater than 0
-    return Object.values(formData).some(value => parseInt(value) > 0);
-  };
-  
-  // Handle form submission
-const handleSubmit = async (e) => {
-  e.preventDefault();
-
-  if (!isFormValid()) {
-    alert('Please enter at least one value.');
-    return;
-  }
-
-  setIsSubmitting(true);
-
-  try {
-    // Simulate task creation since the service has been removed
-    const newTask = {
-      _id: Date.now().toString(), // Simple mock ID
-      points: parseInt(formData.points) || 0,
-      description: formData.description || 'Task submitted',
-      createdAt: new Date().toISOString(),
-      topics: [] // Empty array since topics service is removed
+  useEffect(() => {
+    const fetchTopics = async () => {
+      try {
+        const data = await getTaskTopics(user.subdomain);
+        const uDeptId = String(user.department?._id || user.department);
+        const validTopics = data.filter(t => {
+          if (t.isAllDepartments) return true;
+          const tDeptId = String(t.department?._id || t.department);
+          return tDeptId === uDeptId;
+        });
+        setTopics(validTopics);
+      } catch(e) {
+        console.error(e);
+      }
     };
-    
-    // Reset form
-    setFormData({});
-    
-    // Notify parent component
-    if (onTaskSubmit) {
-      onTaskSubmit(newTask);
+    if (user?.subdomain) fetchTopics();
+  }, [user]);
+
+  const toggleTopic = (id) => {
+    setSelectedTopics(prev => ({...prev, [id]: !prev[id]}));
+  };
+
+  const isFormValid = () => {
+    return Object.values(selectedTopics).some(isSelected => isSelected);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!isFormValid()) {
+      alert('Please select at least one topic.');
+      return;
     }
-  } catch (error) {
-    console.error('Failed to submit task:', error);
-    alert('Failed to submit task. Please try again.');
-  } finally {
-    setIsSubmitting(false);
-  }
-};
-  
-return (
-  <div>
-    <h2 className="text-xl font-semibold mb-4">Submit Task</h2>
-    
-    <form onSubmit={handleSubmit}>
-      {/* Simple Task Data Input */}
-      <div className="mb-6">
-        <h3 className="text-lg font-medium mb-2">Task Data</h3>
-        
-        <div className="mb-4">
-          <label htmlFor="taskPoints" className="form-label">
-            Points
-          </label>
-          <input
-            type="number"
-            id="taskPoints"
-            className="form-input"
-            value={formData.points || ''}
-            onChange={(e) => handleFieldChange('points', e.target.value)}
-            min="0"
-            placeholder="Enter points"
-          />
-        </div>
-        
-        <div className="mb-4">
-          <label htmlFor="taskDescription" className="form-label">
-            Description
-          </label>
-          <input
-            type="text"
-            id="taskDescription"
-            className="form-input"
-            value={formData.description || ''}
-            onChange={(e) => handleFieldChange('description', e.target.value)}
-            placeholder="Enter description"
-          />
-        </div>
-      </div>
+
+    setIsSubmitting(true);
+
+    try {
+      const selectedTopicObjects = topics.filter(t => selectedTopics[t._id]);
+      const totalPoints = selectedTopicObjects.reduce((acc, curr) => acc + (parseInt(curr.points) || 0), 0);
+      const description = selectedTopicObjects.map(t => t.topicName).join(', ');
+
+      const response = await api.post('/workers/submit-task', {
+        points: totalPoints,
+        description: description,
+        topics: selectedTopicObjects.map(t => ({ _id: t._id }))
+      });
       
-      <div className="mt-6">
-        <Button
-          type="submit"
-          variant="primary"
-          disabled={isSubmitting || !isFormValid()}
-        >
-          {isSubmitting ? <Spinner size="sm" /> : 'Submit Task'}
-        </Button>
-      </div>
-    </form>
-  </div>
-);
+      const newTask = response.data;
+      
+      setSelectedTopics({});
+      
+      if (onTaskSubmit) {
+        onTaskSubmit(newTask);
+      }
+    } catch (error) {
+      console.error('Failed to submit task:', error);
+      alert('Failed to submit task. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const displayedTopics = showAllTopics ? topics : topics.slice(0, 3);
+  
+  return (
+    <div>
+      <h2 className="text-xl font-bold text-slate-800 mb-6">Submit Task</h2>
+      
+      <form onSubmit={handleSubmit}>
+        <div className="mb-6">
+          <p className="text-sm font-bold text-slate-700 mb-4">Task Data</p>
+          <p className="text-xs font-bold text-slate-500 mb-3">Topics</p>
+          
+          {topics.length === 0 ? (
+            <p className="text-sm text-slate-400 italic">No topics assigned to your department.</p>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 mb-4">
+                {displayedTopics.map(topic => {
+                  const isSelected = !!selectedTopics[topic._id];
+                  return (
+                    <div 
+                      key={topic._id}
+                      onClick={() => toggleTopic(topic._id)}
+                      className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
+                        isSelected 
+                          ? 'bg-blue-50 border-blue-200 shadow-sm' 
+                          : 'bg-slate-50 border-slate-100 hover:border-slate-200'
+                      }`}
+                    >
+                      <input 
+                        type="checkbox"
+                        checked={isSelected}
+                        readOnly
+                        className="mt-1 accent-blue-600 w-4 h-4 rounded cursor-pointer flex-shrink-0"
+                      />
+                      <span className={`text-sm font-bold ${isSelected ? 'text-blue-900' : 'text-slate-700'}`}>
+                        {topic.topicName} ({topic.points} pts)
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {topics.length > 3 && (
+                <button
+                  type="button"
+                  onClick={() => setShowAllTopics(!showAllTopics)}
+                  className="w-full py-2.5 flex items-center justify-center gap-2 bg-white border border-blue-200 text-blue-600 font-bold text-sm rounded-xl hover:bg-blue-50 transition-colors cursor-pointer"
+                >
+                  {showAllTopics ? (
+                    <>Show Less <FaChevronUp size={12} /></>
+                  ) : (
+                    <>View All ({topics.length}) Topics <FaChevronDown size={12} /></>
+                  )}
+                </button>
+              )}
+            </>
+          )}
+        </div>
+        
+        <div className="mt-6">
+          <button
+            type="submit"
+            disabled={isSubmitting || !isFormValid()}
+            className="px-6 py-2.5 bg-[#0fa388] hover:bg-[#0d8a73] text-white font-bold text-sm rounded-xl transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed border-none shadow-sm shadow-emerald-600/20"
+          >
+            {isSubmitting ? <Spinner size="sm" /> : 'Submit Task'}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
 };
 
 export default TaskForm;

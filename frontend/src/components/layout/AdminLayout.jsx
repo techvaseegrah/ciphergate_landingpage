@@ -39,6 +39,8 @@ import Settings from '../admin/Settings';
 import WorkerAttendance from '../admin/WorkerAttendance';
 import AdminDashboard from '../../pages/Admin/AdminDashboard';
 import WorkAllocation from '../admin/WorkAllocation';
+import ManageTaskTopicsPage from '../admin/ManageTaskTopicsPage';
+
 
 
 const AdminLayout = () => {
@@ -123,10 +125,13 @@ const AdminLayout = () => {
       label: 'Departments'
     },
     {
-      to: '/admin/work-allocation',
       icon: <FiLayers />,
       label: 'Work Allocation',
-      badge: 'PRO'
+      isDropdown: true,
+      children: [
+        { to: '/admin/work-allocation', label: 'Task Board' },
+        { to: '/admin/work-allocation/topics', label: 'Manage Topics' }
+      ]
     },
     {
       to: '/admin/leaves',
@@ -281,6 +286,7 @@ const AdminLayout = () => {
             <Route path="notifications" element={<NotificationManagement />} />
             <Route path="settings" element={<Settings />} />
             <Route path="work-allocation" element={<WorkAllocation />} />
+            <Route path="work-allocation/topics" element={<ManageTaskTopicsPage />} />
 
             <Route path="*" element={<Navigate to="/admin" replace />} />
           </Routes>

@@ -44,6 +44,24 @@ const createTask = asyncHandler(async (req, res) => {
     throw new Error('Subdomain is required');
   }
 
+  // Sanitize inputs to prevent BSON/Cast errors on empty strings
+  if (req.body.assignedTeam === '') {
+    req.body.assignedTeam = null;
+  }
+  if (req.body.assignedWorkers) {
+    if (Array.isArray(req.body.assignedWorkers)) {
+      req.body.assignedWorkers = req.body.assignedWorkers.filter(w => w && typeof w === 'string' && w.trim() !== '');
+    } else {
+      req.body.assignedWorkers = [];
+    }
+  }
+  if (req.body.startDate === '') {
+    req.body.startDate = null;
+  }
+  if (req.body.endDate === '') {
+    req.body.endDate = null;
+  }
+
   const {
     title,
     workspace,
@@ -111,6 +129,24 @@ const updateTask = asyncHandler(async (req, res) => {
   if (task.subdomain !== req.user.subdomain) {
     res.status(403);
     throw new Error('Not authorized to update this task');
+  }
+
+  // Sanitize inputs to prevent BSON/Cast errors on empty strings
+  if (req.body.assignedTeam === '') {
+    req.body.assignedTeam = null;
+  }
+  if (req.body.assignedWorkers) {
+    if (Array.isArray(req.body.assignedWorkers)) {
+      req.body.assignedWorkers = req.body.assignedWorkers.filter(w => w && typeof w === 'string' && w.trim() !== '');
+    } else {
+      req.body.assignedWorkers = [];
+    }
+  }
+  if (req.body.startDate === '') {
+    req.body.startDate = null;
+  }
+  if (req.body.endDate === '') {
+    req.body.endDate = null;
   }
 
   const oldProgress = task.progress;

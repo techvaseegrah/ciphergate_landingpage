@@ -1,16 +1,9 @@
 import api from './api';
 
-let leaveController = null;
-
 export const getAllLeaves = async (leaveData) => {
-  if (leaveController) leaveController.abort();
-  leaveController = new AbortController();
-
   try {
     const effectiveSubdomain = leaveData.subdomain || 'main';
-    const response = await api.get(`leaves/${effectiveSubdomain}/0`, {
-      signal: leaveController.signal
-    });
+    const response = await api.get(`leaves/${effectiveSubdomain}/0`);
     return response.data;
   } catch (error) {
     if (error.name === 'CanceledError' || error.name === 'AbortError') return [];

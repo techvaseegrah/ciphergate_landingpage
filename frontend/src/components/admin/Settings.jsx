@@ -61,7 +61,10 @@ const Settings = () => {
                 to: '19:00',
                 lunchFrom: '12:00',
                 lunchTo: '13:00',
-                isLunchConsider: false
+                isLunchConsider: false,
+                isFactoryWorkerToggle: false,
+                requiredWorkingHours: 8,
+                allowedFreeLunchHrs: 1
             }
         ],
         intervals: [
@@ -177,7 +180,10 @@ const Settings = () => {
                     to: '19:00',
                     lunchFrom: '12:00',
                     lunchTo: '13:00',
-                    isLunchConsider: false
+                    isLunchConsider: false,
+                    isFactoryWorkerToggle: false,
+                    requiredWorkingHours: 8,
+                    allowedFreeLunchHrs: 1
                 }],
                 intervals: fetchedSettings.intervals || [
                     { intervalName: 'interval1', from: '10:15', to: '10:30', isBreakConsider: false },
@@ -225,7 +231,10 @@ const Settings = () => {
                     to: '19:00',
                     lunchFrom: '12:00',
                     lunchTo: '13:00',
-                    isLunchConsider: false
+                    isLunchConsider: false,
+                    isFactoryWorkerToggle: false,
+                    requiredWorkingHours: 8,
+                    allowedFreeLunchHrs: 1
                 }],
                 intervals: fetchedSettings.intervals || [
                     { intervalName: 'interval1', from: '10:15', to: '10:30', isBreakConsider: false },
@@ -384,7 +393,10 @@ const Settings = () => {
             to: '19:00',
             lunchFrom: '12:00',
             lunchTo: '13:00',
-            isLunchConsider: false
+            isLunchConsider: false,
+            isFactoryWorkerToggle: false,
+            requiredWorkingHours: 8,
+            allowedFreeLunchHrs: 1
         };
         const updatedSettings = {
             ...settings,
@@ -1009,36 +1021,82 @@ const Settings = () => {
                                         <div className="pt-5 border-t border-slate-100">
                                             <div className="flex items-center justify-between mb-4">
                                                 <div>
-                                                    <span className="text-sm font-medium text-slate-900 block">Lunch Break Rules</span>
-                                                    <span className="text-xs text-slate-500">Apply deductions automatically</span>
+                                                    <span className="text-sm font-medium text-slate-900 block">Factory Worker</span>
+                                                    <span className="text-xs text-slate-500">Enable flexible lunch tracking based on required hours</span>
                                                 </div>
                                                 <CustomToggle
-                                                    checked={batch.isLunchConsider}
-                                                    onChange={() => handleBatchChange(index, 'isLunchConsider', !batch.isLunchConsider)}
+                                                    checked={batch.isFactoryWorkerToggle || false}
+                                                    onChange={() => handleBatchChange(index, 'isFactoryWorkerToggle', !batch.isFactoryWorkerToggle)}
                                                 />
                                             </div>
 
-                                            {batch.isLunchConsider && (
-                                                <div className="grid grid-cols-2 gap-4">
+                                            {batch.isFactoryWorkerToggle && (
+                                                <div className="grid grid-cols-2 gap-4 mb-4 pb-4 border-b border-slate-100">
                                                     <div>
-                                                        <label className="block text-[10px] font-semibold text-slate-500 mb-1 uppercase tracking-wider pl-1">Lunch Start</label>
-                                                        <input
-                                                            type="time"
-                                                            value={batch.lunchFrom || '12:00'}
-                                                            onChange={(e) => handleBatchChange(index, 'lunchFrom', e.target.value)}
-                                                            className="w-full h-10 px-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 text-sm font-medium outline-none cursor-pointer"
-                                                        />
+                                                        <label className="block text-[10px] font-semibold text-slate-500 mb-1 uppercase tracking-wider pl-1">Required Hrs Per Day</label>
+                                                        <select
+                                                            value={batch.requiredWorkingHours || 8}
+                                                            onChange={(e) => handleBatchChange(index, 'requiredWorkingHours', Number(e.target.value))}
+                                                            className="w-full h-10 px-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 text-sm font-medium outline-none appearance-none bg-white"
+                                                            style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7' /%3E%3C/svg%3E")`, backgroundPosition: 'right 0.75rem center', backgroundSize: '1rem', backgroundRepeat: 'no-repeat' }}
+                                                        >
+                                                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 24].map(h => (
+                                                                <option key={h} value={h}>{h} {h === 1 ? 'Hour' : 'Hours'}</option>
+                                                            ))}
+                                                        </select>
                                                     </div>
                                                     <div>
-                                                        <label className="block text-[10px] font-semibold text-slate-500 mb-1 uppercase tracking-wider pl-1">Lunch End</label>
-                                                        <input
-                                                            type="time"
-                                                            value={batch.lunchTo || '13:00'}
-                                                            onChange={(e) => handleBatchChange(index, 'lunchTo', e.target.value)}
-                                                            className="w-full h-10 px-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 text-sm font-medium outline-none cursor-pointer"
-                                                        />
+                                                        <label className="block text-[10px] font-semibold text-slate-500 mb-1 uppercase tracking-wider pl-1">Allowed Free Lunch Hrs</label>
+                                                        <select
+                                                            value={batch.allowedFreeLunchHrs || 1}
+                                                            onChange={(e) => handleBatchChange(index, 'allowedFreeLunchHrs', Number(e.target.value))}
+                                                            className="w-full h-10 px-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 text-sm font-medium outline-none appearance-none bg-white"
+                                                            style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7' /%3E%3C/svg%3E")`, backgroundPosition: 'right 0.75rem center', backgroundSize: '1rem', backgroundRepeat: 'no-repeat' }}
+                                                        >
+                                                            {[0, 1, 2, 3, 4, 5].map(h => (
+                                                                <option key={h} value={h}>{h} {h === 1 ? 'Hour' : 'Hours'}</option>
+                                                            ))}
+                                                        </select>
                                                     </div>
                                                 </div>
+                                            )}
+
+                                            {!batch.isFactoryWorkerToggle && (
+                                                <>
+                                                    <div className="flex items-center justify-between mb-4 mt-4">
+                                                        <div>
+                                                            <span className="text-sm font-medium text-slate-900 block">Lunch Break Rules</span>
+                                                            <span className="text-xs text-slate-500">Apply deductions automatically</span>
+                                                        </div>
+                                                        <CustomToggle
+                                                            checked={batch.isLunchConsider}
+                                                            onChange={() => handleBatchChange(index, 'isLunchConsider', !batch.isLunchConsider)}
+                                                        />
+                                                    </div>
+
+                                                    {batch.isLunchConsider && (
+                                                        <div className="grid grid-cols-2 gap-4">
+                                                            <div>
+                                                                <label className="block text-[10px] font-semibold text-slate-500 mb-1 uppercase tracking-wider pl-1">Lunch Start</label>
+                                                                <input
+                                                                    type="time"
+                                                                    value={batch.lunchFrom || '12:00'}
+                                                                    onChange={(e) => handleBatchChange(index, 'lunchFrom', e.target.value)}
+                                                                    className="w-full h-10 px-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 text-sm font-medium outline-none cursor-pointer"
+                                                                />
+                                                            </div>
+                                                            <div>
+                                                                <label className="block text-[10px] font-semibold text-slate-500 mb-1 uppercase tracking-wider pl-1">Lunch End</label>
+                                                                <input
+                                                                    type="time"
+                                                                    value={batch.lunchTo || '13:00'}
+                                                                    onChange={(e) => handleBatchChange(index, 'lunchTo', e.target.value)}
+                                                                    className="w-full h-10 px-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 text-sm font-medium outline-none cursor-pointer"
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </>
                                             )}
                                         </div>
                                     </div>

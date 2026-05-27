@@ -216,6 +216,18 @@ const settingsSchema = mongoose.Schema({
         isLunchConsider: {
           type: Boolean,
           default: false
+        },
+        isFactoryWorkerToggle: {
+          type: Boolean,
+          default: false
+        },
+        requiredWorkingHours: {
+          type: Number,
+          default: 8
+        },
+        allowedFreeLunchHrs: {
+          type: Number,
+          default: 1
         }
       }
     ],
@@ -226,7 +238,10 @@ const settingsSchema = mongoose.Schema({
         to: '19:00',
         lunchFrom: '13:30',
         lunchTo: '14:30',
-        isLunchConsider: false
+        isLunchConsider: false,
+        isFactoryWorkerToggle: false,
+        requiredWorkingHours: 8,
+        allowedFreeLunchHrs: 1
       }
     ]
   },

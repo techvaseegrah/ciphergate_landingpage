@@ -89,6 +89,8 @@ const startServer = async () => {
     const holidayRoutes = require('./routes/holidayRoutes');
     const fineRoutes = require('./routes/fineRoutes'); // ADD THIS
     const workAllocationRoutes = require('./routes/workAllocationRoutes');
+    const taskTopicRoutes = require('./routes/taskTopicRoutes');
+
 
     // Test App routes
     const learningTopicRoutes = require('./routes/learningTopicRoutes');
@@ -116,6 +118,8 @@ const startServer = async () => {
     app.use('/api/holidays', holidayRoutes);
     app.use('/api/fines', fineRoutes); // ADD THIS
     app.use('/api/work-allocation', workAllocationRoutes);
+    app.use('/api/task-topics', taskTopicRoutes);
+
 
     // Test App routes
     app.use('/api/test/topics', learningTopicRoutes);

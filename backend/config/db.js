@@ -11,6 +11,13 @@ const connectDB = async () => {
     
     console.log('Attempting to connect to MongoDB...');
     
+    // Fallback DNS to avoid querySrv ECONNREFUSED errors on some Windows machines
+    try {
+      require('dns').setServers(['8.8.8.8', '8.8.4.4']);
+    } catch (e) {
+      console.log('Could not set custom DNS:', e.message);
+    }
+    
     // Log URI for debugging (without credentials in production)
     if (process.env.NODE_ENV !== 'production') {
       const maskedUri = mongoUri.replace(/\/\/([^:]+):([^@]+)@/, '//$1:****@');

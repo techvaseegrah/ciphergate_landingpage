@@ -14,7 +14,6 @@ import { getWorkers } from '../../services/workerService';
 import { useAuth } from '../../hooks/useAuth';
 import appContext from '../../context/AppContext';
 import Modal from '../common/Modal';
-import Button from '../common/Button';
 import Spinner from '../common/Spinner';
 import PricingModal from '../common/PricingModal';
 
@@ -41,6 +40,7 @@ const WorkAllocation = ({ isWorkerView = false }) => {
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [editingTaskId, setEditingTaskId] = useState(null);
   const [showPricingModal, setShowPricingModal] = useState(false);
+
 
   // Form state for New Workspace / Task
   const [taskForm, setTaskForm] = useState({
@@ -503,8 +503,8 @@ const WorkAllocation = ({ isWorkerView = false }) => {
         </div>
 
         {/* Filters Row */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div className="relative">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="relative flex-1 min-w-[200px]">
             <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
             <input
               type="text"
@@ -515,18 +515,48 @@ const WorkAllocation = ({ isWorkerView = false }) => {
             />
           </div>
 
+          {!isWorkerView && (
+            <>
+              <div className="relative w-full sm:w-auto min-w-[150px]">
+                <select
+                  value={selectedEmployeeFilter}
+                  onChange={e => setSelectedEmployeeFilter(e.target.value)}
+                  className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:border-emerald-500 appearance-none transition-all cursor-pointer"
+                >
+                  <option value="All">All Employees</option>
+                  {workers.map(w => (
+                    <option key={w._id} value={w._id}>{w.name}</option>
+                  ))}
+                </select>
+                <FiChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={14} />
+              </div>
 
+              <div className="relative w-full sm:w-auto min-w-[150px]">
+                <select
+                  value={selectedTeamFilter}
+                  onChange={e => setSelectedTeamFilter(e.target.value)}
+                  className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:border-emerald-500 appearance-none transition-all cursor-pointer"
+                >
+                  <option value="All">All Teams</option>
+                  {departments.map(d => (
+                    <option key={d._id} value={d._id}>{d.name}</option>
+                  ))}
+                </select>
+                <FiChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={14} />
+              </div>
+            </>
+          )}
 
-          <div className="relative">
+          <div className="relative w-full sm:w-auto min-w-[150px]">
             <select
               value={selectedPriorityFilter}
               onChange={e => setSelectedPriorityFilter(e.target.value)}
               className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:border-emerald-500 appearance-none transition-all cursor-pointer"
             >
               <option value="All">Priority</option>
-              <option value="High">High</option>
-              <option value="Medium">Medium</option>
-              <option value="Low">Low</option>
+              <option value="high">High</option>
+              <option value="medium">Medium</option>
+              <option value="low">Low</option>
             </select>
             <FiChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={14} />
           </div>
@@ -568,7 +598,7 @@ const WorkAllocation = ({ isWorkerView = false }) => {
                   onDragStart={(e) => handleDragStart(e, task._id)}
                   onDragEnd={handleDragEnd}
                   onClick={() => handleOpenNewTaskModal(task)}
-                  className={`kanban-card bg-white rounded-2xl p-5 border border-slate-100 shadow-sm hover:shadow-md hover:border-slate-200 transition-all cursor-grab active:cursor-grabbing flex flex-col gap-4 relative group select-none ${
+                  className={`kanban-card bg-white rounded-[20px] p-5 border-l-[5px] border-l-blue-600 border-y border-r border-slate-100 shadow-[0_4px_12px_rgba(0,0,0,0.02)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.05)] hover:border-slate-200/80 transition-all duration-300 cursor-grab active:cursor-grabbing flex flex-col gap-4 relative group select-none ${
                     draggingId === task._id ? 'opacity-40 scale-95 rotate-1' : ''
                   }`}
                 >
@@ -581,19 +611,19 @@ const WorkAllocation = ({ isWorkerView = false }) => {
                     </button>
                   )}
 
-                  <div className="flex items-center gap-1.5 px-3 py-1 bg-slate-50 border border-slate-100 rounded-full w-max text-slate-500 text-[10px] font-bold uppercase tracking-wider">
-                    <FiClock size={12} />
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 border border-slate-100 rounded-lg w-max text-slate-500 text-[10px] font-bold uppercase tracking-wider">
+                    <FiClock size={12} className="text-slate-400" />
                     <span>{new Date(task.createdAt || Date.now()).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }).toUpperCase()}</span>
                   </div>
 
-                  <p className="text-xs md:text-sm font-bold text-slate-800 leading-snug m-0 pr-6">
+                  <p className="text-xs md:text-sm font-extrabold text-slate-800 leading-snug m-0 pr-6">
                     {task.title}
                   </p>
 
                   {/* ── Task Checklist inside card ── */}
                   {task.subtasks && task.subtasks.length > 0 && (
-                    <div className="bg-white border border-slate-100 rounded-2xl p-3 space-y-1" onClick={e => e.stopPropagation()}>
-                      <div className="flex items-center justify-between pb-2 mb-1 border-b border-slate-50">
+                    <div className="bg-white border border-slate-100 rounded-2xl p-3" onClick={e => e.stopPropagation()}>
+                      <div className="flex items-center justify-between">
                         <div className="flex items-center gap-1.5">
                           <FiCheckSquare size={12} className="text-slate-500" />
                           <span className="text-[10px] font-black uppercase tracking-widest text-slate-600">Task Checklist</span>
@@ -602,41 +632,23 @@ const WorkAllocation = ({ isWorkerView = false }) => {
                           {task.subtasks.filter(s => s.completed).length}/{task.subtasks.length} Done
                         </span>
                       </div>
-                      {task.subtasks.map((sub, i) => (
-                        <div
-                          key={i}
-                          className="flex items-center gap-2 px-2 py-1.5 bg-slate-50 border border-slate-100 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"
-                          onClick={(e) => handleToggleSubtaskOnCard(task._id, i, e)}
-                        >
-                          <div className={`w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 transition-all ${
-                            sub.completed
-                              ? 'bg-emerald-500 border-emerald-500 text-white'
-                              : 'border-slate-300 bg-white'
-                          }`}>
-                            {sub.completed && <FiCheck size={9} />}
-                          </div>
-                          <span className={`text-[11px] font-semibold leading-tight flex-1 transition-all ${
-                            sub.completed ? 'line-through text-slate-300' : 'text-slate-600'
-                          }`}>{sub.title}</span>
-                        </div>
-                      ))}
                     </div>
                   )}
 
                   <div className="space-y-1.5">
-                    <div className="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
+                    <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400">
                       <span>PROGRESS</span>
                       <span className="text-slate-700">{task.progress}%</span>
                     </div>
-                    <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-blue-600 rounded-full transition-all duration-500" style={{ width: `${task.progress}%` }}></div>
+                    <div className="w-full h-[5px] bg-slate-100 rounded-full overflow-hidden">
+                      <div className="h-full bg-[#2563eb] rounded-full transition-all duration-500" style={{ width: `${task.progress}%` }}></div>
                     </div>
                   </div>
 
-                  <div className="pt-2 flex items-center gap-2">
+                  <div className="pt-1 flex items-center gap-2">
                     <button
                       onClick={(e) => { e.stopPropagation(); handleMovePhase(task._id, 'in_progress', 10); }}
-                      className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-md shadow-blue-600/20 transition-all cursor-pointer border-0 uppercase tracking-wider"
+                      className="w-full py-2.5 bg-[#2563eb] hover:bg-[#1d4ed8] text-white text-xs font-bold rounded-xl shadow-md shadow-blue-600/10 transition-all cursor-pointer border-0 uppercase tracking-wider"
                     >
                       MOVE NEXT
                     </button>
@@ -644,16 +656,23 @@ const WorkAllocation = ({ isWorkerView = false }) => {
 
                   <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] font-bold text-slate-400">
                     <div className="flex items-center gap-1.5">
-                      <FiCheckCircle className="text-slate-300" size={14} />
-                      <span>TASK — {task.taskNumber}</span>
+                      <FiCheckSquare className="text-slate-300" size={14} />
+                      <span className="font-poppins uppercase tracking-wider">TASK — {task.taskNumber}</span>
                     </div>
-                    {task.assignedWorkers?.length > 0 && (
-                      <div className="flex items-center gap-1 px-2.5 py-1 bg-emerald-50 border border-emerald-100 rounded-full text-emerald-700 text-[10px]">
-                        <FiUser size={10} />
-                        <span className="truncate max-w-[100px]">{task.assignedWorkers[0].name}</span>
-                        {task.assignedWorkers.length > 1 && <span>+{task.assignedWorkers.length - 1}</span>}
+                    {task.assignedWorkers?.length > 0 ? (
+                      <div className="flex items-center gap-1.5 px-3 py-1 bg-[#e6fcf5] border border-[#c3fae8] rounded-full text-[#0ca678] text-[10px] font-bold font-poppins">
+                        <FiUser size={11} className="text-[#0ca678]" />
+                        <span>
+                          {task.assignedWorkers[0].name}
+                          {task.assignedWorkers.length > 1 ? ` +${task.assignedWorkers.length - 1}` : ''}
+                        </span>
                       </div>
-                    )}
+                    ) : task.assignedTeam ? (
+                      <div className="flex items-center gap-1.5 px-3 py-1 bg-[#e8f2ff] border border-[#d0e5ff] rounded-full text-[#0066fe] text-[10px] font-bold font-poppins">
+                        <FiUsers size={11} className="text-[#0066fe]" />
+                        <span>{task.assignedTeam.name}</span>
+                      </div>
+                    ) : null}
                   </div>
                 </div>
               ))}
@@ -693,7 +712,7 @@ const WorkAllocation = ({ isWorkerView = false }) => {
                   onDragStart={(e) => handleDragStart(e, task._id)}
                   onDragEnd={handleDragEnd}
                   onClick={() => handleOpenNewTaskModal(task)}
-                  className={`kanban-card bg-white rounded-2xl p-5 border border-blue-100/60 shadow-sm hover:shadow-md hover:border-blue-200 transition-all cursor-grab active:cursor-grabbing flex flex-col gap-4 relative group select-none ${
+                  className={`kanban-card bg-white rounded-[20px] p-5 border-l-[5px] border-l-blue-600 border-y border-r border-slate-100 shadow-[0_4px_12px_rgba(0,0,0,0.02)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.05)] hover:border-slate-200/80 transition-all duration-300 cursor-grab active:cursor-grabbing flex flex-col gap-4 relative group select-none ${
                     draggingId === task._id ? 'opacity-40 scale-95 rotate-1' : ''
                   }`}
                 >
@@ -706,19 +725,19 @@ const WorkAllocation = ({ isWorkerView = false }) => {
                     </button>
                   )}
 
-                  <div className="flex items-center gap-1.5 px-3 py-1 bg-blue-50 border border-blue-100 rounded-full w-max text-blue-600 text-[10px] font-bold uppercase tracking-wider">
-                    <FiClock size={12} />
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 border border-slate-100 rounded-lg w-max text-slate-500 text-[10px] font-bold uppercase tracking-wider">
+                    <FiClock size={12} className="text-slate-400" />
                     <span>{new Date(task.createdAt || Date.now()).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }).toUpperCase()}</span>
                   </div>
 
-                  <p className="text-xs md:text-sm font-bold text-slate-800 leading-snug m-0 pr-6">
+                  <p className="text-xs md:text-sm font-extrabold text-slate-800 leading-snug m-0 pr-6">
                     {task.title}
                   </p>
 
                   {/* ── Task Checklist inside card ── */}
                   {task.subtasks && task.subtasks.length > 0 && (
-                    <div className="bg-white border border-slate-100 rounded-2xl p-3 space-y-1" onClick={e => e.stopPropagation()}>
-                      <div className="flex items-center justify-between pb-2 mb-1 border-b border-slate-50">
+                    <div className="bg-white border border-slate-100 rounded-2xl p-3" onClick={e => e.stopPropagation()}>
+                      <div className="flex items-center justify-between">
                         <div className="flex items-center gap-1.5">
                           <FiCheckSquare size={12} className="text-slate-500" />
                           <span className="text-[10px] font-black uppercase tracking-widest text-slate-600">Task Checklist</span>
@@ -727,47 +746,29 @@ const WorkAllocation = ({ isWorkerView = false }) => {
                           {task.subtasks.filter(s => s.completed).length}/{task.subtasks.length} Done
                         </span>
                       </div>
-                      {task.subtasks.map((sub, i) => (
-                        <div
-                          key={i}
-                          className="flex items-center gap-2 px-2 py-1.5 bg-slate-50 border border-slate-100 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"
-                          onClick={(e) => handleToggleSubtaskOnCard(task._id, i, e)}
-                        >
-                          <div className={`w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 transition-all ${
-                            sub.completed
-                              ? 'bg-emerald-500 border-emerald-500 text-white'
-                              : 'border-slate-300 bg-white'
-                          }`}>
-                            {sub.completed && <FiCheck size={9} />}
-                          </div>
-                          <span className={`text-[11px] font-semibold leading-tight flex-1 transition-all ${
-                            sub.completed ? 'line-through text-slate-300' : 'text-slate-600'
-                          }`}>{sub.title}</span>
-                        </div>
-                      ))}
                     </div>
                   )}
 
                   <div className="space-y-1.5">
-                    <div className="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
+                    <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400">
                       <span>PROGRESS</span>
-                      <span className="text-blue-600">{task.progress}%</span>
+                      <span className="text-[#2563eb]">{task.progress}%</span>
                     </div>
-                    <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-blue-600 rounded-full transition-all duration-500" style={{ width: `${task.progress}%` }}></div>
+                    <div className="w-full h-[5px] bg-slate-100 rounded-full overflow-hidden">
+                      <div className="h-full bg-[#2563eb] rounded-full transition-all duration-500" style={{ width: `${task.progress}%` }}></div>
                     </div>
                   </div>
 
-                  <div className="pt-2 flex items-center gap-2">
+                  <div className="pt-1 flex items-center gap-3">
                     <button
                       onClick={(e) => { e.stopPropagation(); handleMovePhase(task._id, 'to_do', 0); }}
-                      className="flex-1 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-xl transition-all cursor-pointer uppercase tracking-wider"
+                      className="flex-1 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-500 hover:text-slate-700 text-xs font-bold rounded-xl transition-all cursor-pointer uppercase tracking-wider"
                     >
                       MOVE BACK
                     </button>
                     <button
                       onClick={(e) => { e.stopPropagation(); handleMovePhase(task._id, 'review', 90); }}
-                      className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-md shadow-blue-600/20 transition-all cursor-pointer border-0 uppercase tracking-wider"
+                      className="flex-1 py-2.5 bg-[#2563eb] hover:bg-[#1d4ed8] text-white text-xs font-bold rounded-xl shadow-md shadow-blue-600/10 transition-all cursor-pointer border-0 uppercase tracking-wider"
                     >
                       MOVE NEXT
                     </button>
@@ -775,16 +776,23 @@ const WorkAllocation = ({ isWorkerView = false }) => {
 
                   <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] font-bold text-slate-400">
                     <div className="flex items-center gap-1.5">
-                      <FiCheckCircle className="text-blue-500" size={14} />
-                      <span>TASK — {task.taskNumber}</span>
+                      <FiCheckSquare className="text-slate-300" size={14} />
+                      <span className="font-poppins uppercase tracking-wider">TASK — {task.taskNumber}</span>
                     </div>
-                    {task.assignedWorkers?.length > 0 && (
-                      <div className="flex items-center gap-1 px-2.5 py-1 bg-emerald-50 border border-emerald-100 rounded-full text-emerald-700 text-[10px]">
-                        <FiUser size={10} />
-                        <span className="truncate max-w-[100px]">{task.assignedWorkers[0].name}</span>
-                        {task.assignedWorkers.length > 1 && <span>+{task.assignedWorkers.length - 1}</span>}
+                    {task.assignedWorkers?.length > 0 ? (
+                      <div className="flex items-center gap-1.5 px-3 py-1 bg-[#e6fcf5] border border-[#c3fae8] rounded-full text-[#0ca678] text-[10px] font-bold font-poppins">
+                        <FiUser size={11} className="text-[#0ca678]" />
+                        <span>
+                          {task.assignedWorkers[0].name}
+                          {task.assignedWorkers.length > 1 ? ` +${task.assignedWorkers.length - 1}` : ''}
+                        </span>
                       </div>
-                    )}
+                    ) : task.assignedTeam ? (
+                      <div className="flex items-center gap-1.5 px-3 py-1 bg-[#e8f2ff] border border-[#d0e5ff] rounded-full text-[#0066fe] text-[10px] font-bold font-poppins">
+                        <FiUsers size={11} className="text-[#0066fe]" />
+                        <span>{task.assignedTeam.name}</span>
+                      </div>
+                    ) : null}
                   </div>
                 </div>
               ))}
@@ -824,7 +832,7 @@ const WorkAllocation = ({ isWorkerView = false }) => {
                   onDragStart={(e) => handleDragStart(e, task._id)}
                   onDragEnd={handleDragEnd}
                   onClick={() => handleOpenNewTaskModal(task)}
-                  className={`kanban-card bg-white rounded-2xl p-5 border-l-4 border-l-purple-500 border-y border-r border-slate-100 shadow-sm hover:shadow-md transition-all cursor-grab active:cursor-grabbing flex flex-col gap-4 relative group select-none ${
+                  className={`kanban-card bg-white rounded-[20px] p-5 border-l-[5px] border-l-purple-500 border-y border-r border-slate-100 shadow-[0_4px_12px_rgba(0,0,0,0.02)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.05)] hover:border-slate-200/80 transition-all duration-300 cursor-grab active:cursor-grabbing flex flex-col gap-4 relative group select-none ${
                     draggingId === task._id ? 'opacity-40 scale-95 rotate-1' : ''
                   }`}
                 >
@@ -838,21 +846,21 @@ const WorkAllocation = ({ isWorkerView = false }) => {
                   )}
 
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1.5 px-3 py-1 bg-purple-50 border border-purple-100 rounded-full w-max text-purple-600 text-[10px] font-bold uppercase tracking-wider">
-                      <FiClock size={12} />
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 border border-slate-100 rounded-lg w-max text-slate-500 text-[10px] font-bold uppercase tracking-wider">
+                      <FiClock size={12} className="text-slate-400" />
                       <span>{new Date(task.createdAt || Date.now()).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }).toUpperCase()}</span>
                     </div>
-                    <span className="px-2.5 py-0.5 bg-purple-100 text-purple-700 text-[10px] font-extrabold rounded-full uppercase tracking-wider">Testing</span>
+                    <span className="px-2.5 py-0.5 bg-purple-50 border border-purple-100 text-purple-600 text-[10px] font-bold rounded-lg uppercase tracking-wider font-poppins">Testing</span>
                   </div>
 
-                  <p className="text-xs md:text-sm font-bold text-slate-800 leading-snug m-0 pr-6">
+                  <p className="text-xs md:text-sm font-extrabold text-slate-800 leading-snug m-0 pr-6">
                     {task.title}
                   </p>
 
                   {/* ── Task Checklist inside card ── */}
                   {task.subtasks && task.subtasks.length > 0 && (
-                    <div className="bg-white border border-slate-100 rounded-2xl p-3 space-y-1" onClick={e => e.stopPropagation()}>
-                      <div className="flex items-center justify-between pb-2 mb-1 border-b border-slate-50">
+                    <div className="bg-white border border-slate-100 rounded-2xl p-3" onClick={e => e.stopPropagation()}>
+                      <div className="flex items-center justify-between">
                         <div className="flex items-center gap-1.5">
                           <FiCheckSquare size={12} className="text-slate-500" />
                           <span className="text-[10px] font-black uppercase tracking-widest text-slate-600">Task Checklist</span>
@@ -861,61 +869,53 @@ const WorkAllocation = ({ isWorkerView = false }) => {
                           {task.subtasks.filter(s => s.completed).length}/{task.subtasks.length} Done
                         </span>
                       </div>
-                      {task.subtasks.map((sub, i) => (
-                        <div
-                          key={i}
-                          className="flex items-center gap-2 px-2 py-1.5 bg-slate-50 border border-slate-100 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"
-                          onClick={(e) => handleToggleSubtaskOnCard(task._id, i, e)}
-                        >
-                          <div className={`w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 transition-all ${
-                            sub.completed
-                              ? 'bg-emerald-500 border-emerald-500 text-white'
-                              : 'border-slate-300 bg-white'
-                          }`}>
-                            {sub.completed && <FiCheck size={9} />}
-                          </div>
-                          <span className={`text-[11px] font-semibold leading-tight flex-1 transition-all ${
-                            sub.completed ? 'line-through text-slate-300' : 'text-slate-600'
-                          }`}>{sub.title}</span>
-                        </div>
-                      ))}
                     </div>
                   )}
 
                   <div className="space-y-1.5">
-                    <div className="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
+                    <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400">
                       <span>PROGRESS</span>
                       <span className="text-purple-600">{task.progress}%</span>
                     </div>
-                    <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                    <div className="w-full h-[5px] bg-slate-100 rounded-full overflow-hidden">
                       <div className="h-full bg-purple-600 rounded-full transition-all duration-500" style={{ width: `${task.progress}%` }}></div>
                     </div>
                   </div>
 
-                  <div className="pt-2 flex items-center gap-2">
-                    <button
-                      onClick={(e) => { e.stopPropagation(); handleMovePhase(task._id, 'done', 100); }}
-                      className="flex-1 py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-bold rounded-xl transition-all cursor-pointer border-0 uppercase tracking-wider"
-                    >
-                      APPROVE
-                    </button>
+                  <div className="pt-1 flex items-center gap-3">
                     <button
                       onClick={(e) => { e.stopPropagation(); handleMovePhase(task._id, 'in_progress', 50); }}
-                      className="flex-1 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold rounded-xl transition-all cursor-pointer border-0 uppercase tracking-wider"
+                      className="flex-1 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-500 hover:text-slate-700 text-xs font-bold rounded-xl transition-all cursor-pointer uppercase tracking-wider"
                     >
                       REJECT
+                    </button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); handleMovePhase(task._id, 'done', 100); }}
+                      className="flex-1 py-2.5 bg-[#2563eb] hover:bg-[#1d4ed8] text-white text-xs font-bold rounded-xl shadow-md shadow-blue-600/10 transition-all cursor-pointer border-0 uppercase tracking-wider"
+                    >
+                      APPROVE
                     </button>
                   </div>
 
                   <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] font-bold text-slate-400">
                     <div className="flex items-center gap-1.5">
-                      <FiCheckCircle className="text-purple-500" size={14} />
-                      <span>TASK — {task.taskNumber}</span>
+                      <FiCheckSquare className="text-slate-300" size={14} />
+                      <span className="font-poppins uppercase tracking-wider">TASK — {task.taskNumber}</span>
                     </div>
-                    <div className="flex items-center gap-1 px-2.5 py-1 bg-emerald-50 border border-emerald-100 rounded-full text-emerald-700 text-[10px]">
-                      <FiCheck size={10} />
-                      <span>Testing fine!</span>
-                    </div>
+                    {task.assignedWorkers?.length > 0 ? (
+                      <div className="flex items-center gap-1.5 px-3 py-1 bg-[#e6fcf5] border border-[#c3fae8] rounded-full text-[#0ca678] text-[10px] font-bold font-poppins">
+                        <FiUser size={11} className="text-[#0ca678]" />
+                        <span>
+                          {task.assignedWorkers[0].name}
+                          {task.assignedWorkers.length > 1 ? ` +${task.assignedWorkers.length - 1}` : ''}
+                        </span>
+                      </div>
+                    ) : task.assignedTeam ? (
+                      <div className="flex items-center gap-1.5 px-3 py-1 bg-[#e8f2ff] border border-[#d0e5ff] rounded-full text-[#0066fe] text-[10px] font-bold font-poppins">
+                        <FiUsers size={11} className="text-[#0066fe]" />
+                        <span>{task.assignedTeam.name}</span>
+                      </div>
+                    ) : null}
                   </div>
                 </div>
               ))}
@@ -955,7 +955,7 @@ const WorkAllocation = ({ isWorkerView = false }) => {
                   onDragStart={(e) => handleDragStart(e, task._id)}
                   onDragEnd={handleDragEnd}
                   onClick={() => handleOpenNewTaskModal(task)}
-                  className={`kanban-card bg-white rounded-2xl p-5 border border-emerald-100/60 shadow-sm hover:shadow-md hover:border-emerald-200 transition-all cursor-grab active:cursor-grabbing flex flex-col gap-4 relative group select-none ${
+                  className={`kanban-card bg-white rounded-[20px] p-5 border-l-[5px] border-l-emerald-500 border-y border-r border-slate-100 shadow-[0_4px_12px_rgba(0,0,0,0.02)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.05)] hover:border-slate-200/80 transition-all duration-300 cursor-grab active:cursor-grabbing flex flex-col gap-4 relative group select-none ${
                     draggingId === task._id ? 'opacity-40 scale-95 rotate-1' : ''
                   }`}
                 >
@@ -968,19 +968,19 @@ const WorkAllocation = ({ isWorkerView = false }) => {
                     </button>
                   )}
 
-                  <div className="flex items-center gap-1.5 px-3 py-1 bg-emerald-50 border border-emerald-100 rounded-full w-max text-emerald-700 text-[10px] font-bold uppercase tracking-wider">
-                    <FiClock size={12} />
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 border border-slate-100 rounded-lg w-max text-slate-500 text-[10px] font-bold uppercase tracking-wider">
+                    <FiClock size={12} className="text-slate-400" />
                     <span>{new Date(task.createdAt || Date.now()).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }).toUpperCase()}</span>
                   </div>
 
-                  <p className="text-xs md:text-sm font-bold text-slate-800 leading-snug m-0 pr-6">
+                  <p className="text-xs md:text-sm font-extrabold text-slate-800 leading-snug m-0 pr-6">
                     {task.title}
                   </p>
 
                   {/* ── Task Checklist inside card ── */}
                   {task.subtasks && task.subtasks.length > 0 && (
-                    <div className="bg-white border border-slate-100 rounded-2xl p-3 space-y-1" onClick={e => e.stopPropagation()}>
-                      <div className="flex items-center justify-between pb-2 mb-1 border-b border-slate-50">
+                    <div className="bg-white border border-slate-100 rounded-2xl p-3" onClick={e => e.stopPropagation()}>
+                      <div className="flex items-center justify-between">
                         <div className="flex items-center gap-1.5">
                           <FiCheckSquare size={12} className="text-slate-500" />
                           <span className="text-[10px] font-black uppercase tracking-widest text-slate-600">Task Checklist</span>
@@ -989,41 +989,23 @@ const WorkAllocation = ({ isWorkerView = false }) => {
                           {task.subtasks.filter(s => s.completed).length}/{task.subtasks.length} Done
                         </span>
                       </div>
-                      {task.subtasks.map((sub, i) => (
-                        <div
-                          key={i}
-                          className="flex items-center gap-2 px-2 py-1.5 bg-slate-50 border border-slate-100 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"
-                          onClick={(e) => handleToggleSubtaskOnCard(task._id, i, e)}
-                        >
-                          <div className={`w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 transition-all ${
-                            sub.completed
-                              ? 'bg-emerald-500 border-emerald-500 text-white'
-                              : 'border-slate-300 bg-white'
-                          }`}>
-                            {sub.completed && <FiCheck size={9} />}
-                          </div>
-                          <span className={`text-[11px] font-semibold leading-tight flex-1 transition-all ${
-                            sub.completed ? 'line-through text-slate-300' : 'text-slate-600'
-                          }`}>{sub.title}</span>
-                        </div>
-                      ))}
                     </div>
                   )}
 
                   <div className="space-y-1.5">
-                    <div className="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
+                    <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400">
                       <span>PROGRESS</span>
                       <span className="text-emerald-600">100%</span>
                     </div>
-                    <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                    <div className="w-full h-[5px] bg-slate-100 rounded-full overflow-hidden">
                       <div className="h-full bg-emerald-500 rounded-full transition-all duration-500" style={{ width: '100%' }}></div>
                     </div>
                   </div>
 
-                  <div className="pt-2 flex items-center gap-2">
+                  <div className="pt-1 flex items-center gap-2">
                     <button
                       onClick={(e) => { e.stopPropagation(); handleMovePhase(task._id, 'review', 90); }}
-                      className="w-full py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-xl transition-all cursor-pointer uppercase tracking-wider"
+                      className="w-full py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-500 hover:text-slate-700 text-xs font-bold rounded-xl transition-all cursor-pointer uppercase tracking-wider"
                     >
                       MOVE BACK
                     </button>
@@ -1031,16 +1013,23 @@ const WorkAllocation = ({ isWorkerView = false }) => {
 
                   <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] font-bold text-slate-400">
                     <div className="flex items-center gap-1.5">
-                      <FiCheckCircle className="text-emerald-500" size={14} />
-                      <span>TASK — {task.taskNumber}</span>
+                      <FiCheckSquare className="text-slate-300" size={14} />
+                      <span className="font-poppins uppercase tracking-wider">TASK — {task.taskNumber}</span>
                     </div>
-                    {task.assignedWorkers?.length > 0 && (
-                      <div className="flex items-center gap-1 px-2.5 py-1 bg-emerald-50 border border-emerald-100 rounded-full text-emerald-700 text-[10px]">
-                        <FiUser size={10} />
-                        <span className="truncate max-w-[100px]">{task.assignedWorkers[0].name}</span>
-                        {task.assignedWorkers.length > 1 && <span>+{task.assignedWorkers.length - 1}</span>}
+                    {task.assignedWorkers?.length > 0 ? (
+                      <div className="flex items-center gap-1.5 px-3 py-1 bg-[#e6fcf5] border border-[#c3fae8] rounded-full text-[#0ca678] text-[10px] font-bold font-poppins">
+                        <FiUser size={11} className="text-[#0ca678]" />
+                        <span>
+                          {task.assignedWorkers[0].name}
+                          {task.assignedWorkers.length > 1 ? ` +${task.assignedWorkers.length - 1}` : ''}
+                        </span>
                       </div>
-                    )}
+                    ) : task.assignedTeam ? (
+                      <div className="flex items-center gap-1.5 px-3 py-1 bg-[#e8f2ff] border border-[#d0e5ff] rounded-full text-[#0066fe] text-[10px] font-bold font-poppins">
+                        <FiUsers size={11} className="text-[#0066fe]" />
+                        <span>{task.assignedTeam.name}</span>
+                      </div>
+                    ) : null}
                   </div>
                 </div>
               ))}
