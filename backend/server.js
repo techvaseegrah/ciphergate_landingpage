@@ -101,6 +101,9 @@ const startServer = async () => {
     // AI routes
     const aiRoutes = require('./routes/aiRoutes');
     const paymentRoutes = require('./routes/paymentRoutes');
+    
+    // Contact / Inquiry routes
+    const inquiryRoutes = require('./routes/inquiryRoutes');
 
     // Mount routes
 
@@ -130,6 +133,9 @@ const startServer = async () => {
     // AI routes
     app.use('/api/ai', aiRoutes);
     app.use('/api/payments', paymentRoutes);
+    
+    // Contact route
+    app.use('/api/contact', inquiryRoutes);
 
     // Route for checking API status
 

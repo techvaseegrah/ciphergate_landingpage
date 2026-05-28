@@ -55,7 +55,7 @@ const Footer = () => {
   return (
     <footer className="bg-white border-t border-gray-200 py-16 md:py-24 font-poppins">
       <div className="landing-container">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 lg:gap-8 mb-16">
 
           {/* Brand and Description */}
           <div className="space-y-6 flex flex-col items-center md:items-start text-center md:text-left">
@@ -101,17 +101,6 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Support Links */}
-          <div className="flex flex-col items-center md:items-start">
-            <h3 className="text-[11px] font-bold tracking-[0.15em] text-black uppercase mb-8">Support</h3>
-            <ul className="space-y-4">
-              <li><a href="#" className="text-[14px] text-gray-500 hover:text-black transition-colors duration-300">Help Center</a></li>
-              <li><a href="#" className="text-[14px] text-gray-500 hover:text-black transition-colors duration-300">Documentation</a></li>
-              <li><a href="#" className="text-[14px] text-gray-500 hover:text-black transition-colors duration-300">API Status</a></li>
-              <li><a href="#" className="text-[14px] text-gray-500 hover:text-black transition-colors duration-300">Community</a></li>
-            </ul>
-          </div>
-
           {/* Contact */}
           <div className="flex flex-col items-center md:items-start text-center md:text-left">
             <h3 className="text-[11px] font-bold tracking-[0.15em] text-black uppercase mb-8">Connect</h3>
@@ -133,7 +122,7 @@ const Footer = () => {
                   <path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
                   <path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
                 </svg>
-                <span className="leading-relaxed">Thanjavur - 613009,<br />Tamil Nadu, India</span>
+                <span className="leading-relaxed">Vijaya Nagar, 11, post, near Rettipalaiyam Road,<br />Srinivasapuram, Wahab Nagar,<br />Thanjavur, Tamil Nadu 613009</span>
               </div>
             </div>
           </div>

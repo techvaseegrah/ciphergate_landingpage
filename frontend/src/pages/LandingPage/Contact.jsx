@@ -139,6 +139,7 @@ const Contact = ({ id }) => {
             transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
           >
             <div
+              className="text-white"
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: '8px',
                 padding: '10px 18px', borderRadius: '14px',

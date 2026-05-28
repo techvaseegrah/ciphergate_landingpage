@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { getAllAdmins, deleteAdmin } from '../../services/authService';
+import api from '../../services/api';
 
 const formatLastActive = (dateString) => {
   if (!dateString) return 'Never';
@@ -28,6 +29,10 @@ const ClientManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [accountToDelete, setAccountToDelete] = useState(null);
+  const [showInquiriesModal, setShowInquiriesModal] = useState(false);
+  const [inquiries, setInquiries] = useState([]);
+  const [loadingInquiries, setLoadingInquiries] = useState(false);
+  const [expandedInquiryId, setExpandedInquiryId] = useState(null);
 
   const navigate = useNavigate();
 
@@ -44,6 +49,19 @@ const ClientManagement = () => {
       toast.error('Failed to fetch accounts');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchInquiries = async () => {
+    try {
+      setLoadingInquiries(true);
+      const response = await api.get('contact');
+      setInquiries(response.data.data || []);
+      setShowInquiriesModal(true);
+    } catch (error) {
+      toast.error('Failed to fetch inquiries');
+    } finally {
+      setLoadingInquiries(false);
     }
   };
 
@@ -94,8 +112,22 @@ const ClientManagement = () => {
             </svg>
             <span className="font-medium">Back to Home</span>
           </button>
-          <h1 className="text-3xl font-bold text-gray-800">Client Management Dashboard</h1>
-          <p className="text-gray-600 mt-2">Manage all created accounts</p>
+          <div className="flex justify-between items-start md:items-center flex-col md:flex-row gap-4">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-800">Client Management Dashboard</h1>
+              <p className="text-gray-600 mt-2">Manage all created accounts</p>
+            </div>
+            <button
+              onClick={fetchInquiries}
+              disabled={loadingInquiries}
+              className="inline-flex items-center px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors shadow-sm disabled:opacity-50"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+              </svg>
+              {loadingInquiries ? 'Loading...' : 'Inquiries'}
+            </button>
+          </div>
         </div>
 
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
@@ -263,6 +295,89 @@ const ClientManagement = () => {
               >
                 Delete
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Inquiries Modal */}
+      {showInquiriesModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl shadow-lg max-w-6xl w-full p-6 max-h-[85vh] flex flex-col">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-2xl font-bold text-gray-800">Client Inquiries</h3>
+              <button
+                onClick={() => setShowInquiriesModal(false)}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            <div className="overflow-y-auto flex-1 pr-2 space-y-3">
+              {inquiries.length === 0 ? (
+                <div className="text-center py-12 text-gray-500">No inquiries found.</div>
+              ) : (
+                <div className="border border-gray-200 rounded-lg overflow-hidden">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {inquiries.map((inquiry) => (
+                        <React.Fragment key={inquiry._id}>
+                          <tr className="hover:bg-gray-50 transition-colors">
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm font-semibold text-gray-900">{inquiry.firstName} {inquiry.lastName}</div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <a href={`mailto:${inquiry.email}`} className="text-sm text-blue-600 hover:underline">{inquiry.email}</a>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm text-gray-500">{new Date(inquiry.createdAt).toLocaleString()}</div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                              <button
+                                onClick={() => setExpandedInquiryId(expandedInquiryId === inquiry._id ? null : inquiry._id)}
+                                className="inline-flex items-center text-indigo-600 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-md transition-colors"
+                              >
+                                {expandedInquiryId === inquiry._id ? 'Hide Message' : 'View Message'}
+                                <svg 
+                                  className={`ml-1.5 w-4 h-4 transform transition-transform ${expandedInquiryId === inquiry._id ? 'rotate-180' : ''}`} 
+                                  fill="none" 
+                                  stroke="currentColor" 
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                              </button>
+                            </td>
+                          </tr>
+                          {expandedInquiryId === inquiry._id && (
+                            <tr>
+                              <td colSpan="4" className="px-6 py-6 bg-gray-50 border-b border-gray-200">
+                                <div className="text-sm">
+                                  <p className="font-semibold text-gray-700 mb-2">Message:</p>
+                                  <div className="bg-white p-4 rounded-lg border border-gray-200 text-gray-800 whitespace-pre-wrap leading-relaxed">
+                                    {inquiry.message}
+                                  </div>
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+                        </React.Fragment>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           </div>
         </div>
