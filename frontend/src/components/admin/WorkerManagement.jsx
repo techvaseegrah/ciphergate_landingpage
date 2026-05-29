@@ -1597,7 +1597,7 @@ const WorkerManagement = () => {
                   </div>
 
                   <div className="form-group">
-                    <label className="form-label">Date of Exit <span className="text-red-500">*</span></label>
+                    <label className="form-label">Date of Exit</label>
                     <input
                       type="date"
                       name="dateOfExit"
@@ -1605,7 +1605,6 @@ const WorkerManagement = () => {
                       value={formData.dateOfExit}
                       onChange={handleChange}
                       disabled={!formData.exitReasonType}
-                      required
                     />
                     {!formData.exitReasonType && (
                       <p className="text-xs text-amber-600 mt-1">Select Exit Reason Type first</p>

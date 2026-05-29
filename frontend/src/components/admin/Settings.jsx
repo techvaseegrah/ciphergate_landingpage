@@ -119,14 +119,16 @@ const Settings = () => {
     // Validation functions
     const validateBatchNames = (batches) => {
         const names = batches.map(batch => batch.batchName.trim().toLowerCase());
+        const hasEmpty = names.some(name => name === '');
         const uniqueNames = new Set(names);
-        return names.length === uniqueNames.size;
+        return { valid: names.length === uniqueNames.size && !hasEmpty, hasEmpty };
     };
 
     const validateIntervalNames = (intervals) => {
         const names = intervals.map(interval => interval.intervalName.trim().toLowerCase());
+        const hasEmpty = names.some(name => name === '');
         const uniqueNames = new Set(names);
-        return names.length === uniqueNames.size;
+        return { valid: names.length === uniqueNames.size && !hasEmpty, hasEmpty };
     };
 
     // Check if settings have changed
@@ -485,12 +487,14 @@ const Settings = () => {
 
     // Handle settings save
     const handleSaveSettings = async () => {
-        if (!validateBatchNames(settings.batches)) {
-            toast.error('Batch names must be unique. Please check for duplicate batch names.');
+        const batchValidation = validateBatchNames(settings.batches);
+        if (!batchValidation.valid) {
+            toast.error(batchValidation.hasEmpty ? 'Batch names cannot be empty.' : 'Batch names must be unique. Please check for duplicate batch names.');
             return;
         }
-        if (!validateIntervalNames(settings.intervals)) {
-            toast.error('Interval names must be unique. Please check for duplicate interval names.');
+        const intervalValidation = validateIntervalNames(settings.intervals);
+        if (!intervalValidation.valid) {
+            toast.error(intervalValidation.hasEmpty ? 'Interval names cannot be empty.' : 'Interval names must be unique. Please check for duplicate interval names.');
             return;
         }
         setSaving(true);
@@ -978,85 +982,107 @@ const Settings = () => {
                             </div>
                             <div className="p-8 space-y-6 bg-slate-50/50 flex-1">
                                 {settings.batches.map((batch, index) => (
-                                    <div key={index} className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm relative group/batch transition-all hover:border-slate-300">
-                                        <button
-                                            onClick={() => handleRemoveBatch(index)}
-                                            className="absolute top-4 right-4 p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors opacity-0 group-hover/batch:opacity-100"
-                                        >
-                                            <FiTrash2 size={16} />
-                                        </button>
+                                    <div key={index} className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm relative transition-all hover:border-slate-300">
+                                        <div className="flex justify-between items-center mb-4">
+                                            <h3 className="text-sm font-semibold text-slate-800">Batch {index + 1}</h3>
+                                            <button
+                                                onClick={() => handleRemoveBatch(index)}
+                                                className="text-sm text-red-500 hover:text-red-600 transition-colors"
+                                            >
+                                                Remove
+                                            </button>
+                                        </div>
                                         
-                                        <div className="mb-5 pr-8">
-                                            <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wider pl-1">Batch Identifier</label>
+                                        <div className="mb-5">
+                                            <label className="block text-sm font-medium text-slate-700 mb-1">Batch Name</label>
                                             <input
                                                 type="text"
                                                 value={batch.batchName}
                                                 onChange={(e) => handleBatchChange(index, 'batchName', e.target.value)}
-                                                className="w-full bg-transparent border-b border-transparent hover:border-slate-200 focus:border-slate-900 focus:ring-0 p-0 text-base font-semibold text-slate-900 outline-none transition-all placeholder-slate-300"
-                                                placeholder="e.g., Morning Shift"
+                                                className="w-full h-10 px-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 text-sm outline-none transition-all"
                                             />
                                         </div>
                                         
-                                        <div className="grid grid-cols-2 gap-4 mb-6">
-                                            <div>
-                                                <label className="block text-[10px] font-semibold text-slate-500 mb-1 uppercase tracking-wider pl-1">Shift Start</label>
-                                                <input
-                                                    type="time"
-                                                    value={batch.from}
-                                                    onChange={(e) => handleBatchChange(index, 'from', e.target.value)}
-                                                    className="w-full h-10 px-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 text-sm font-medium outline-none"
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="block text-[10px] font-semibold text-slate-500 mb-1 uppercase tracking-wider pl-1">Shift End</label>
-                                                <input
-                                                    type="time"
-                                                    value={batch.to}
-                                                    onChange={(e) => handleBatchChange(index, 'to', e.target.value)}
-                                                    className="w-full h-10 px-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 text-sm font-medium outline-none"
-                                                />
-                                            </div>
-                                        </div>
-
-                                        <div className="pt-5 border-t border-slate-100">
-                                            <div className="flex items-center justify-between mb-4">
+                                        <div className="mb-5 border-b border-slate-100 pb-4">
+                                            <div className="flex items-center justify-between">
                                                 <div>
                                                     <span className="text-sm font-medium text-slate-900 block">Factory Worker</span>
                                                     <span className="text-xs text-slate-500">Enable flexible lunch tracking based on required hours</span>
                                                 </div>
-                                                <CustomToggle
+                                                <input 
+                                                    type="checkbox"
                                                     checked={batch.isFactoryWorkerToggle || false}
                                                     onChange={() => handleBatchChange(index, 'isFactoryWorkerToggle', !batch.isFactoryWorkerToggle)}
+                                                    className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
                                                 />
                                             </div>
+                                        </div>
 
-                                            {batch.isFactoryWorkerToggle && (
-                                                <div className="grid grid-cols-2 gap-4 mb-4 pb-4 border-b border-slate-100">
-                                                    <div>
-                                                        <label className="block text-[10px] font-semibold text-slate-500 mb-1 uppercase tracking-wider pl-1">Required Hrs Per Day</label>
-                                                        <select
-                                                            value={batch.requiredWorkingHours || 8}
-                                                            onChange={(e) => handleBatchChange(index, 'requiredWorkingHours', Number(e.target.value))}
-                                                            className="w-full h-10 px-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 text-sm font-medium outline-none appearance-none bg-white"
-                                                            style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7' /%3E%3C/svg%3E")`, backgroundPosition: 'right 0.75rem center', backgroundSize: '1rem', backgroundRepeat: 'no-repeat' }}
-                                                        >
-                                                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 24].map(h => (
-                                                                <option key={h} value={h}>{h} {h === 1 ? 'Hour' : 'Hours'}</option>
-                                                            ))}
-                                                        </select>
+                                        {!batch.isFactoryWorkerToggle && (
+                                            <div className="grid grid-cols-2 gap-4 mb-6">
+                                                <div>
+                                                    <label className="block text-[10px] font-semibold text-slate-500 mb-1 uppercase tracking-wider pl-1">Shift Start</label>
+                                                    <input
+                                                        type="time"
+                                                        value={batch.from}
+                                                        onChange={(e) => handleBatchChange(index, 'from', e.target.value)}
+                                                        className="w-full h-10 px-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 text-sm font-medium outline-none"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[10px] font-semibold text-slate-500 mb-1 uppercase tracking-wider pl-1">Shift End</label>
+                                                    <input
+                                                        type="time"
+                                                        value={batch.to}
+                                                        onChange={(e) => handleBatchChange(index, 'to', e.target.value)}
+                                                        className="w-full h-10 px-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 text-sm font-medium outline-none"
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {batch.isFactoryWorkerToggle && (
+                                                <div className="mb-4 pb-4 border-b border-slate-100">
+                                                    <div className="grid grid-cols-2 gap-4">
+                                                        <div>
+                                                            <label className="block text-[10px] font-semibold text-slate-500 mb-1 uppercase tracking-wider pl-1">Required Hrs Per Day</label>
+                                                            <select
+                                                                value={batch.requiredWorkingHours || 8}
+                                                                onChange={(e) => handleBatchChange(index, 'requiredWorkingHours', Number(e.target.value))}
+                                                                className="w-full h-10 px-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 text-sm font-medium outline-none appearance-none bg-white"
+                                                                style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7' /%3E%3C/svg%3E")`, backgroundPosition: 'right 0.75rem center', backgroundSize: '1rem', backgroundRepeat: 'no-repeat' }}
+                                                            >
+                                                                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 24].map(h => (
+                                                                    <option key={h} value={h}>{h} {h === 1 ? 'Hour' : 'Hours'}</option>
+                                                                ))}
+                                                            </select>
+                                                        </div>
+                                                        <div>
+                                                            <label className="block text-[10px] font-semibold text-slate-500 mb-1 uppercase tracking-wider pl-1">Allowed Free Lunch Hrs</label>
+                                                            <select
+                                                                value={batch.allowedFreeLunchHrs ?? 1}
+                                                                onChange={(e) => handleBatchChange(index, 'allowedFreeLunchHrs', Number(e.target.value))}
+                                                                className="w-full h-10 px-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 text-sm font-medium outline-none appearance-none bg-white"
+                                                                style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7' /%3E%3C/svg%3E")`, backgroundPosition: 'right 0.75rem center', backgroundSize: '1rem', backgroundRepeat: 'no-repeat' }}
+                                                            >
+                                                                {[0, 0.5, 1, 1.5, 2, 2.5, 3, 4, 5].map(h => (
+                                                                    <option key={h} value={h}>
+                                                                        {h === 0.5 ? '0.5 Hours (30 mins)' :
+                                                                        h === 1 ? '1 Hour' :
+                                                                        h === 1.5 ? '1.5 Hours (1 hr 30 mins)' :
+                                                                        h === 2 ? '2 Hours' :
+                                                                        h === 2.5 ? '2.5 Hours' :
+                                                                        h === 0 ? '0 Hours (No free lunch)' :
+                                                                        `${h} Hours`}
+                                                                    </option>
+                                                                ))}
+                                                            </select>
+                                                        </div>
                                                     </div>
-                                                    <div>
-                                                        <label className="block text-[10px] font-semibold text-slate-500 mb-1 uppercase tracking-wider pl-1">Allowed Free Lunch Hrs</label>
-                                                        <select
-                                                            value={batch.allowedFreeLunchHrs || 1}
-                                                            onChange={(e) => handleBatchChange(index, 'allowedFreeLunchHrs', Number(e.target.value))}
-                                                            className="w-full h-10 px-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 text-sm font-medium outline-none appearance-none bg-white"
-                                                            style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7' /%3E%3C/svg%3E")`, backgroundPosition: 'right 0.75rem center', backgroundSize: '1rem', backgroundRepeat: 'no-repeat' }}
-                                                        >
-                                                            {[0, 1, 2, 3, 4, 5].map(h => (
-                                                                <option key={h} value={h}>{h} {h === 1 ? 'Hour' : 'Hours'}</option>
-                                                            ))}
-                                                        </select>
+                                                    <div className="mt-4 p-3 bg-amber-50 rounded-lg border border-amber-100">
+                                                        <p className="text-xs text-amber-800">
+                                                            Note: Lunch From/To times will be ignored. Workers must complete required hours. Break time exceeding allowed free lunch will be deducted.
+                                                        </p>
                                                     </div>
                                                 </div>
                                             )}
@@ -1098,7 +1124,6 @@ const Settings = () => {
                                                     )}
                                                 </>
                                             )}
-                                        </div>
                                     </div>
                                 ))}
                             </div>
