@@ -37,7 +37,7 @@ const workerSchema = mongoose.Schema({
     type: String,
     unique: true,
     sparse: true,
-    set: v => v === '' ? null : v
+    set: v => (v === '' || v === null) ? undefined : v
   },
   pinNumber: {
     type: String

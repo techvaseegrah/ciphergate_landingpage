@@ -100,22 +100,8 @@ const createWorker = asyncHandler(async (req, res) => {
       throw new Error('Department is required');
     }
 
-    // Validate exit workflow fields when resigned
+    // Removed server-side validation for exit workflow fields as requested, they are now optional.
     const finalResignationStatus = resignationStatus || 'Active';
-    if (finalResignationStatus === 'Resigned') {
-      if (!exitReasonType) {
-        res.status(400);
-        throw new Error('Exit Reason Type is required when status is Resigned');
-      }
-      if (!exitReasonDescription || !exitReasonDescription.trim()) {
-        res.status(400);
-        throw new Error('Exit Reason Description is required when status is Resigned');
-      }
-      if (!dateOfExit) {
-        res.status(400);
-        throw new Error('Date of Exit is required when status is Resigned');
-      }
-    }
 
     if (employeeId) {
       const idExists = await Worker.findOne({ employeeId });
@@ -430,7 +416,10 @@ const updateWorker = asyncHandler(async (req, res) => {
     }
 
     if (employeeId !== undefined) {
-      if (employeeId) {
+      if (employeeId === '') {
+        updateData.$unset = updateData.$unset || {};
+        updateData.$unset.employeeId = 1;
+      } else {
         const idExists = await Worker.findOne({
           employeeId,
           _id: { $ne: req.params.id }
@@ -439,8 +428,8 @@ const updateWorker = asyncHandler(async (req, res) => {
           res.status(400);
           throw new Error('Employee ID already exists');
         }
+        updateData.employeeId = employeeId;
       }
-      updateData.employeeId = employeeId;
     }
 
     if (photo) updateData.photo = photo;
@@ -479,19 +468,7 @@ const updateWorker = asyncHandler(async (req, res) => {
     if (resignationStatus !== undefined) {
       updateData.resignationStatus = resignationStatus;
       if (resignationStatus === 'Resigned') {
-        // Validate exit fields server-side
-        if (!exitReasonType) {
-          res.status(400);
-          throw new Error('Exit Reason Type is required when status is Resigned');
-        }
-        if (!exitReasonDescription || !exitReasonDescription.trim()) {
-          res.status(400);
-          throw new Error('Exit Reason Description is required when status is Resigned');
-        }
-        if (!dateOfExit) {
-          res.status(400);
-          throw new Error('Date of Exit is required when status is Resigned');
-        }
+        // Exit fields are now optional
         updateData.exitReasonType = exitReasonType;
         updateData.exitReasonDescription = exitReasonDescription;
         updateData.dateOfExit = dateOfExit;

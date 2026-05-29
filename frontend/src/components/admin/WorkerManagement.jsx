@@ -528,21 +528,7 @@ const WorkerManagement = () => {
       return;
     }
 
-    // Exit workflow validation
-    if (formData.resignationStatus === 'Resigned') {
-      if (!formData.exitReasonType) {
-        toast.error('Exit Reason Type is required when status is Resigned');
-        return;
-      }
-      if (!formData.exitReasonDescription?.trim()) {
-        toast.error('Exit Reason Description is required when status is Resigned');
-        return;
-      }
-      if (!formData.dateOfExit) {
-        toast.error('Date of Exit is required when status is Resigned');
-        return;
-      }
-    }
+    // Exit workflow validation removed as requested
 
     try {
       const newWorker = await createWorker({
@@ -594,31 +580,14 @@ const WorkerManagement = () => {
 
     // Password validation if provided
     if (formData.password) {
-      if (formData.password !== formData.confirmPassword) {
-        toast.error('Passwords do not match');
-        return;
-      }
+
       if (formData.password.length < 6) {
         toast.error('Password must be at least 6 characters long');
         return;
       }
     }
 
-    // Exit workflow validation
-    if (formData.resignationStatus === 'Resigned') {
-      if (!formData.exitReasonType) {
-        toast.error('Exit Reason Type is required when status is Resigned');
-        return;
-      }
-      if (!formData.exitReasonDescription?.trim()) {
-        toast.error('Exit Reason Description is required when status is Resigned');
-        return;
-      }
-      if (!formData.dateOfExit) {
-        toast.error('Date of Exit is required when status is Resigned');
-        return;
-      }
-    }
+    // Exit workflow validation removed as requested
 
     try {
       const updateData = {
@@ -1086,13 +1055,12 @@ const WorkerManagement = () => {
               {formData.resignationStatus === 'Resigned' && (
                 <>
                   <div className="form-group">
-                    <label className="form-label">Exit Reason Type <span className="text-red-500">*</span></label>
+                    <label className="form-label">Exit Reason Type</label>
                     <select
                       name="exitReasonType"
                       className="form-input"
                       value={formData.exitReasonType}
                       onChange={handleChange}
-                      required
                     >
                       <option value="">Select Reason Type</option>
                       <option value="Company Termination">Company Termination</option>
@@ -1101,31 +1069,25 @@ const WorkerManagement = () => {
                   </div>
 
                   <div className="form-group md:col-span-3">
-                    <label className="form-label">Exit Reason Description <span className="text-red-500">*</span></label>
+                    <label className="form-label">Exit Reason Description</label>
                     <textarea
                       name="exitReasonDescription"
                       className="form-input min-h-[80px]"
                       value={formData.exitReasonDescription}
                       onChange={handleChange}
                       placeholder="Describe the reason for exit in detail..."
-                      required
                     />
                   </div>
 
                   <div className="form-group">
-                    <label className="form-label">Date of Exit <span className="text-red-500">*</span></label>
+                    <label className="form-label">Date of Exit</label>
                     <input
                       type="date"
                       name="dateOfExit"
-                      className={`form-input ${!formData.exitReasonType ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      className={`form-input`}
                       value={formData.dateOfExit}
                       onChange={handleChange}
-                      disabled={!formData.exitReasonType}
-                      required
                     />
-                    {!formData.exitReasonType && (
-                      <p className="text-xs text-amber-600 mt-1">Select Exit Reason Type first</p>
-                    )}
                   </div>
                 </>
               )}
@@ -1251,7 +1213,7 @@ const WorkerManagement = () => {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Passport Number {formData.workPassType ? '*' : ''}</label>
+                <label className="form-label">Passport Number</label>
                 <input
                   type="text"
                   name="passportNumber"
@@ -1259,7 +1221,6 @@ const WorkerManagement = () => {
                   value={formData.passportNumber}
                   onChange={handleChange}
                   placeholder="Enter passport number"
-                  required={!!formData.workPassType}
                 />
               </div>
 
@@ -1611,13 +1572,12 @@ const WorkerManagement = () => {
               {formData.resignationStatus === 'Resigned' && (
                 <>
                   <div className="form-group">
-                    <label className="form-label">Exit Reason Type <span className="text-red-500">*</span></label>
+                    <label className="form-label">Exit Reason Type</label>
                     <select
                       name="exitReasonType"
                       className="form-input"
                       value={formData.exitReasonType}
                       onChange={handleChange}
-                      required
                     >
                       <option value="">Select Reason Type</option>
                       <option value="Company Termination">Company Termination</option>
@@ -1626,14 +1586,13 @@ const WorkerManagement = () => {
                   </div>
 
                   <div className="form-group md:col-span-3">
-                    <label className="form-label">Exit Reason Description <span className="text-red-500">*</span></label>
+                    <label className="form-label">Exit Reason Description</label>
                     <textarea
                       name="exitReasonDescription"
                       className="form-input min-h-[80px]"
                       value={formData.exitReasonDescription}
                       onChange={handleChange}
                       placeholder="Describe the reason for exit in detail..."
-                      required
                     />
                   </div>
 
@@ -1762,14 +1721,13 @@ const WorkerManagement = () => {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Passport Number {formData.workPassType ? '*' : ''}</label>
+                <label className="form-label">Passport Number</label>
                 <input
                   type="text"
                   name="passportNumber"
                   className="form-input"
                   value={formData.passportNumber}
                   onChange={handleChange}
-                  required={!!formData.workPassType}
                 />
               </div>
 
