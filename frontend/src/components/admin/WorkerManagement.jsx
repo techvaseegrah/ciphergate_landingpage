@@ -483,16 +483,6 @@ const WorkerManagement = () => {
       return;
     }
 
-    if (!formData.employeeId) {
-      toast.error('Employee ID is required');
-      return;
-    }
-
-    if (!formData.contactNumber) {
-      toast.error('Contact Number is required');
-      return;
-    }
-
     if (formData.passExpiryDate) {
       const expiry = new Date(formData.passExpiryDate);
       const today = new Date();
@@ -587,7 +577,7 @@ const WorkerManagement = () => {
     e.preventDefault();
 
     // Validate mandatory inputs
-    if (!formData.name || !formData.username || !formData.employeeId || !formData.contactNumber || !formData.department) {
+    if (!formData.name || !formData.username || !formData.department) {
       toast.error('Please fill in all mandatory fields');
       return;
     }
@@ -943,7 +933,7 @@ const WorkerManagement = () => {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Employee ID *</label>
+                <label className="form-label">Employee ID (Optional)</label>
                 <div className="flex">
                   <input
                     type="text"
@@ -952,7 +942,6 @@ const WorkerManagement = () => {
                     value={formData.employeeId}
                     onChange={handleChange}
                     placeholder="Enter ID"
-                    required
                   />
                   <Button
                     type="button"
@@ -979,7 +968,7 @@ const WorkerManagement = () => {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Contact Number *</label>
+                <label className="form-label">Contact Number (Optional)</label>
                 <input
                   type="text"
                   name="contactNumber"
@@ -987,7 +976,6 @@ const WorkerManagement = () => {
                   value={formData.contactNumber}
                   onChange={handleChange}
                   placeholder="e.g. 81234567"
-                  required
                 />
               </div>
 
@@ -1181,7 +1169,7 @@ const WorkerManagement = () => {
               <div className="form-group">
                 <label className="form-label">Salary *</label>
                 <input
-                  type="number"
+                  type="text"
                   name="salary"
                   className="form-input"
                   value={formData.salary}
@@ -1484,7 +1472,7 @@ const WorkerManagement = () => {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Employee ID *</label>
+                <label className="form-label">Employee ID (Optional)</label>
                 <input
                   type="text"
                   name="employeeId"
@@ -1492,7 +1480,6 @@ const WorkerManagement = () => {
                   value={formData.employeeId}
                   onChange={handleChange}
                   placeholder="Enter ID"
-                  required
                 />
               </div>
 
@@ -1510,14 +1497,13 @@ const WorkerManagement = () => {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Contact Number *</label>
+                <label className="form-label">Contact Number (Optional)</label>
                 <input
                   type="text"
                   name="contactNumber"
                   className="form-input"
                   value={formData.contactNumber}
                   onChange={handleChange}
-                  required
                 />
               </div>
 

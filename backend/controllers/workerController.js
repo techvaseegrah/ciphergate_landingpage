@@ -100,11 +100,6 @@ const createWorker = asyncHandler(async (req, res) => {
       throw new Error('Department is required');
     }
 
-    if (!contactNumber) {
-      res.status(400);
-      throw new Error('Contact number is required');
-    }
-
     // Validate exit workflow fields when resigned
     const finalResignationStatus = resignationStatus || 'Active';
     if (finalResignationStatus === 'Resigned') {
@@ -434,14 +429,16 @@ const updateWorker = asyncHandler(async (req, res) => {
       updateData.username = username;
     }
 
-    if (employeeId) {
-      const idExists = await Worker.findOne({
-        employeeId,
-        _id: { $ne: req.params.id }
-      });
-      if (idExists) {
-        res.status(400);
-        throw new Error('Employee ID already exists');
+    if (employeeId !== undefined) {
+      if (employeeId) {
+        const idExists = await Worker.findOne({
+          employeeId,
+          _id: { $ne: req.params.id }
+        });
+        if (idExists) {
+          res.status(400);
+          throw new Error('Employee ID already exists');
+        }
       }
       updateData.employeeId = employeeId;
     }

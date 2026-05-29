@@ -36,21 +36,21 @@ const workerSchema = mongoose.Schema({
   employeeId: {
     type: String,
     unique: true,
-    sparse: true
+    sparse: true,
+    set: v => v === '' ? null : v
   },
   pinNumber: {
     type: String
   },
   contactNumber: {
-    type: String,
-    required: [true, 'Please add a contact number']
+    type: String
   },
   email: {
     type: String
   },
   gender: {
     type: String,
-    enum: ['Male', 'Female', 'Other']
+    enum: ['', 'Male', 'Female', 'Other']
   },
   dob: {
     type: Date
@@ -93,7 +93,7 @@ const workerSchema = mongoose.Schema({
   // Work Pass Details
   workPassType: {
     type: String,
-    enum: ['Work Permit', 'S Pass', 'E Pass', 'TEP']
+    enum: ['', 'Work Permit', 'S Pass', 'E Pass', 'TEP']
   },
   passportNumber: {
     type: String
