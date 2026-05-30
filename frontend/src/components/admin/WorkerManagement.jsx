@@ -568,6 +568,11 @@ const WorkerManagement = () => {
       return;
     }
 
+    if (!formData.rfid) {
+      toast.error('Unique RFID ID is required');
+      return;
+    }
+
     if (formData.passExpiryDate) {
       const expiry = new Date(formData.passExpiryDate);
       const today = new Date();
@@ -1701,9 +1706,11 @@ const WorkerManagement = () => {
                 <input
                   type="text"
                   name="rfid"
-                  className="form-input bg-gray-50"
+                  className="form-input"
                   value={formData.rfid}
-                  readOnly
+                  onChange={handleChange}
+                  placeholder="Enter unique RFID ID"
+                  required
                 />
               </div>
 

@@ -51,35 +51,34 @@ const InstallPWA = () => {
     }
 
     return (
-        <div className="mobile-install-banner transition-all duration-300">
-            <div className="banner-content">
-                {/* Left side: Icon and Brand Name */}
-                <div className="left-group">
-                    <Download className="w-5 h-5 text-black" />
-                    <span className="brand-name">
-                        CIPHERGATE
-                    </span>
-                </div>
+        <div className="pwa-install-popup">
+            {/* Close button */}
+            <button className="pwa-close-btn" onClick={onDismiss} aria-label="Close">
+                <X size={14} />
+            </button>
 
-                {/* Right side: Later and Install button */}
-                <div className="right-group">
-                    <span 
-                        onClick={onDismiss}
-                        className="later-link"
-                    >
-                        LATER
-                    </span>
-                    <button 
-                        onClick={onClick}
-                        className="install-btn"
-                    >
-                        INSTALL
-                    </button>
+            {/* Top row: logo + title */}
+            <div className="pwa-header">
+                <div className="pwa-logo-wrap">
+                    <img
+                        src="/pwa-icon-192.png"
+                        alt="CipherGate"
+                        className="pwa-logo-img"
+                    />
+                </div>
+                <div className="pwa-title-block">
+                    <span className="pwa-title">Install CipherGate</span>
+                    <span className="pwa-subtitle">Don't miss important updates.</span>
                 </div>
             </div>
+
+            {/* Install button */}
+            <button className="pwa-install-btn" onClick={onClick}>
+                <Download size={16} />
+                Install Application
+            </button>
         </div>
     );
 };
 
 export default InstallPWA;
-

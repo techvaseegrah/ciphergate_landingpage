@@ -179,9 +179,9 @@ const createWorker = asyncHandler(async (req, res) => {
       gender,
       dob,
       dateOfJoining,
-      dateOfExit: finalResignationStatus === 'Resigned' ? dateOfExit : undefined,
+      dateOfExit: (finalResignationStatus === 'Resigned' && dateOfExit) ? dateOfExit : undefined,
       resignationStatus: finalResignationStatus,
-      exitReasonType: finalResignationStatus === 'Resigned' ? exitReasonType : undefined,
+      exitReasonType: (finalResignationStatus === 'Resigned' && exitReasonType) ? exitReasonType : undefined,
       exitReasonDescription: finalResignationStatus === 'Resigned' ? exitReasonDescription : '',
       workPassType,
       passportNumber,
@@ -377,7 +377,7 @@ const updateWorker = asyncHandler(async (req, res) => {
       exitReasonType, exitReasonDescription,
       workPassType, passportNumber, nationality, passExpiryDate,
       address, emergencyContactNumber, emergencyContactName, relationship,
-      bankAccountNumber, qualification, leaveOverrides
+      bankAccountNumber, qualification, leaveOverrides, rfid
     } = req.body;
 
     const updateData = {};
@@ -415,6 +415,22 @@ const updateWorker = asyncHandler(async (req, res) => {
       updateData.username = username;
     }
 
+    if (rfid !== undefined) {
+      if (!rfid) {
+        res.status(400);
+        throw new Error('Unique RFID ID is required');
+      }
+      const rfidExists = await Worker.findOne({
+        rfid,
+        _id: { $ne: req.params.id }
+      });
+      if (rfidExists) {
+        res.status(400);
+        throw new Error('Unique RFID ID already exists');
+      }
+      updateData.rfid = rfid;
+    }
+
     if (employeeId !== undefined) {
       if (employeeId === '') {
         updateData.$unset = updateData.$unset || {};
@@ -443,8 +459,6 @@ const updateWorker = asyncHandler(async (req, res) => {
     if (gender !== undefined) updateData.gender = gender;
     if (dob !== undefined) updateData.dob = dob;
     if (dateOfJoining !== undefined) updateData.dateOfJoining = dateOfJoining;
-    if (dateOfExit !== undefined) updateData.dateOfExit = dateOfExit;
-    if (resignationStatus !== undefined) updateData.resignationStatus = resignationStatus;
     if (workPassType !== undefined) updateData.workPassType = workPassType;
     if (passportNumber !== undefined) updateData.passportNumber = passportNumber;
     if (nationality !== undefined) updateData.nationality = nationality;
@@ -464,24 +478,51 @@ const updateWorker = asyncHandler(async (req, res) => {
         }
     }
 
-    // Handle exit workflow fields
     if (resignationStatus !== undefined) {
       updateData.resignationStatus = resignationStatus;
       if (resignationStatus === 'Resigned') {
         // Exit fields are now optional
-        updateData.exitReasonType = exitReasonType;
+        if (!exitReasonType) {
+          updateData.$unset = updateData.$unset || {};
+          updateData.$unset.exitReasonType = 1;
+        } else {
+          updateData.exitReasonType = exitReasonType;
+        }
+        
         updateData.exitReasonDescription = exitReasonDescription;
-        updateData.dateOfExit = dateOfExit;
+
+        if (!dateOfExit) {
+          updateData.$unset = updateData.$unset || {};
+          updateData.$unset.dateOfExit = 1;
+        } else {
+          updateData.dateOfExit = dateOfExit;
+        }
       } else {
         // Clear exit fields when returning to Active
-        updateData.exitReasonType = undefined;
+        updateData.$unset = updateData.$unset || {};
+        updateData.$unset.exitReasonType = 1;
+        updateData.$unset.dateOfExit = 1;
         updateData.exitReasonDescription = '';
-        updateData.dateOfExit = undefined;
       }
     } else {
       // resignationStatus not in payload — still update individual exit fields if provided
-      if (exitReasonType !== undefined) updateData.exitReasonType = exitReasonType;
+      if (exitReasonType !== undefined) {
+        if (!exitReasonType) {
+          updateData.$unset = updateData.$unset || {};
+          updateData.$unset.exitReasonType = 1;
+        } else {
+          updateData.exitReasonType = exitReasonType;
+        }
+      }
       if (exitReasonDescription !== undefined) updateData.exitReasonDescription = exitReasonDescription;
+      if (dateOfExit !== undefined) {
+        if (!dateOfExit) {
+          updateData.$unset = updateData.$unset || {};
+          updateData.$unset.dateOfExit = 1;
+        } else {
+          updateData.dateOfExit = dateOfExit;
+        }
+      }
     }
 
     // Handle ID proof upload

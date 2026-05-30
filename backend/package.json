@@ -5,6 +5,7 @@
     "description": "Task Tracker API",
     "main": "server.js",
     "scripts": {
+        "prestart": "node kill-port.js",
         "start": "nodemon server.js",
         "dev": "nodemon server.js",
         "migrate:holidays": "node migrations/updateHolidaysForEmployeeSpecific.js"
