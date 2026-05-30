@@ -255,7 +255,10 @@ const AdminLayout = () => {
           <div className="pointer-events-auto">
             {user?.accountType === 'premium' ? (
               <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2 bg-white/80 backdrop-blur-md px-4 py-2 rounded-full border border-amber-200 shadow-sm">
+                <div 
+                  onClick={() => setShowPricingModal(true)}
+                  className="flex items-center gap-2 bg-white/80 backdrop-blur-md px-4 py-2 rounded-full border border-amber-200 shadow-sm cursor-pointer hover:border-amber-300 transition-all"
+                >
                   <span className="w-2 h-2 bg-amber-400 rounded-full animate-pulse"></span>
                   <span className="text-[11px] font-bold text-amber-900 font-poppins">Premium Plan</span>
                 </div>

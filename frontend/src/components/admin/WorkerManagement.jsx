@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useLocation } from 'react-router-dom'; // Added useLocation import
 import { toast } from 'react-toastify';
-import { FaPlus, FaEdit, FaTrash, FaCamera, FaEye, FaEyeSlash, FaDownload } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash, FaCamera, FaEye, FaEyeSlash, FaDownload, FaBuilding } from 'react-icons/fa';
 import { getWorkers, createWorker, updateWorker, deleteWorker, getUniqueId } from '../../services/workerService';
 import { getDepartments } from '../../services/departmentService';
 import { getSettings } from '../../services/settingsService';
@@ -790,7 +790,7 @@ const WorkerManagement = () => {
           <Spinner size="lg" />
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="bg-white rounded-[16px] shadow-[0_8px_30px_rgb(0,0,0,0.02)] border border-slate-100 overflow-hidden">
           {filteredWorkers.length === 0 ? (
             <div className="text-center py-12 bg-white rounded-3xl border border-gray-100 shadow-sm">
               <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -802,74 +802,108 @@ const WorkerManagement = () => {
               <p className="text-sm text-slate-500 mt-1">Try adjusting your filters or search term</p>
             </div>
           ) : (
-            filteredWorkers.map(worker => {
-              // Calculate status classes
-              const isActive = !worker.resignationStatus || worker.resignationStatus === 'Active';
-              const statusBg = isActive ? 'bg-emerald-50' : 'bg-gray-100';
-              const statusText = isActive ? 'text-emerald-700' : 'text-gray-600';
-              const statusDot = isActive ? 'bg-emerald-500' : 'bg-gray-400';
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-100 text-[12px] font-bold text-slate-700 bg-slate-50/50 uppercase tracking-wider">
+                    <th className="py-4 px-6 font-semibold">Name</th>
+                    <th className="py-4 px-6 font-semibold">Username</th>
+                    <th className="py-4 px-6 font-semibold">Department</th>
+                    <th className="py-4 px-6 font-semibold">RFID</th>
+                    <th className="py-4 px-6 font-semibold">Face Enroll</th>
+                    <th className="py-4 px-6 font-semibold">Status</th>
+                    <th className="py-4 px-6 font-semibold text-right pr-12">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {filteredWorkers.map(worker => {
+                    const isActive = !worker.resignationStatus || worker.resignationStatus === 'Active';
+                    const statusBg = isActive ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-gray-50 text-gray-600 border border-gray-200';
+                    const statusDot = isActive ? 'bg-emerald-500' : 'bg-gray-400';
+                    const faceCaptured = worker.faceEmbeddings && worker.faceEmbeddings.length > 0;
 
-              return (
-                <div 
-                  key={worker._id}
-                  className="bg-white rounded-[16px] p-4 shadow-[0_5_15_rgba(0,0,0,0.02)] transition-all cursor-pointer group"
-                  onClick={() => openViewModal(worker)}
-                >
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="relative">
-                        <img 
-                          src={worker.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(worker.name)}&background=f9fafb&color=0f172a`}
-                          alt={worker.name}
-                          className="w-12 h-12 rounded-xl object-cover shadow-sm"
-                        />
-                        <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full ring-2 ring-white ${statusDot}`}></div>
-                      </div>
-                      <div>
-                        <h3 className="text-[14px] font-semibold text-slate-900">{worker.name}</h3>
-                        <p className="text-[11px] font-normal text-slate-400 mt-0.5">ID: {worker.employeeId || 'N/A'}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center">
-                      <div className={`px-2.5 py-1 rounded-full text-[11px] font-medium ${statusBg} ${statusText}`}>
-                        {worker.resignationStatus || 'Active'}
-                      </div>
-                    </div>
-                  </div>
+                    return (
+                      <tr 
+                        key={worker._id}
+                        className="hover:bg-slate-50/40 transition-colors cursor-pointer group"
+                        onClick={() => openViewModal(worker)}
+                      >
+                        {/* Name column */}
+                        <td className="py-3.5 px-6">
+                          <div className="flex items-center gap-3">
+                            <div className="relative flex-shrink-0">
+                              <img 
+                                src={worker.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(worker.name)}&background=f9fafb&color=0f172a`}
+                                alt={worker.name}
+                                className="w-9 h-9 rounded-full object-cover shadow-sm border border-slate-100"
+                              />
+                              <div className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full ring-2 ring-white ${statusDot}`}></div>
+                            </div>
+                            <div>
+                              <span className="text-[14px] font-bold text-slate-800 group-hover:text-blue-600 transition-colors block">{worker.name}</span>
+                              <span className="text-[11px] font-normal text-slate-400 mt-0.5 block">ID: {worker.employeeId || 'N/A'}</span>
+                            </div>
+                          </div>
+                        </td>
 
-                  <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-50">
-                    <div className="flex flex-col gap-1.5">
-                      <span className="text-[12px] font-normal text-slate-500 truncate max-w-[180px] leading-none">
-                        {worker.department?.name || worker.department || 'No Department'}
-                      </span>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[11px] font-medium text-slate-400 bg-slate-50 px-2 py-0.5 rounded-lg">
-                          {worker.workPassType || 'No Pass'}
-                        </span>
-                        {worker.passExpiryDate && (
-                          <span className={`text-[11px] font-medium ${getExpiryStatus(worker.passExpiryDate).color === 'red' ? 'text-rose-500' : getExpiryStatus(worker.passExpiryDate).color === 'amber' ? 'text-amber-500' : 'text-slate-400'}`}>
-                            Exp: {new Date(worker.passExpiryDate).toLocaleDateString(undefined, {month: 'short', year: '2-digit'})}
+                        {/* Username column */}
+                        <td className="py-3.5 px-6 text-[13px] font-medium text-slate-600">
+                          {worker.username || 'N/A'}
+                        </td>
+
+                        {/* Department column */}
+                        <td className="py-3.5 px-6">
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 border border-slate-100 rounded-lg text-slate-600 text-xs font-semibold">
+                            <FaBuilding className="text-slate-400 text-[10px]" />
+                            {worker.department?.name || worker.department || 'No Department'}
                           </span>
-                        )}
-                      </div>
-                    </div>
-                    
-                    {/* Action Buttons - 44px Tap Target compliant */}
-                    <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-                      <button onClick={(e) => { e.stopPropagation(); openEditModal(worker); }} className="w-11 h-11 flex items-center justify-center text-slate-400 hover:text-slate-900 transition-colors" title="Edit">
-                        <FaEdit size={16} />
-                      </button>
-                      <button onClick={(e) => { e.stopPropagation(); openFaceCaptureModal(worker); }} className="w-11 h-11 flex items-center justify-center text-slate-400 hover:text-emerald-600 transition-colors" title="Face Capture">
-                        <FaCamera size={16} />
-                      </button>
-                      <button onClick={(e) => { e.stopPropagation(); openDeleteModal(worker); }} className="w-11 h-11 flex items-center justify-center text-slate-400 hover:text-rose-600 transition-colors" title="Delete">
-                        <FaTrash size={16} />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              );
-            })
+                        </td>
+
+                        {/* RFID column */}
+                        <td className="py-3.5 px-6 text-[13px] font-medium text-slate-500 font-mono">
+                          {worker.rfid || 'N/A'}
+                        </td>
+
+                        {/* Face Enroll column */}
+                        <td className="py-3.5 px-6">
+                          {faceCaptured ? (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100">
+                              Captured
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                              Not Captured
+                            </span>
+                          )}
+                        </td>
+
+                        {/* Status column */}
+                        <td className="py-3.5 px-6">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${statusBg}`}>
+                            {worker.resignationStatus || 'Active'}
+                          </span>
+                        </td>
+
+                        {/* Actions column */}
+                        <td className="py-3.5 px-6 text-right pr-10" onClick={(e) => e.stopPropagation()}>
+                          <div className="flex items-center justify-end gap-0.5">
+                            <button onClick={(e) => { e.stopPropagation(); openEditModal(worker); }} className="w-11 h-11 flex items-center justify-center text-slate-400 hover:text-slate-900 transition-colors" title="Edit">
+                              <FaEdit size={16} />
+                            </button>
+                            <button onClick={(e) => { e.stopPropagation(); openFaceCaptureModal(worker); }} className="w-11 h-11 flex items-center justify-center text-slate-400 hover:text-emerald-600 transition-colors" title="Face Capture">
+                              <FaCamera size={16} />
+                            </button>
+                            <button onClick={(e) => { e.stopPropagation(); openDeleteModal(worker); }} className="w-11 h-11 flex items-center justify-center text-slate-400 hover:text-rose-600 transition-colors" title="Delete">
+                              <FaTrash size={16} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
       )}

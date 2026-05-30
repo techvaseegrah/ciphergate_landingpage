@@ -181,6 +181,20 @@ const AdminLogin = () => {
                 <span className="font-medium">Back to Home</span>
             </motion.button>
 
+            {/* Employee Login Button */}
+            <motion.button
+                onClick={() => navigate('/worker/login')}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.3 }}
+                className="absolute top-6 right-6 flex items-center gap-2 text-gray-600 hover:text-[#111111] transition-colors group"
+            >
+                <span className="font-medium">Employee Login</span>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 group-hover:translate-x-1 transition-transform" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+            </motion.button>
+
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -443,10 +457,11 @@ const AdminLogin = () => {
                 )}
 
                 {/* Back to Login Link */}
-                <div className="flex justify-between items-center mt-6">
+                <div className="flex justify-between items-baseline w-full mt-6">
                     <button
+                        type="button"
                         onClick={() => setIsForgotPasswordFlow(prev => !prev)}
-                        className="text-[#111111] hover:text-black text-sm font-medium transition-colors"
+                        className="text-[#111111] hover:text-black text-sm font-medium transition-colors focus:outline-none bg-transparent border-none p-0"
                     >
                         {isForgotPasswordFlow ? 'Back to Login' : 'Forgot password?'}
                     </button>

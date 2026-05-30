@@ -59,10 +59,10 @@ export const usePayment = () => {
             const currencySymbol = settings?.localization?.currencySymbol || '$';
 
             // Create a one-time order with the current settings
-            const order = await createOrder({ 
-                amount, 
-                currency, 
-                planType 
+            const order = await createOrder({
+                amount,
+                currency,
+                planType
             });
 
             const options = {
