@@ -521,10 +521,10 @@ const AttendanceManagement = () => {
                                 headerAlign: 'text-left',
                                 align: 'text-left'
                             }))}
-                            data={processedAttendance}
+                                                    data={processedAttendance}
                             loading={isLoading}
                             noDataMessage="No attendance records found"
-                            striped={false}
+                            striped={true}
                             hover={true}
                         />
                     </div>

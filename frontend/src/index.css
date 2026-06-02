@@ -2080,6 +2080,51 @@ html {
   transform: scale(0.97);
 }
 
+/* Mobile responsive styles for PWA prompt */
+@media (max-width: 500px) {
+  .pwa-install-popup {
+    bottom: 16px;
+    right: 16px;
+    left: 16px;
+    width: auto;
+    max-width: none;
+    padding: 12px;
+    gap: 8px;
+    border-radius: 12px;
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+  }
+  .pwa-header {
+    gap: 10px;
+  }
+  .pwa-logo-wrap {
+    width: 34px;
+    height: 34px;
+    border-radius: 6px;
+  }
+  .pwa-title {
+    font-size: 13px;
+  }
+  .pwa-subtitle {
+    font-size: 11px;
+  }
+  .pwa-install-btn {
+    padding: 8px 12px;
+    font-size: 12.5px;
+    min-height: 38px;
+    border-radius: 6px;
+  }
+  .pwa-close-btn {
+    top: 8px;
+    right: 8px;
+    width: 22px !important;
+    height: 22px !important;
+    min-height: unset !important;
+    min-width: unset !important;
+    padding: 0 !important;
+  }
+}
+
 .logo-container {
   display: flex;
   align-items: center; /* This aligns icon and text vertically in the center */
